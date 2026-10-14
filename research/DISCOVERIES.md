@@ -32,7 +32,8 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
   Mitchell max 7 (0.064), bilinear max 1, B-spline max 1. Kernels with negative lobes overshoot
   at hard edges; the intermediate clips the overshoot, the second pass then spreads the
   clipped value. Non-negative kernels (bilinear, B-spline) only suffer rounding. Measured.
-  Fix inside WinIMerge: convert to `FIT_RGBAF` (`FreeImage_ConvertToRGBAF`), rescale, round once.
+  The way around it: convert to `FIT_RGBAF` (`FreeImage_ConvertToRGBAF`), rescale, round once
+  (WinIMerge's first version did; it no longer does, see the next point).
 - **…but for comparing images the clipping does not matter, and the float path is expensive.**
   Lanczos3 enlargement on the 8-bit and the float path gave the same median thresholds (T_p99 differs
   by 0.02 on average, at most ±9, over 840 pairs) and the same edit visibility (79.7 % vs 80.1 %),
@@ -111,9 +112,12 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
   (1008 edited synthetic pairs). The hardest edit is a faint recolour (+18/−6/−18 RGB): 89 % vs 54 %. Knowing the true resampler
   would only add one point (99 %).
   Measured.
-- **An unsharp mask after Lanczos3 helps a little and hurts a little**: 2–4 % lower threshold and 82 %
-  instead of 80 % of edits visible, but more blocks marked at low thresholds with JPEG copies (it
-  sharpens the JPEG noise). Measured (σ 0.75 and 1.0 px at 50 %; full grid in the `usm` run).
+- **An unsharp mask after Lanczos3 helps a little and hurts a little.** Full grid (σ 0.5–1.5 px ×
+  25–100 %, 420 pairs per setting): the threshold needed changes by −1.8 % (σ 0.5, 75–100 %) to +20 %
+  (σ 1.5, 100 %); radius 1 px at 50 % (the brief's candidate) changes it by 0 %. Every setting finds
+  1–3 points more edits (89 % → 91–92 %), and every setting marks more blocks on JPEG copies (up to +4
+  points at threshold 16): it sharpens the JPEG noise and adds halos, which are differences too.
+  Measured.
 - **Real-pair spot check** (lion photo, copy made with Pillow bicubic at 1/2, PNG): every enlarger marks
   98 % of blocks at threshold 16; shrinking the original with FreeImage Catmull-Rom marks 0.0 % (PSNR
   56 dB), because Pillow's BICUBIC is Catmull-Rom (Keys a = −0.5) with the same antialiasing as

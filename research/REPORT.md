@@ -44,9 +44,10 @@ tools that predict what a person sees when flipping.
   with stronger differences, finds fewer edits, and cannot be used below 2× or without a border at
   factors like 2.5×. It is the right view for pixel art (where it beats Lanczos3) and for looking at the
   copy's own pixels, so it is in the PR as requested.
-- **Lanczos3 + unsharp mask: not worth implementing.** Lanczos3 on FreeImage's float path is the best
-  common enlarger; an unsharp mask (σ 0.5–1.5 px, 25–100 %) improves it by a few percent and sharpens
-  JPEG noise with it. The enlargement mode in the PR is plain Lanczos3.
+- **Lanczos3 + unsharp mask: not worth implementing.** Lanczos3 is the best common enlarger (FreeImage's
+  8-bit and float paths measure the same). An unsharp mask (σ 0.5–1.5 px, 25–100 %) changes the
+  threshold needed by −2 % to +20 % depending on strength, finds 1–3 points more edits, and sharpens
+  JPEG noise with them. The enlargement mode in the PR is plain Lanczos3.
 - **Implemented** as separate PRs in your forks: image alignment (nine anchors, including centre) and
   size matching (the three modes), each a library commit plus a small UI commit, with matching WinMerge
   menu PRs. The setting lives behind one API call, so the maintainer can put it wherever he wants.
@@ -97,11 +98,11 @@ Enlarging the small copy to the original's size (FreeImage, the library WinMerge
 
 | Candidate | Description |
 |---|---|
-| `nn_int_center` / `nn_int_topleft` | NN by the largest whole-number factor (the requested feature), centred or top-left; the rest of the canvas is "missing" and counts as different, as in WinMerge |
+| `nn_int_center` / `nn_int_topleft` | NN by the largest whole-number factor (the requested feature, **WinIMerge's `IMAGE_SCALING_UP_NEAREST_INTEGER`**), centred or top-left; the rest of the canvas is "missing" and counts as different, as in WinMerge |
 | `nn` | NN to the exact size (uneven pixel widths at non-integer factors) |
 | `sharp_bilinear` | NN by the whole-number factor, then bilinear to the exact size (CSS `image-rendering: pixelated` style) |
 | `fi_bilinear`, `fi_bspline`, `fi_mitchell` | FreeImage filters |
-| `fi_catmullrom`, `fi_lanczos3` | FreeImage, 8-bit intermediate (clips overshoot) |
+| `fi_catmullrom`, `fi_lanczos3` | FreeImage, 8-bit intermediate (clips overshoot); `fi_lanczos3` is **WinIMerge's `IMAGE_SCALING_UP_SMOOTH`** |
 | `fi_catmullrom_f`, `fi_lanczos3_f` | the same in float (`FreeImage_ConvertToRGBAF` first) |
 | `ref_lanczos2_f`, `ref_lanczos4_f` | float reference implementation |
 | `l3f_usm_rR_aA`, `crf_usm_…` | Lanczos3/Catmull-Rom float + unsharp mask, σ R ∈ {0.5, 0.75, 1, 1.5} px, amount A ∈ {25, 50, 75, 100} %, threshold 0 |
@@ -254,7 +255,7 @@ Over all factors and both codecs (synthetic), median T_p99 and mean rank among t
 |---|---|---|---|---|
 | Lanczos4 (float) | 191 | 198 | 4.4 | 38.3 % |
 | Lanczos3 + USM σ0.75 50 % | 190 | 194 | 4.5 | 37.9 % |
-| **Lanczos3 (float)** | **195** | **199** | **4.6** | **37.6 %** |
+| **Lanczos3 (WinIMerge UP_SMOOTH; 8-bit and float the same)** | **195** | **199** | **4.6** | **37.6 %** |
 | Lanczos3 + USM σ1.0 50 % | 188 | 196 | 4.9 | 38.2 % |
 | Lanczos2 (float) | 206 | 209 | 5.5 | 37.7 % |
 | Catmull-Rom (float) | 208 | 210 | 5.6 | 37.5 % |
@@ -269,7 +270,7 @@ Over all factors and both codecs (synthetic), median T_p99 and mean rank among t
 - **Unsharp mask after Lanczos3 lowers the needed threshold by 2–4 %** (PNG and JPEG copies alike)
   **but marks more blocks at T = 16 with JPEG copies** (43.5–44.1 % instead of 41.9 %), because it
   sharpens the JPEG noise and the ringing along with the edges.
-  The full grid (σ 0.5–1.5 px × 25–100 %) is in section 4.5 once that run completes. Not worth a mode.
+  The full grid (σ 0.5–1.5 px × 25–100 %) is in section 4.9. Not worth a mode.
 - Nearest neighbour to the exact size is the worst by threshold, though it marks the fewest blocks at
   T = 16 for the reason given in 4.1.
 
@@ -353,6 +354,33 @@ Pillow Lanczos and area × factors 2, 2.5, 3), copy saved as JPEG q85 4:2:0, dec
 The decoder's default is slightly better (2 levels, 3–5 points of blocks at threshold 16) and the
 difference is far smaller than the JPEG noise itself. FreeImage's JPEG plug-in uses libjpeg's default.
 
+### 4.9 The unsharp-mask sweep
+
+Lanczos3 (float) followed by an unsharp mask, radius σ 0.5–1.5 px × amount 25–100 %, threshold 0, on 7
+synthetic images × 2 shrinkers × factors 1.5, 2, 3 × PNG and JPEG q85, unedited and with four edits
+(small text, a thin line, the 3-px dot, a moved region): 420 pairs per setting. Change against plain
+Lanczos3:
+
+Threshold needed (T_p99, PNG copies), % change (negative = better):
+
+| σ \ amount | 25 % | 50 % | 75 % | 100 % |
+|---|---|---|---|---|
+| 0.5 px | −0.9 | −0.9 | −1.8 | −1.8 |
+| 0.75 px | −0.9 | −1.6 | −0.4 | +1.8 |
+| 1.0 px | −1.6 | 0.0 | +4.0 | +9.3 |
+| 1.5 px | −0.4 | +5.3 | +14.2 | +20.0 |
+
+Blocks marked at threshold 16 with JPEG q85 copies, change in percentage points: +0.0 (σ 0.5, 25 %) to
++3.9 (σ 1.5, 100 %); +1.0 at σ 1.0, 50 %. Edits still visible (at the 1 % threshold): 89 % without
+sharpening, 91–92 % with any of the settings (+1.2 to +2.7 points, not growing with strength).
+
+So the brief's candidate (radius 1 px, 40–60 %, threshold 0) leaves the threshold where it was, finds
+2.7 points more edits, and marks 1 point more blocks on JPEG copies. The best settings by threshold
+(σ 0.5 px, 75–100 %) gain under 2 %. Strong sharpening (σ ≥ 1 px with ≥ 75 %) makes things clearly
+worse (+4 to +20 %), because the halos it adds are differences too. Catmull-Rom behaves the same way
+(203 vs 205 with σ 1.0 px, 50 %). Next to comparing at the smaller size (threshold 2–5, 98 % of edits
+visible), none of this matters, so WinIMerge's enlargement mode stays plain Lanczos3.
+
 <!-- RESULTS-MORE -->
 
 
@@ -383,9 +411,10 @@ detail is not in the copy, so no filter can bring it back, and an enlarged compa
 clean.
 
 **Lanczos3 + unsharp mask.** Sharpening moves the enlarged copy towards the original's edge contrast:
-the threshold needed drops by 2–4 % and slightly more edits stay visible (82 % instead of 80 %). But it
-also sharpens ringing and JPEG noise (more blocks marked at low thresholds with JPEG copies), and it
-stays far behind comparing at the smaller size (98 %). Not worth a mode of its own (section 4.3–4.4).
+at the best settings the threshold needed drops by up to 2–4 % and slightly more edits stay visible
+(1–3 points). But stronger settings add halos that are differences too (up to +20 %), every setting
+sharpens the JPEG noise, and all of it stays far behind comparing at the smaller size (98 % of edits).
+Not worth a mode of its own (sections 4.3, 4.4, 4.9).
 
 **The honest comparison is at the smaller size.** Shrink the original the way the copy was made.
 Then both images went through the same resampling, and what remains is what really differs: edits
@@ -407,8 +436,9 @@ For the WinIMerge/WinMerge feature (implemented in the PR branches, see `notes/u
    Number (Nearest Neighbor)** for pixel art and for inspecting the copy, and **Enlarge to Largest
    (Lanczos)** for viewing a small copy next to the original at the same size. Keep **None** as the
    default (today's behaviour).
-2. Match the filter on FreeImage's 8-bit path (what Pillow and most libraries do), choose by the
-   lowest mean absolute difference, and enlarge on the float path (no clipped overshoot).
+2. Match the filter on FreeImage's 8-bit path (what Pillow and most libraries do), with exact area
+   averaging as an extra candidate, and choose by the lowest mean absolute difference. Enlarge on the
+   8-bit path too: the float path (no clipped overshoot) measured the same and costs 2.4× the time.
 3. No unsharp-mask option.
 4. Image alignment **Center** is the useful companion when sizes still differ (crops, letterboxing,
    or a factor where whole-number NN leaves a border).
@@ -440,15 +470,15 @@ WinIMerge's matched shrink does automatically. Not measured for video in this st
 display Windows stretches it with smoothing and one image pixel covers 2×2 device pixels; fine
 differences are then attenuated. ꟻLIP was run at 96 pixels per degree (BenQ RD280U at 85 cm, 1:1
 pixels) and 48 (2× stretch or zoom); the HP 23xw (≈53–59) and the Packard Bell Maestro 226DX (≈55–62)
-fall between. How the candidates compare at the two densities is in section 4.6.
+fall between. How the candidates compare at the two densities is in section 4.10.
 
 ## 8. The WinIMerge implementation in brief
 
 - Scaling happens in `CImgDiffBuffer::PreprocessImages()` (inside the temporary rotation/flip), so the
   comparison, overlays, blinking, insertion/deletion detection and the diff map see equal-size images
   without other changes; the originals are untouched and saving, undo and edits act on them.
-- Scaled images are cached (key: hash of the source and of the reference image, target size, mode),
-  because `CompareImages()` runs again on every option change.
+- Scaled images are cached (key: hash of the source image, target size, mode), because
+  `CompareImages()` runs again on every option change.
 - All resampling uses FreeImage's 8-bit path (Lanczos3 on the float path measured no better for
   comparison and cost 2.4× the time; `DISCOVERIES.md` §1). The matched shrink tries five FreeImage
   filters and an exact area-averaging resampler, picks by mean absolute difference, and keeps the pick
@@ -482,6 +512,11 @@ fall between. How the candidates compare at the two densities is in section 4.6.
 - Learned super-resolution (waifu2x, Real-ESRGAN) as an enlarger: it invents plausible detail, which is
   the opposite of what a diff needs.
 - A real manga page with screentone (no freely licensed one was reachable; the synthetic page stands in).
+- Copies made by bicubic with Keys a = −0.75 without a prefilter (OpenCV `INTER_CUBIC`), and GPU texture
+  sampling; `INTER_LINEAR` stands in for the unfiltered resizers.
+- Alpha channels, 16-bit and animated images, and colour management (ICC profiles).
+- Aligning a copy that was also cropped (that needs feature matching, which WinMerge does not have).
+- LPIPS and DISTS: not used, as the brief advised (they reward plausible texture over the right pixels).
 - Your own pairs: the harness runs on them offline (`harness/compare_pairs.py`, section 10).
 - The eye-check page was built and checked to work, but no person has looked through it yet; ꟻLIP,
   Butteraugli and SSIMULACRA2 stand in for the eye.
