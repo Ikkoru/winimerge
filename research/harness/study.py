@@ -72,6 +72,13 @@ UPSCALERS = {
     'ref_lanczos2_f': lambda S, W, H: (R.resize(S, W, H, 'lanczos2'), None),
     'ref_lanczos4_f': lambda S, W, H: (R.resize(S, W, H, 'lanczos4'), None),
 }
+def _linear(kernel):
+    # resample in linear light (sRGB decoded to linear, resampled in float, encoded back)
+    return lambda S, W, H: (R.linear_to_srgb(R.resize_float(R.srgb_to_linear(S), W, H, kernel)), None)
+
+
+UPSCALERS['lin_lanczos3_f'] = _linear('lanczos3')
+UPSCALERS['lin_catmullrom_f'] = _linear('catmullrom')
 BASE_L3F = UPSCALERS['fi_lanczos3_f']
 BASE_CRF = UPSCALERS['fi_catmullrom_f']
 USM_GRID = [(r, a) for r in (0.5, 0.75, 1.0, 1.5) for a in (0.25, 0.5, 0.75, 1.0)]
@@ -105,16 +112,44 @@ def down_strategies(L, S, true_shrinker):
         err = np.abs(D.astype(np.int16) - S.astype(np.int16)).mean()
         if best_err is None or err < best_err:
             best, best_err, best_k = D, err, k
-    out['down_fi_box8'] = fi.rescale(L, w, h, 'box')  # what IMAGE_SCALING_DOWN_SMOOTH does (8-bit box)
+    out['down_fi_box8'] = fi.rescale(L, w, h, 'box')  # FreeImage's 8-bit path (as fipImage::rescale)
+    for k in ('bilinear', 'bicubic', 'catmullrom', 'lanczos3'):
+        # 8-bit path: rounds/clamps between passes like Pillow does, so it mimics Pillow-made copies
+        out['down_fi_' + k + '8'] = fi.rescale(L, w, h, k)
     out['down_matched'] = best
-    return out, best_k
+    # the rule WinIMerge's IMAGE_SCALING_DOWN_MATCHED uses (ResizeImageMatching): FreeImage's 8-bit
+    # path, five kernels in this order, lowest mean absolute difference (first one wins a tie)
+    best8, best8_err, best8_k = None, None, None
+    for k in MATCH8:
+        D = out['down_fi_' + k + '8']
+        err = np.abs(D.astype(np.int16) - S.astype(np.int16)).mean()
+        if best8_err is None or err < best8_err:
+            best8, best8_err, best8_k = D, err, k
+    out['down_matched8'] = best8
+    return out, {'down_matched': best_k, 'down_matched8': best8_k}
+
+
+MATCH8 = ['box', 'bilinear', 'bicubic', 'catmullrom', 'lanczos3']
+DOWN_NAMES = ['down_area', 'down_oracle'] + ['down_fi_' + k for k in FI_DOWN] + ['down_fi_box8'] + \
+             ['down_fi_' + k + '8' for k in ('bilinear', 'bicubic', 'catmullrom', 'lanczos3')] + ['down_matched', 'down_matched8']
 
 # ------------------------------------------------------------------ codecs
+
+
+JPEGQS = os.environ.get('JPEGQS', '/tmp/claude-0/-home-user/c93e777e-edee-5658-827e-7ebd2f76571d/scratchpad/ext/jpeg-quantsmooth/jpegqs')
 
 
 def codec(img, name):
     if name == 'png':
         return img
+    if '_qs' in name:  # e.g. jpg85_qs6: JPEG q85 4:2:0, then restored with jpegQS -q 6
+        import subprocess, tempfile
+        base, qs = name.split('_qs')
+        with tempfile.TemporaryDirectory() as d:
+            src, dst = os.path.join(d, 'a.jpg'), os.path.join(d, 'b.jpg')
+            Image.fromarray(img).save(src, 'JPEG', quality=int(base[3:5]), subsampling=2)
+            subprocess.run([JPEGQS, '-q', qs, '-i', '0', '-t', '1', src, dst], check=True, capture_output=True)
+            return np.asarray(Image.open(dst).convert('RGB'))
     buf = io.BytesIO()
     pil = Image.fromarray(img)
     if name.startswith('jpg'):
@@ -146,6 +181,14 @@ EXPERIMENTS = {
     # unsharp-mask sweep
     'usm': dict(edits=['none', 'text_small', 'line', 'dot', 'move'], shrinkers=['area', 'pil_lanczos'],
                 factors=[1.5, 2, 3], codecs=['png', 'jpg85'], candidates=USM_SET, down=False, heavy=False),
+    # resampling in linear light instead of gamma-encoded sRGB
+    'linear': dict(edits=['none', 'text_small', 'line'], shrinkers=['pil_lanczos', 'lanczos_linear', 'area'], factors=[2, 2.5, 3],
+                   codecs=['png'], candidates=['fi_lanczos3_f', 'lin_lanczos3_f', 'fi_catmullrom_f', 'lin_catmullrom_f'],
+                   down=False, heavy=False),
+    # restoring the small JPEG with jpegQS before comparing
+    'jpegqs': dict(edits=['none', 'text_small', 'line'], shrinkers=['pil_lanczos', 'area'], factors=[2, 2.5, 3],
+                   codecs=['jpg85', 'jpg85_qs3', 'jpg85_qs6', 'jpg60', 'jpg60_qs3', 'jpg60_qs6'],
+                   candidates=['nn', 'fi_lanczos3_f', 'l3f_usm_r1.0_a0.5'], down=True, heavy=False),
     # perceptual metrics on a subset
     'heavy': dict(edits=['none'], shrinkers=['area', 'pil_lanczos'], factors=[2, 2.5, 3],
                   codecs=['png', 'jpg85'], candidates=HEAVY, down=True, heavy=True),
@@ -189,7 +232,8 @@ def _detection(bm0, bm1, eb, gb):
 
 
 def run_task(task):
-    path, edit, shrinker, factor, cod, cands, do_down, heavy = task
+    path, edit, shrinker, factor, cod, cands, do_down, heavy, *rest = task
+    skip = rest[0] if rest else frozenset()   # down rows already in the CSV (--down-only)
     name = os.path.splitext(os.path.basename(path))[0]
     t0 = time.time()
     L0 = _load(path)
@@ -231,7 +275,9 @@ def run_task(task):
         if edit != 'none':
             downs1, _ = down_strategies(L0, S1, shrinker)  # the original shrunk; compared with the edited copy
         for dname, D in downs0.items():
-            row = dict(base, candidate=dname, matched_kernel=k0 if dname == 'down_matched' else '')
+            if dname in skip:
+                continue
+            row = dict(base, candidate=dname, matched_kernel=k0.get(dname, ''))
             if edit == 'none':
                 out, _ = M.cheap_panel(D, S0, ssim=heavy)
                 row.update(out)
@@ -268,6 +314,8 @@ def main():
     ap.add_argument('--jobs', type=int, default=4)
     ap.add_argument('--only', default='', help='comma-separated image names to include')
     ap.add_argument('--tag', default='', help='suffix for the output CSV name')
+    ap.add_argument('--down-only', action='store_true',
+                    help='only add the compare-at-the-smaller-size rows missing from an existing CSV')
     for k in ('shrinkers', 'factors', 'codecs', 'edits', 'candidates'):
         ap.add_argument('--' + k, default='', help=f'comma-separated override of the experiment\'s {k}')
     args = ap.parse_args()
@@ -289,6 +337,8 @@ def main():
     out_csv = os.path.join(args.out, f'{args.exp}{"_" + args.tag if args.tag else ""}.csv')
     header = FIELDS_ORDER
     done = set()
+    if args.down_only and not (os.path.exists(out_csv) and os.path.getsize(out_csv) > 0):
+        raise SystemExit(f'--down-only needs an existing {out_csv}')
     if os.path.exists(out_csv) and os.path.getsize(out_csv) > 0:
         # resume: keep complete rows, drop a half-written last line, skip tasks already done
         with open(out_csv, newline='') as fh:
@@ -301,7 +351,21 @@ def main():
             counts[k] = counts.get(k, 0) + 1
         expected = len(EXPERIMENTS[args.exp]['candidates']) + (3 if EXPERIMENTS[args.exp]['down'] else 0)  # tasks run before the down_fi_* rows were added have 3 down rows
         done = {k for k, n in counts.items() if n >= expected}
-        body = [l for l in body if tuple(l[i] for i in key_idx) in done]
+        if args.down_only:
+            # keep every complete row; a task needs work when one of the down rows is missing
+            ci = header.index('candidate')
+            present = {}
+            for l in body:
+                present.setdefault(tuple(l[i] for i in key_idx), set()).add(l[ci])
+            norm0 = lambda k: (k[0], k[1], k[2], str(float(k[3])), k[4])
+            present = {norm0(k): frozenset(v) & frozenset(DOWN_NAMES) for k, v in present.items()}
+            def key0(t):
+                return (os.path.splitext(os.path.basename(t[0]))[0], t[1], t[2], str(float(t[3])), t[4])
+            tasks = [t[:5] + ([], True, t[7], present.get(key0(t), frozenset())) for t in tasks
+                     if key0(t) in present and not present[key0(t)] >= frozenset(DOWN_NAMES)]
+            done = set()
+        else:
+            body = [l for l in body if tuple(l[i] for i in key_idx) in done]
         with open(out_csv, 'w', newline='') as fh:
             w = csv.writer(fh)
             w.writerow(header)

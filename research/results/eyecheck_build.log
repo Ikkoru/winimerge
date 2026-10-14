@@ -1,0 +1,10 @@
+c00 {'image': 'synth_flatcolor', 'shrinker': 'area', 'factor': 2, 'codec': 'png', 'edit': 'none'}
+c01 {'image': 'synth_flatcolor', 'shrinker': 'pil_lanczos', 'factor': 2.5, 'codec': 'jpg85', 'edit': 'none'}
+c02 {'image': 'synth_lineart', 'shrinker': 'pil_lanczos', 'factor': 2.5, 'codec': 'png', 'edit': 'line'}
+c03 {'image': 'synth_manga', 'shrinker': 'vips', 'factor': 3, 'codec': 'jpg85', 'edit': 'text_small'}
+c04 {'image': 'real_peppercarrot_witches', 'shrinker': 'pil_lanczos', 'factor': 2.5, 'codec': 'jpg85', 'edit': 'none'}
+c05 {'image': 'real_peppercarrot_witches', 'shrinker': 'area', 'factor': 3, 'codec': 'png', 'edit': 'recolor'}
+c06 {'image': 'real_peppercarrot_cover', 'shrinker': 'vips', 'factor': 2, 'codec': 'jpg85', 'edit': 'text_small'}
+c07 {'image': 'real_hokusai_hodogaya', 'shrinker': 'pil_bicubic', 'factor': 1.5, 'codec': 'png', 'edit': 'move'}
+c08 {'image': 'real_lion_appel', 'shrinker': 'pil_lanczos', 'factor': 3, 'codec': 'jpg85', 'edit': 'smudge'}
+c09 {'image': 'real_kitty_screenshot', 'shrinker': 'pil_lanczos', 'factor': 2, 'codec': 'png', 'edit': 'dot'}

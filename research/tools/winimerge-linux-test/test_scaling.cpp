@@ -1,6 +1,7 @@
 // Unit tests for the image scaling option (CImgDiffBuffer::SetImageScalingMode).
 // Build/run: ./build.sh /home/user/winimerge test_scaling.cpp
 #include "testlib.hpp"
+#include <cmath>
 
 static const unsigned RED = 0xffff0000, BLUE = 0xff0000ff, WHITE = 0xffffffff, BLACK = 0xff000000;
 
@@ -18,9 +19,12 @@ class ScaleTestBuffer : public TestBuffer
 {
 public:
 	void CorruptCache(int pane) { m_scaledImage[pane].image.scanLine(0)[0] ^= 0xff; }
+	static Image Shrink(const Image& src, unsigned w, unsigned h, FREE_IMAGE_FILTER f) { Image out; ResizeImage(src, out, w, h, f, false); return out; }
 	double ScaleX(int pane) { double sx, sy; GetImageScale(pane, sx, sy); return sx; }
 	double ScaleY(int pane) { double sx, sy; GetImageScale(pane, sx, sy); return sy; }
 	unsigned PixelAt(int pane, int x, int y) { RGBQUAD c = GetPixelColor(pane, x, y); return (unsigned)c.rgbBlue | c.rgbGreen << 8 | c.rgbRed << 16 | (unsigned)c.rgbReserved << 24; }
+	unsigned OrigAt(int pane, int x, int y) { const unsigned char *p = m_imgOrig32[pane].scanLine(y) + x * 4; return (unsigned)p[0] | p[1] << 8 | p[2] << 16 | (unsigned)p[3] << 24; }
+	int CountOrig(int pane, unsigned c) { int n = 0; for (unsigned y = 0; y < m_imgOrig32[pane].height(); ++y) for (unsigned x = 0; x < m_imgOrig32[pane].width(); ++x) n += OrigAt(pane, x, y) == c; return n; }
 };
 
 static void TestDefaultUnchanged()
@@ -96,7 +100,7 @@ static void TestSmoothSnapsRoundedSizes()
 	int rx, ry;
 	CHECK(b.ConvertToRealPos(1, 399, 299, rx, ry)); CHECK_EQ(rx, 132); CHECK_EQ(ry, 99);
 	CHECK(b.ConvertToRealPos(1, 0, 0, rx, ry)); CHECK_EQ(rx, 0); CHECK_EQ(ry, 0);
-	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_DOWN_SMOOTH);
+	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_DOWN_MATCHED);
 	CHECK_EQ(b.PreW(0), 133); CHECK_EQ(b.PreH(0), 100);
 	CHECK_EQ(b.PreW(1), 133);
 	CHECK(b.ConvertToRealPos(0, 132, 99, rx, ry)); CHECK_EQ(rx, 398); CHECK_EQ(ry, 298);
@@ -106,7 +110,7 @@ static void TestSmoothSnapsRoundedSizes()
 	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_UP_SMOOTH);
 	b.CompareImages();
 	CHECK_EQ(b.PreW(1), 300); CHECK_EQ(b.PreH(1), 300);
-	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_DOWN_SMOOTH);
+	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_DOWN_MATCHED);
 	CHECK_EQ(b.PreW(0), 133); CHECK_EQ(b.PreH(0), 100);          // touches the 100x100 box in height
 }
 
@@ -192,6 +196,103 @@ static void TestRotationWithScaling()
 	CHECK(b.ConvertToRealPos(1, 199, 399, rx, ry)); CHECK_EQ(rx, 49); CHECK_EQ(ry, 99);
 }
 
+static Image Smooth(int w, int h)
+{
+	// smooth content with some edges, so that the filters give clearly different results
+	return MakeImage(w, h, [](int x, int y) {
+		const double v = 128 + 60 * std::sin(x * 0.05) * std::cos(y * 0.07) + ((x / 37 + y / 23) % 2 ? 50 : -50);
+		const int c = static_cast<int>(std::min(255.0, std::max(0.0, v)));
+		return 0xff000000u | (unsigned)c << 16 | (unsigned)(255 - c) << 8 | (unsigned)((c * 3) & 0xff); });
+}
+
+static void TestMatchedShrink()
+{
+	// the copy was made with one of FreeImage's filters (8-bit path, like Pillow): shrinking the
+	// original with the matched filter reproduces it exactly, so nothing is marked as different
+	Image large = Smooth(500, 400);
+	const FREE_IMAGE_FILTER filters[] = { FILTER_BOX, FILTER_BILINEAR, FILTER_BICUBIC, FILTER_CATMULLROM, FILTER_LANCZOS3 };
+	for (FREE_IMAGE_FILTER f : filters)
+	{
+		for (int k = 0; k < 2; ++k)
+		{
+			const unsigned w = k ? 213 : 250, h = k ? 170 : 200;   // factor 2.35 and 2
+			Image small = ScaleTestBuffer::Shrink(large, w, h, f);
+			ScaleTestBuffer b;
+			Image imgs[2] = { large, small };
+			b.SetImages(2, imgs);
+			b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_DOWN_MATCHED);
+			CHECK_EQ(b.PreW(0), (int)w); CHECK_EQ(b.PreH(0), (int)h);
+			CHECK_EQ(b.GetDiffCount(), 0);
+			// any other single filter leaves differences
+			b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_UP_SMOOTH);
+			CHECK(b.GetDiffCount() > 0);
+		}
+	}
+	// the reference changes (the small image is edited): the match is redone
+	Image small = ScaleTestBuffer::Shrink(large, 213, 170, FILTER_LANCZOS3);
+	ScaleTestBuffer b;
+	Image imgs[2] = { small, large };
+	b.SetImages(2, imgs);
+	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_DOWN_MATCHED);
+	CHECK_EQ(b.GetDiffCount(), 0);
+	b.DeleteRectangle(0, 10, 10, 20, 20);
+	CHECK_EQ(b.GetDiffCount(), 1);
+	b.Undo();
+	CHECK_EQ(b.GetDiffCount(), 0);
+}
+
+static void TestCopyDiffWithShrinkAndSmooth()
+{
+	// shrink mode, copying from the small image into the shrunk large one: every original pixel
+	// a shrunk pixel stands for gets the value (not one pixel in four), and the difference is gone
+	Image large = Solid(200, 160, BLUE);
+	Image small = MakeImage(100, 80, [](int x, int y) { return (x >= 20 && x < 40 && y >= 20 && y < 40) ? RED : BLUE; });
+	ScaleTestBuffer b;
+	Image imgs[2] = { large, small };
+	b.SetImages(2, imgs);
+	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_DOWN_MATCHED);
+	CHECK_EQ(b.GetDiffCount(), 1);
+	b.CopyDiff(0, 1, 0);
+	CHECK_EQ(b.GetImageWidth(0), 200);
+	CHECK_EQ(b.CountOrig(0, RED), 40 * 40);
+	CHECK_EQ(b.OrigAt(0, 40, 40), RED); CHECK_EQ(b.OrigAt(0, 79, 79), RED);
+	CHECK_EQ(b.OrigAt(0, 39, 39), BLUE); CHECK_EQ(b.OrigAt(0, 80, 80), BLUE);
+	CHECK_EQ(b.GetDiffCount(), 0);
+	b.Undo();
+	CHECK_EQ(b.GetDiffCount(), 1);
+	// the other way round, the shrunk pixels it shows are copied
+	b.CopyDiff(0, 0, 1);
+	CHECK_EQ(b.CountOrig(1, RED), 0);
+	CHECK_EQ(b.GetDiffCount(), 0);
+	b.Undo();
+	// selection edges map to the boundaries between the original pixels (scale 0.5)
+	int rx, ry;
+	b.ConvertToRealEdgePos(0, 10, 7, rx, ry); CHECK_EQ(rx, 20); CHECK_EQ(ry, 14);
+	b.ConvertToRealEdgePos(0, 100, 80, rx, ry); CHECK_EQ(rx, 200); CHECK_EQ(ry, 160);
+	b.ConvertToRealEdgePos(1, 10, 7, rx, ry); CHECK_EQ(rx, 10); CHECK_EQ(ry, 7);
+
+	// smooth enlargement, copying from the enlarged image: the resampled pixels it shows are
+	// copied, so nothing is left to mark
+	Image imgs2[2] = { Solid(250, 200, WHITE), Smooth(100, 80) };
+	b.SetImages(2, imgs2);
+	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_UP_SMOOTH);
+	CHECK_EQ(b.ScaleX(1), 2.5);
+	CHECK(b.GetDiffCount() > 0);
+	b.CopyDiffAll(1, 0);
+	CHECK_EQ(b.GetDiffCount(), 0);
+	CHECK_EQ(b.CountOrig(0, WHITE), 0);
+	// selection edges in the enlarged image (scale 2.5): pixel i is inside when its centre is
+	b.ConvertToRealEdgePos(1, 3, 4, rx, ry); CHECK_EQ(rx, 1); CHECK_EQ(ry, 2);
+	b.ConvertToRealEdgePos(1, 250, 200, rx, ry); CHECK_EQ(rx, 100); CHECK_EQ(ry, 80);
+	// nearest neighbour x2, copying into the enlarged image: each original pixel is written once
+	Image imgs3[2] = { MakeImage(200, 160, [](int x, int y) { return ((x / 2 + y / 2) % 2) ? RED : BLUE; }), Solid(100, 80, WHITE) };
+	b.SetImages(2, imgs3);
+	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_UP_NEAREST_INTEGER);
+	b.CopyDiffAll(0, 1);
+	CHECK_EQ(b.GetDiffCount(), 0);
+	CHECK_EQ(b.CountOrig(1, RED) + b.CountOrig(1, BLUE), 100 * 80);
+}
+
 static void TestSaveScaledForPython()
 {
 	// writes the smooth-scaled pane so the harness can compare it with its float reference
@@ -203,7 +304,7 @@ static void TestSaveScaledForPython()
 	b.CompareImages();
 	b.SetShowDifferences(false);
 	b.Save(1, "smooth_pane1.png");
-	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_DOWN_SMOOTH);
+	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_DOWN_MATCHED);
 	b.Save(0, "down_pane0.png");
 	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_UP_NEAREST_INTEGER);
 	b.Save(1, "nn_pane1.png");
@@ -221,6 +322,8 @@ int main()
 	TestEditingScaledPane();
 	TestInsertionDeletionWithScaling();
 	TestRotationWithScaling();
+	TestMatchedShrink();
+	TestCopyDiffWithShrinkAndSmooth();
 	TestSaveScaledForPython();
 	FreeImage_DeInitialise();
 	return Summary("test_scaling");

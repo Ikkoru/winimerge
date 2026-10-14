@@ -1,0 +1,19 @@
+=== spurious (synth) 06:16:42
+spurious: 0 tasks to run on 7 images (840 already done) -> /home/user/research/results/spurious_synth.csv
+=== edits (synth) 06:16:42
+edits: 0 tasks to run on 7 images (1008 already done) -> /home/user/research/results/edits_synth.csv
+=== spurious --down-only (synth) 06:16:43
+spurious: 0 tasks to run on 7 images (0 already done) -> /home/user/research/results/spurious_synth.csv
+=== edits --down-only (synth) 06:16:43
+edits: 1008 tasks to run on 7 images (0 already done) -> /home/user/research/results/edits_synth.csv
+  20/1008 tasks, 0.2 min elapsed, ~8.3 min left
+  40/1008 tasks, 0.3 min elapsed, ~7.7 min left
+  60/1008 tasks, 0.5 min elapsed, ~7.7 min left
+  80/1008 tasks, 0.6 min elapsed, ~7.5 min left
+  100/1008 tasks, 0.8 min elapsed, ~7.4 min left
+  120/1008 tasks, 1.0 min elapsed, ~7.3 min left
+  140/1008 tasks, 1.2 min elapsed, ~7.2 min left
+  160/1008 tasks, 1.3 min elapsed, ~7.0 min left
+  180/1008 tasks, 1.5 min elapsed, ~6.9 min left
+  200/1008 tasks, 1.7 min elapsed, ~6.8 min left
+  220/1008 tasks, 1.9 min elapsed, ~6.6 min left

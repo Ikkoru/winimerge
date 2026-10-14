@@ -18,13 +18,14 @@ BRANCH = 'claude/trusting-brown-3d75mh'
 SKIP_DIRS = {'__pycache__', '.ipynb_checkpoints'}
 SKIP_EXT = {'.so', '.o', '.a', '.npy', '.npz'}
 IMAGE_EXT = {'.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.tif', '.tiff'}
-KEEP_IMAGES_UNDER = ('eyecheck/', 'figures/')   # small, curated images that belong with the docs
+KEEP_IMAGES_UNDER = ('figures/', 'charts/')   # small, curated images that belong with the docs
+SKIP_FILES = {'eyecheck/artifact.html'}       # same page as eyecheck/index.html (which embeds the crops)
 MAX_BYTES = 8 * 1024 * 1024
 
 
 def wanted(rel):
     ext = os.path.splitext(rel)[1].lower()
-    if ext in SKIP_EXT:
+    if ext in SKIP_EXT or rel in SKIP_FILES:
         return False
     if ext in IMAGE_EXT and not rel.startswith(KEEP_IMAGES_UNDER):
         return False

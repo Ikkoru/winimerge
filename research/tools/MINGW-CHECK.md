@@ -25,8 +25,14 @@ Windows machine.
 * **Exit status:** 0 = every check passed, 1 = compile errors (printed with
   context and notes), 2 = setup problem (no toolchain, bad path, no FreeImage
   headers).
-* **Time:** about 2–3 s on this 4-core box (the TUs compile in parallel);
-  `--obj` takes about 3.5–5 s and `--clang` about 4 s.
+* **Time:** about 2–4 s on this 4-core box, depending on load (the TUs
+  compile in parallel). `--obj` takes about 3.5–5 s and `--clang` about 4 s.
+  The first run after a container restart took ~13 s while the toolchain was
+  read from disk.
+* **Validated:** passes (exit 0) on winimerge HEADs `da639cd`, `85df69b` and
+  `139a6c0`, and on in-progress working trees. The injection tests below were
+  re-run after a container restart on `139a6c0`: 12 of 12 behaved as
+  expected.
 * **Source tree:** it is never modified. The script copies `src/` to
   `$TMPDIR/mingw-check.XXXXXX` and makes its fixups there. Fixups keep line
   numbers, and paths in diagnostics are mapped back to the tree you passed.
@@ -190,7 +196,7 @@ expected exit status with GCC, and again with `--clang`:
 |---|---|---|---|
 | F1 | Case-insensitive `#include` lookup: an include not found with its exact spelling but found ignoring case gets a symlink with the requested spelling. System headers go into a dir passed with `-isystem`, project headers next to the including file. | Windows file systems ignore case; MinGW headers are lowercase. | `<Windows.h>`, `<CommCtrl.h>`, `<WindowsX.h>`, `<Shlwapi.h>`, and 3 WinRT headers used only under `_WIN64`. A name that exists in no spelling is still an error. |
 | F2 | `sizeof IDENT` → `sizeof(IDENT)` when the operand is one (possibly `::`-qualified) identifier directly followed by `, ; ) } ]`. | MSVC accepts `sizeof TYPE` without parentheses. For a variable the parentheses change nothing. | 14 sites: `sizeof SCROLLINFO` ×11 (ImgWindow.hpp ×8, ImgMergeWindow.hpp ×3), `sizeof POINT` ×1 (ImgMergeWindow.hpp), and 2 variables (`sizeof buf`, `sizeof buffer`). |
-| F3 | Diff.hpp `xdl_prepare_ctx()`: the code from `const Data& data = …;` down to the `abort:` label is wrapped in `{ }`. The brace and label stay on their original lines. | Earlier `goto abort` statements jump past that reference initialisation. MSVC allows it; GCC rejects it even with `-fpermissive`. | 1 site (lines 1762/1811 at `da639cd`). If the pattern ever stops matching, a NOTICE is printed. |
+| F3 | Diff.hpp `xdl_prepare_ctx()`: the code from `const Data& data = …;` down to the `abort:` label is wrapped in `{ }`. The brace and label stay on their original lines. | Earlier `goto abort` statements jump past that reference initialisation. MSVC allows it; GCC rejects it even with `-fpermissive`. | 1 site (lines 1762/1811 at `da639cd` through `139a6c0`). If the pattern ever stops matching, a NOTICE is printed. |
 | F4 | `-include mingw-shim.h`, which only does `#include <cmath>`. | MSVC's STL reaches `<cmath>` transitively; WinIMerge.cpp calls `pow()` without including it. | 1 call site. |
 | F5 | `-fpermissive`, plus an output filter: every `[-fpermissive]` diagnostic counts as an error except `taking address of rvalue`. | `&` applied to a class rvalue, e.g. `PtInRect(&GetRightBoxRect(pane), pt)` or `memcmp(&w.GetRectangleSelectionStart(), …)`, is an MSVC extension (C4238 warning). `&` of a scalar rvalue stays a hard error, as in MSVC (C2102). | 8 sites in ImgMergeWindow.hpp (`ChildWnd_OnLButtonDown/Up`, `ChildWnd_OnMouseMove`). |
 | F6 | Stub `src/gen-versioninfo.h`, written only if the copy has none. | `GIT-VS-VERSION-GEN.bat` writes it before the MSVC build; the .rc files include it via Version.h. | rc files only. |

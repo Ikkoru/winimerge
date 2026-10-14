@@ -1,0 +1,445 @@
+{
+ "cases": [
+  {
+   "id": "c00",
+   "image": "synth_flatcolor",
+   "shrinker": "area",
+   "factor": 2,
+   "codec": "png",
+   "edit": "none",
+   "size": [
+    1600,
+    1200
+   ],
+   "small": [
+    800,
+    600
+   ],
+   "crop": [
+    253,
+    334,
+    256
+   ],
+   "small_crop": [
+    126,
+    167,
+    128,
+    2
+   ],
+   "files": {
+    "original": "img/c00_original.png",
+    "nn_int": "img/c00_nn_int.png",
+    "nn": "img/c00_nn.png",
+    "lanczos3": "img/c00_lanczos3.png",
+    "lanczos3_usm": "img/c00_lanczos3_usm.png",
+    "catmullrom": "img/c00_catmullrom.png",
+    "bilinear": "img/c00_bilinear.png",
+    "small_copy": "img/c00_small_copy.png",
+    "down_box": "img/c00_down_box.png",
+    "down_matched": "img/c00_down_matched.png"
+   },
+   "down_labels": {
+    "down_box": "Shrink the original instead (FreeImage box)",
+    "down_matched": "Shrink the original instead (WinIMerge DOWN_MATCHED): box"
+   }
+  },
+  {
+   "id": "c01",
+   "image": "synth_flatcolor",
+   "shrinker": "pil_lanczos",
+   "factor": 2.5,
+   "codec": "jpg85",
+   "edit": "none",
+   "size": [
+    1600,
+    1200
+   ],
+   "small": [
+    640,
+    480
+   ],
+   "crop": [
+    253,
+    334,
+    256
+   ],
+   "small_crop": [
+    101,
+    133,
+    102,
+    2
+   ],
+   "files": {
+    "original": "img/c01_original.png",
+    "nn_int": "img/c01_nn_int.png",
+    "nn": "img/c01_nn.png",
+    "lanczos3": "img/c01_lanczos3.png",
+    "lanczos3_usm": "img/c01_lanczos3_usm.png",
+    "catmullrom": "img/c01_catmullrom.png",
+    "bilinear": "img/c01_bilinear.png",
+    "small_copy": "img/c01_small_copy.png",
+    "down_box": "img/c01_down_box.png",
+    "down_matched": "img/c01_down_matched.png"
+   },
+   "down_labels": {
+    "down_box": "Shrink the original instead (FreeImage box)",
+    "down_matched": "Shrink the original instead (WinIMerge DOWN_MATCHED): Lanczos3"
+   }
+  },
+  {
+   "id": "c02",
+   "image": "synth_lineart",
+   "shrinker": "pil_lanczos",
+   "factor": 2.5,
+   "codec": "png",
+   "edit": "line",
+   "size": [
+    1200,
+    1600
+   ],
+   "small": [
+    480,
+    640
+   ],
+   "crop": [
+    26,
+    829,
+    256
+   ],
+   "small_crop": [
+    10,
+    331,
+    102,
+    2
+   ],
+   "files": {
+    "original": "img/c02_original.png",
+    "nn_int": "img/c02_nn_int.png",
+    "nn": "img/c02_nn.png",
+    "lanczos3": "img/c02_lanczos3.png",
+    "lanczos3_usm": "img/c02_lanczos3_usm.png",
+    "catmullrom": "img/c02_catmullrom.png",
+    "bilinear": "img/c02_bilinear.png",
+    "small_copy": "img/c02_small_copy.png",
+    "down_box": "img/c02_down_box.png",
+    "down_matched": "img/c02_down_matched.png"
+   },
+   "down_labels": {
+    "down_box": "Shrink the original instead (FreeImage box)",
+    "down_matched": "Shrink the original instead (WinIMerge DOWN_MATCHED): Lanczos3"
+   }
+  },
+  {
+   "id": "c03",
+   "image": "synth_manga",
+   "shrinker": "vips",
+   "factor": 3,
+   "codec": "jpg85",
+   "edit": "text_small",
+   "size": [
+    1200,
+    1600
+   ],
+   "small": [
+    400,
+    533
+   ],
+   "crop": [
+    0,
+    418,
+    256
+   ],
+   "small_crop": [
+    0,
+    139,
+    85,
+    3
+   ],
+   "files": {
+    "original": "img/c03_original.png",
+    "nn_int": "img/c03_nn_int.png",
+    "nn": "img/c03_nn.png",
+    "lanczos3": "img/c03_lanczos3.png",
+    "lanczos3_usm": "img/c03_lanczos3_usm.png",
+    "catmullrom": "img/c03_catmullrom.png",
+    "bilinear": "img/c03_bilinear.png",
+    "small_copy": "img/c03_small_copy.png",
+    "down_box": "img/c03_down_box.png",
+    "down_matched": "img/c03_down_matched.png"
+   },
+   "down_labels": {
+    "down_box": "Shrink the original instead (FreeImage box)",
+    "down_matched": "Shrink the original instead (WinIMerge DOWN_MATCHED): Lanczos3"
+   }
+  },
+  {
+   "id": "c04",
+   "image": "real_peppercarrot_witches",
+   "shrinker": "pil_lanczos",
+   "factor": 2.5,
+   "codec": "jpg85",
+   "edit": "none",
+   "size": [
+    1600,
+    1200
+   ],
+   "small": [
+    640,
+    480
+   ],
+   "crop": [
+    846,
+    651,
+    256
+   ],
+   "small_crop": [
+    338,
+    260,
+    102,
+    2
+   ],
+   "files": {
+    "original": "img/c04_original.png",
+    "nn_int": "img/c04_nn_int.png",
+    "nn": "img/c04_nn.png",
+    "lanczos3": "img/c04_lanczos3.png",
+    "lanczos3_usm": "img/c04_lanczos3_usm.png",
+    "catmullrom": "img/c04_catmullrom.png",
+    "bilinear": "img/c04_bilinear.png",
+    "small_copy": "img/c04_small_copy.png",
+    "down_box": "img/c04_down_box.png",
+    "down_matched": "img/c04_down_matched.png"
+   },
+   "down_labels": {
+    "down_box": "Shrink the original instead (FreeImage box)",
+    "down_matched": "Shrink the original instead (WinIMerge DOWN_MATCHED): Lanczos3"
+   }
+  },
+  {
+   "id": "c05",
+   "image": "real_peppercarrot_witches",
+   "shrinker": "area",
+   "factor": 3,
+   "codec": "png",
+   "edit": "recolor",
+   "size": [
+    1600,
+    1200
+   ],
+   "small": [
+    533,
+    400
+   ],
+   "crop": [
+    1214,
+    870,
+    256
+   ],
+   "small_crop": [
+    404,
+    290,
+    85,
+    3
+   ],
+   "files": {
+    "original": "img/c05_original.png",
+    "nn_int": "img/c05_nn_int.png",
+    "nn": "img/c05_nn.png",
+    "lanczos3": "img/c05_lanczos3.png",
+    "lanczos3_usm": "img/c05_lanczos3_usm.png",
+    "catmullrom": "img/c05_catmullrom.png",
+    "bilinear": "img/c05_bilinear.png",
+    "small_copy": "img/c05_small_copy.png",
+    "down_box": "img/c05_down_box.png",
+    "down_matched": "img/c05_down_matched.png"
+   },
+   "down_labels": {
+    "down_box": "Shrink the original instead (FreeImage box)",
+    "down_matched": "Shrink the original instead (WinIMerge DOWN_MATCHED): Catmull-Rom"
+   }
+  },
+  {
+   "id": "c06",
+   "image": "real_peppercarrot_cover",
+   "shrinker": "vips",
+   "factor": 2,
+   "codec": "jpg85",
+   "edit": "text_small",
+   "size": [
+    1200,
+    1600
+   ],
+   "small": [
+    600,
+    800
+   ],
+   "crop": [
+    896,
+    1037,
+    256
+   ],
+   "small_crop": [
+    448,
+    518,
+    128,
+    2
+   ],
+   "files": {
+    "original": "img/c06_original.png",
+    "nn_int": "img/c06_nn_int.png",
+    "nn": "img/c06_nn.png",
+    "lanczos3": "img/c06_lanczos3.png",
+    "lanczos3_usm": "img/c06_lanczos3_usm.png",
+    "catmullrom": "img/c06_catmullrom.png",
+    "bilinear": "img/c06_bilinear.png",
+    "small_copy": "img/c06_small_copy.png",
+    "down_box": "img/c06_down_box.png",
+    "down_matched": "img/c06_down_matched.png"
+   },
+   "down_labels": {
+    "down_box": "Shrink the original instead (FreeImage box)",
+    "down_matched": "Shrink the original instead (WinIMerge DOWN_MATCHED): Mitchell"
+   }
+  },
+  {
+   "id": "c07",
+   "image": "real_hokusai_hodogaya",
+   "shrinker": "pil_bicubic",
+   "factor": 1.5,
+   "codec": "png",
+   "edit": "move",
+   "size": [
+    1600,
+    1200
+   ],
+   "small": [
+    1067,
+    800
+   ],
+   "crop": [
+    1207,
+    721,
+    256
+   ],
+   "small_crop": [
+    804,
+    480,
+    171,
+    2
+   ],
+   "files": {
+    "original": "img/c07_original.png",
+    "nn_int": "img/c07_nn_int.png",
+    "nn": "img/c07_nn.png",
+    "lanczos3": "img/c07_lanczos3.png",
+    "lanczos3_usm": "img/c07_lanczos3_usm.png",
+    "catmullrom": "img/c07_catmullrom.png",
+    "bilinear": "img/c07_bilinear.png",
+    "small_copy": "img/c07_small_copy.png",
+    "down_box": "img/c07_down_box.png",
+    "down_matched": "img/c07_down_matched.png"
+   },
+   "down_labels": {
+    "down_box": "Shrink the original instead (FreeImage box)",
+    "down_matched": "Shrink the original instead (WinIMerge DOWN_MATCHED): Catmull-Rom"
+   }
+  },
+  {
+   "id": "c08",
+   "image": "real_lion_appel",
+   "shrinker": "pil_lanczos",
+   "factor": 3,
+   "codec": "jpg85",
+   "edit": "smudge",
+   "size": [
+    1600,
+    1200
+   ],
+   "small": [
+    533,
+    400
+   ],
+   "crop": [
+    625,
+    582,
+    256
+   ],
+   "small_crop": [
+    208,
+    194,
+    85,
+    3
+   ],
+   "files": {
+    "original": "img/c08_original.png",
+    "nn_int": "img/c08_nn_int.png",
+    "nn": "img/c08_nn.png",
+    "lanczos3": "img/c08_lanczos3.png",
+    "lanczos3_usm": "img/c08_lanczos3_usm.png",
+    "catmullrom": "img/c08_catmullrom.png",
+    "bilinear": "img/c08_bilinear.png",
+    "small_copy": "img/c08_small_copy.png",
+    "down_box": "img/c08_down_box.png",
+    "down_matched": "img/c08_down_matched.png"
+   },
+   "down_labels": {
+    "down_box": "Shrink the original instead (FreeImage box)",
+    "down_matched": "Shrink the original instead (WinIMerge DOWN_MATCHED): Catmull-Rom"
+   }
+  },
+  {
+   "id": "c09",
+   "image": "real_kitty_screenshot",
+   "shrinker": "pil_lanczos",
+   "factor": 2,
+   "codec": "png",
+   "edit": "dot",
+   "size": [
+    1600,
+    1200
+   ],
+   "small": [
+    800,
+    600
+   ],
+   "crop": [
+    623,
+    0,
+    256
+   ],
+   "small_crop": [
+    311,
+    0,
+    128,
+    2
+   ],
+   "files": {
+    "original": "img/c09_original.png",
+    "nn_int": "img/c09_nn_int.png",
+    "nn": "img/c09_nn.png",
+    "lanczos3": "img/c09_lanczos3.png",
+    "lanczos3_usm": "img/c09_lanczos3_usm.png",
+    "catmullrom": "img/c09_catmullrom.png",
+    "bilinear": "img/c09_bilinear.png",
+    "small_copy": "img/c09_small_copy.png",
+    "down_box": "img/c09_down_box.png",
+    "down_matched": "img/c09_down_matched.png"
+   },
+   "down_labels": {
+    "down_box": "Shrink the original instead (FreeImage box)",
+    "down_matched": "Shrink the original instead (WinIMerge DOWN_MATCHED): Lanczos3"
+   }
+  }
+ ],
+ "labels": {
+  "nn_int": "Nearest neighbour, whole-number factor (requested; WinIMerge UP_NEAREST_INTEGER)",
+  "nn": "Nearest neighbour to exact size",
+  "lanczos3": "Lanczos3, float path (WinIMerge UP_SMOOTH)",
+  "lanczos3_usm": "Lanczos3 + unsharp mask r1.0 50%",
+  "catmullrom": "Catmull-Rom (float path)",
+  "bilinear": "Bilinear",
+  "down_box": "Shrink the original instead (FreeImage box)",
+  "down_matched": "Shrink the original instead (WinIMerge DOWN_MATCHED)",
+  "small_copy": "The small copy itself (enlarged with nearest neighbour)"
+ }
+}
