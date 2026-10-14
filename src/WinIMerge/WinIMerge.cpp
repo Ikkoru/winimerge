@@ -227,6 +227,8 @@ void UpdateMenuState(HWND hWnd)
 		m_pImgMergeWindow->GetOverlayMode() + ID_VIEW_OVERLAY_NONE, MF_BYCOMMAND);
 	CheckMenuRadioItem(hMenu, ID_VIEW_DRAGGINGMODE_NONE, ID_VIEW_DRAGGINGMODE_RECTANGLE_SELECT,
 		m_pImgMergeWindow->GetDraggingMode() + ID_VIEW_DRAGGINGMODE_NONE, MF_BYCOMMAND);
+	CheckMenuRadioItem(hMenu, ID_VIEW_SCALING_NONE, ID_VIEW_SCALING_DOWN_MATCHED,
+		m_pImgMergeWindow->GetImageScalingMode() + ID_VIEW_SCALING_NONE, MF_BYCOMMAND);
 	int blockSize = m_pImgMergeWindow->GetDiffBlockSize();
 	int id = ID_VIEW_DIFFBLOCKSIZE_1;
 	while (blockSize > 1)
@@ -663,6 +665,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case ID_VIEW_DRAGGINGMODE_HORIZONTAL_WIPE:
 		case ID_VIEW_DRAGGINGMODE_RECTANGLE_SELECT:
 			m_pImgMergeWindow->SetDraggingMode(static_cast<IImgMergeWindow::DRAGGING_MODE>(wmId - ID_VIEW_DRAGGINGMODE_NONE));
+			break;
+		case ID_VIEW_SCALING_NONE:
+		case ID_VIEW_SCALING_UP_NEAREST_INTEGER:
+		case ID_VIEW_SCALING_UP_SMOOTH:
+		case ID_VIEW_SCALING_DOWN_MATCHED:
+			m_pImgMergeWindow->SetImageScalingMode(static_cast<IImgMergeWindow::IMAGE_SCALING_MODE>(wmId - ID_VIEW_SCALING_NONE));
+			m_pImgToolWindow->Sync();
 			break;
 		case ID_VIEW_USEBACKCOLOR:
 		{
