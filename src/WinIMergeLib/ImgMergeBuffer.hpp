@@ -605,6 +605,8 @@ protected:
 			m_imgOrig32[dstPane].pasteSubImage(imgTemp, ox, oy);
 			m_offset[dstPane].x -= ox;
 			m_offset[dstPane].y -= oy;
+			m_alignmentOffset[dstPane].x -= ox;
+			m_alignmentOffset[dstPane].y -= oy;
 		}
 
 		for (unsigned y = rc.top * m_diffBlockSize; y < rc.bottom * m_diffBlockSize; y += m_diffBlockSize)

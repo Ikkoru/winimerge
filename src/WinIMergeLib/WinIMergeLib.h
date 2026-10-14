@@ -47,6 +47,11 @@ struct IImgMergeWindow
 	enum DIFF_ALGORITHM {
 		MYERS_DIFF, MINIMAL_DIFF, PATIENCE_DIFF, HISTOGRAM_DIFF, NONE_DIFF
 	};
+	enum IMAGE_ALIGNMENT {
+		IMAGE_ALIGNMENT_TOP_LEFT = 0, IMAGE_ALIGNMENT_TOP_CENTER, IMAGE_ALIGNMENT_TOP_RIGHT,
+		IMAGE_ALIGNMENT_MIDDLE_LEFT, IMAGE_ALIGNMENT_CENTER, IMAGE_ALIGNMENT_MIDDLE_RIGHT,
+		IMAGE_ALIGNMENT_BOTTOM_LEFT, IMAGE_ALIGNMENT_BOTTOM_CENTER, IMAGE_ALIGNMENT_BOTTOM_RIGHT
+	};
 	struct Event
 	{
 		void *userdata;
@@ -195,6 +200,8 @@ struct IImgMergeWindow
 	virtual double GetSplitterRatio(int pane) const = 0;
 	virtual void SetSplitterRatios(const double* ratios, int count) = 0;
 	virtual void ResetSplitterRatios() = 0;
+	virtual IMAGE_ALIGNMENT GetImageAlignment() const = 0;
+	virtual void SetImageAlignment(IMAGE_ALIGNMENT alignment) = 0;
 };
 
 struct IImgToolWindow
