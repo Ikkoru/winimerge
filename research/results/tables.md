@@ -551,6 +551,136 @@ Median over 10 images × 7 shrinking kernels (420 pairs); enlarged to the origin
 | pil_lanczos | 8 | 11 | 0 | 0 | 28 | 157 |
 | vips | 12 | 11 | 0 | 0 | 29 | 152 |
 
+## Perceptual metrics
+
+
+#### Perceptual metrics, synth images, png, whole-number factors (2, 3): medians over 6 pairs
+
+ꟻLIP/Butteraugli/T_p99 lower = closer; SSIMULACRA2/SSIM higher = closer. Enlargers are compared with the original at its size, the shrink rows at the copy's size. At 2.5 whole-number NN shows the copy at 80 % of the original's size, so nothing lines up (left out).
+
+| candidate | T_p99 | ꟻLIP mean @96 ppd | ꟻLIP p99 @96 ppd | ꟻLIP mean @48 ppd (2× zoom) | ꟻLIP p99 @48 ppd | Butteraugli max | Butteraugli 3-norm | SSIMULACRA2 | worst 64-px tile SSIM |
+|---|---|---|---|---|---|---|---|---|---|
+| NN, whole-number factor, centred | 266.8 | 0.03095 | 0.2985 | 0.04337 | 0.5164 | 22.68 | 6.659 | 37.17 | 0.8008 |
+| NN to exact size | 239.2 | 0.02896 | 0.2754 | 0.04176 | 0.5036 | 17.65 | 5.531 | 40.79 | 0.5322 |
+| NN whole-number, then bilinear to size | 219.1 | 0.02902 | 0.2684 | 0.04199 | 0.4928 | 15.23 | 5.08 | 42.69 | 0.5423 |
+| Bilinear | 154.5 | 0.03555 | 0.3174 | 0.04731 | 0.5063 | 15.74 | 5.179 | 38.1 | 0.6636 |
+| Mitchell (FreeImage "bicubic") | 149.5 | 0.03482 | 0.3149 | 0.04705 | 0.4966 | 15.84 | 5.096 | 38.87 | 0.6652 |
+| Catmull-Rom (float) | 148.5 | 0.03168 | 0.2933 | 0.04429 | 0.4642 | 15.53 | 4.94 | 42.4 | 0.6737 |
+| Lanczos3 (8-bit) | 141.8 | 0.03138 | 0.288 | 0.04498 | 0.4471 | 15.9 | 4.992 | 43.81 | 0.682 |
+| Lanczos3 (float) | 141.8 | 0.03129 | 0.2873 | 0.04484 | 0.4467 | 15.91 | 4.99 | 43.89 | 0.6818 |
+| Lanczos3 float + USM r0.75 50% | 141.7 | 0.031 | 0.282 | 0.04455 | 0.4383 | 16.89 | 5.144 | 44.31 | 0.686 |
+| Lanczos3 float + USM r1.0 50% | 142 | 0.03116 | 0.2807 | 0.04474 | 0.4358 | 17.71 | 5.307 | 44.23 | 0.6867 |
+| Shrink original: area (OpenCV) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 100 | 1 |
+| Shrink original: Catmull-Rom (8-bit) | 25.19 | 0.009789 | 0.06012 | 0.01204 | 0.09543 | 2.603 | 0.7838 | 90.93 | 0.9949 |
+| Shrink original: matched filter, 5 FreeImage filters (8-bit), without area averaging | 1.732 | 0.004137 | 0.01648 | 0.00422 | 0.02372 | 0.4787 | 0.1694 | 94.44 | 0.9985 |
+| Shrink original: WinIMerge DOWN_MATCHED (5 FreeImage filters + area averaging) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 100 | 1 |
+| Shrink original: the true kernel (oracle) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 100 | 1 |
+
+#### Perceptual metrics, synth images, png, factor 2.5: medians over 3 pairs
+
+ꟻLIP/Butteraugli/T_p99 lower = closer; SSIMULACRA2/SSIM higher = closer. Enlargers are compared with the original at its size, the shrink rows at the copy's size. At 2.5 whole-number NN shows the copy at 80 % of the original's size, so nothing lines up (left out).
+
+| candidate | T_p99 | ꟻLIP mean @96 ppd | ꟻLIP p99 @96 ppd | ꟻLIP mean @48 ppd (2× zoom) | ꟻLIP p99 @48 ppd | Butteraugli max | Butteraugli 3-norm | SSIMULACRA2 | worst 64-px tile SSIM |
+|---|---|---|---|---|---|---|---|---|---|
+| NN to exact size | 249.4 | 0.02737 | 0.2745 | 0.03653 | 0.4713 | 17.58 | 5.393 | 44.87 | 0.7118 |
+| NN whole-number, then bilinear to size | 172.6 | 0.02764 | 0.2449 | 0.03562 | 0.4266 | 10.98 | 3.873 | 51.33 | 0.7731 |
+| Bilinear | 141.9 | 0.03209 | 0.2793 | 0.04059 | 0.4565 | 11.38 | 4.127 | 47.34 | 0.7729 |
+| Mitchell (FreeImage "bicubic") | 136.6 | 0.03067 | 0.2723 | 0.03932 | 0.4406 | 11.28 | 3.975 | 48.95 | 0.7796 |
+| Catmull-Rom (float) | 133.4 | 0.02658 | 0.2481 | 0.03514 | 0.4012 | 11.58 | 3.738 | 53.52 | 0.8004 |
+| Lanczos3 (8-bit) | 125.9 | 0.02518 | 0.2347 | 0.03568 | 0.3748 | 12.3 | 3.746 | 56.07 | 0.8121 |
+| Lanczos3 (float) | 125.7 | 0.02494 | 0.2341 | 0.03538 | 0.3743 | 12.3 | 3.744 | 56.12 | 0.8121 |
+| Lanczos3 float + USM r0.75 50% | 124.9 | 0.02504 | 0.2256 | 0.03578 | 0.3555 | 13.34 | 4.029 | 57.39 | 0.8199 |
+| Lanczos3 float + USM r1.0 50% | 124.8 | 0.02583 | 0.2248 | 0.03666 | 0.3515 | 14.05 | 4.263 | 56.87 | 0.8224 |
+| Shrink original: area (OpenCV) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 100 | 1 |
+| Shrink original: Catmull-Rom (8-bit) | 22.83 | 0.007245 | 0.05629 | 0.009272 | 0.08849 | 2.544 | 0.7206 | 90.95 | 0.9967 |
+| Shrink original: matched filter, 5 FreeImage filters (8-bit), without area averaging | 22.83 | 0.007245 | 0.05629 | 0.009272 | 0.08849 | 2.544 | 0.7206 | 90.95 | 0.9967 |
+| Shrink original: WinIMerge DOWN_MATCHED (5 FreeImage filters + area averaging) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 100 | 1 |
+| Shrink original: the true kernel (oracle) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 100 | 1 |
+
+#### Perceptual metrics, synth images, jpg85, whole-number factors (2, 3): medians over 6 pairs
+
+ꟻLIP/Butteraugli/T_p99 lower = closer; SSIMULACRA2/SSIM higher = closer. Enlargers are compared with the original at its size, the shrink rows at the copy's size. At 2.5 whole-number NN shows the copy at 80 % of the original's size, so nothing lines up (left out).
+
+| candidate | T_p99 | ꟻLIP mean @96 ppd | ꟻLIP p99 @96 ppd | ꟻLIP mean @48 ppd (2× zoom) | ꟻLIP p99 @48 ppd | Butteraugli max | Butteraugli 3-norm | SSIMULACRA2 | worst 64-px tile SSIM |
+|---|---|---|---|---|---|---|---|---|---|
+| NN, whole-number factor, centred | 269.8 | 0.0685 | 0.3637 | 0.0884 | 0.5401 | 22.82 | 6.834 | 28.41 | 0.7896 |
+| NN to exact size | 241 | 0.06792 | 0.357 | 0.08791 | 0.533 | 17.74 | 6.161 | 30.44 | 0.5267 |
+| NN whole-number, then bilinear to size | 220.8 | 0.06781 | 0.3544 | 0.08777 | 0.5294 | 17.15 | 6.003 | 31.76 | 0.5361 |
+| Bilinear | 155.7 | 0.08134 | 0.398 | 0.0984 | 0.5495 | 17.31 | 6.194 | 28.68 | 0.6556 |
+| Mitchell (FreeImage "bicubic") | 151.5 | 0.08071 | 0.3908 | 0.09638 | 0.5415 | 17.47 | 6.098 | 29.45 | 0.6585 |
+| Catmull-Rom (float) | 151.8 | 0.07715 | 0.3718 | 0.09167 | 0.5241 | 17.15 | 5.848 | 32.24 | 0.6654 |
+| Lanczos3 (8-bit) | 145.5 | 0.07741 | 0.3637 | 0.09159 | 0.5158 | 18.19 | 5.824 | 33.06 | 0.6731 |
+| Lanczos3 (float) | 145.4 | 0.07694 | 0.3634 | 0.09115 | 0.5157 | 18.23 | 5.825 | 33.07 | 0.6728 |
+| Lanczos3 float + USM r0.75 50% | 146.8 | 0.07404 | 0.3559 | 0.08878 | 0.5111 | 18.43 | 5.872 | 33.25 | 0.6747 |
+| Lanczos3 float + USM r1.0 50% | 147.2 | 0.07301 | 0.3546 | 0.08838 | 0.5099 | 18.61 | 5.952 | 32.95 | 0.6749 |
+| Shrink original: area (OpenCV) | 53.36 | 0.04261 | 0.1605 | 0.05365 | 0.2222 | 4.417 | 1.486 | 79.51 | 0.974 |
+| Shrink original: Catmull-Rom (8-bit) | 54.35 | 0.04278 | 0.1553 | 0.05372 | 0.2153 | 4.696 | 1.562 | 78.93 | 0.9713 |
+| Shrink original: matched filter, 5 FreeImage filters (8-bit), without area averaging | 54.44 | 0.04238 | 0.1574 | 0.05271 | 0.217 | 4.593 | 1.494 | 79.4 | 0.9734 |
+| Shrink original: WinIMerge DOWN_MATCHED (5 FreeImage filters + area averaging) | 52.08 | 0.04231 | 0.1572 | 0.05266 | 0.2169 | 4.203 | 1.449 | 79.75 | 0.9748 |
+| Shrink original: the true kernel (oracle) | 51.98 | 0.04214 | 0.1572 | 0.0525 | 0.2168 | 4.203 | 1.444 | 79.76 | 0.9749 |
+
+#### Perceptual metrics, synth images, jpg85, factor 2.5: medians over 3 pairs
+
+ꟻLIP/Butteraugli/T_p99 lower = closer; SSIMULACRA2/SSIM higher = closer. Enlargers are compared with the original at its size, the shrink rows at the copy's size. At 2.5 whole-number NN shows the copy at 80 % of the original's size, so nothing lines up (left out).
+
+| candidate | T_p99 | ꟻLIP mean @96 ppd | ꟻLIP p99 @96 ppd | ꟻLIP mean @48 ppd (2× zoom) | ꟻLIP p99 @48 ppd | Butteraugli max | Butteraugli 3-norm | SSIMULACRA2 | worst 64-px tile SSIM |
+|---|---|---|---|---|---|---|---|---|---|
+| NN to exact size | 248.7 | 0.07059 | 0.3504 | 0.08702 | 0.5131 | 17.81 | 5.711 | 37.6 | 0.6756 |
+| NN whole-number, then bilinear to size | 174.5 | 0.07046 | 0.338 | 0.08664 | 0.4862 | 15.97 | 4.789 | 42.74 | 0.7552 |
+| Bilinear | 143.8 | 0.07304 | 0.3581 | 0.08891 | 0.5093 | 16.38 | 4.997 | 39.59 | 0.7561 |
+| Mitchell (FreeImage "bicubic") | 138.7 | 0.07224 | 0.3507 | 0.08812 | 0.4969 | 16.07 | 4.865 | 41.08 | 0.7619 |
+| Catmull-Rom (float) | 136.2 | 0.0699 | 0.3303 | 0.08565 | 0.4686 | 15.51 | 4.632 | 44.72 | 0.7803 |
+| Lanczos3 (8-bit) | 129.4 | 0.06881 | 0.3222 | 0.08469 | 0.4537 | 15.41 | 4.637 | 46.58 | 0.7918 |
+| Lanczos3 (float) | 129.4 | 0.0688 | 0.3218 | 0.0847 | 0.4536 | 15.4 | 4.637 | 46.59 | 0.7916 |
+| Lanczos3 float + USM r0.75 50% | 129 | 0.06786 | 0.3145 | 0.08485 | 0.4427 | 15.33 | 4.704 | 46.49 | 0.7985 |
+| Lanczos3 float + USM r1.0 50% | 129.2 | 0.06812 | 0.3114 | 0.08557 | 0.4372 | 15.28 | 4.815 | 45.82 | 0.7962 |
+| Shrink original: area (OpenCV) | 50.93 | 0.04306 | 0.1697 | 0.05491 | 0.2447 | 4.434 | 1.614 | 78.5 | 0.9737 |
+| Shrink original: Catmull-Rom (8-bit) | 53.16 | 0.04377 | 0.1696 | 0.05597 | 0.2461 | 4.953 | 1.67 | 78 | 0.973 |
+| Shrink original: matched filter, 5 FreeImage filters (8-bit), without area averaging | 52.36 | 0.04307 | 0.1581 | 0.05529 | 0.2329 | 4.979 | 1.668 | 77.97 | 0.9719 |
+| Shrink original: WinIMerge DOWN_MATCHED (5 FreeImage filters + area averaging) | 50.93 | 0.04306 | 0.1697 | 0.05491 | 0.2447 | 4.434 | 1.614 | 78.5 | 0.9749 |
+| Shrink original: the true kernel (oracle) | 50.93 | 0.04306 | 0.1697 | 0.05491 | 0.2447 | 4.434 | 1.614 | 78.5 | 0.9749 |
+
+#### Mean rank of the enlargers by each measure (synth, whole-number factors, PNG and JPEG q85; 12 pairs; 1 = closest)
+
+| candidate | T_p99 | ꟻLIP mean @96 ppd | ꟻLIP p99 @96 ppd | ꟻLIP mean @48 ppd (2× zoom) | ꟻLIP p99 @48 ppd | Butteraugli max | Butteraugli 3-norm | SSIMULACRA2 | worst 64-px tile SSIM |
+|---|---|---|---|---|---|---|---|---|---|
+| NN, whole-number factor, centred | 9.0 | 3.4 | 5.7 | 4.2 | 7.4 | 8.0 | 8.1 | 6.8 | 6.7 |
+| NN to exact size | 8.5 | 2.2 | 3.3 | 2.2 | 6.0 | 6.2 | 6.5 | 5.4 | 6.5 |
+| NN whole-number, then bilinear to size | 7.3 | 2.3 | 2.6 | 2.6 | 4.8 | 4.5 | 5.0 | 4.5 | 6.3 |
+| Bilinear | 6.2 | 9.7 | 9.7 | 9.6 | 9.2 | 4.0 | 5.8 | 8.7 | 6.4 |
+| Mitchell (FreeImage "bicubic") | 4.6 | 9.2 | 9.0 | 8.5 | 7.2 | 4.6 | 5.0 | 7.8 | 6.0 |
+| Catmull-Rom (float) | 4.1 | 6.2 | 6.6 | 6.0 | 4.9 | 3.5 | 3.8 | 5.2 | 3.9 |
+| Lanczos3 (8-bit) | 3.5 | 6.8 | 5.8 | 6.2 | 4.3 | 4.6 | 4.0 | 4.6 | 4.7 |
+| Lanczos3 (float) | 3.1 | 5.9 | 5.2 | 5.4 | 3.5 | 4.6 | 3.5 | 3.4 | 4.6 |
+| Lanczos3 float + USM r0.75 50% | 4.2 | 4.7 | 3.8 | 4.9 | 3.3 | 6.8 | 5.6 | 3.8 | 4.2 |
+| Lanczos3 float + USM r1.0 50% | 4.4 | 4.6 | 3.3 | 5.3 | 4.2 | 8.2 | 7.7 | 4.8 | 4.1 |
+
+#### Agreement with WinMerge's outcome: mean within-pair Spearman correlation with T_p99 (enlargers only)
+
+| measure | synth |
+|---|---|
+| ꟻLIP mean @96 ppd | -0.01 |
+| ꟻLIP p99 @96 ppd | 0.20 |
+| ꟻLIP mean @48 ppd (2× zoom) | -0.14 |
+| ꟻLIP p99 @48 ppd | 0.68 |
+| Butteraugli max | 0.31 |
+| Butteraugli 3-norm | 0.50 |
+| SSIMULACRA2 | 0.63 |
+| worst 64-px tile SSIM | 0.60 |
+
+#### Agreement with WinMerge's outcome: mean within-pair Spearman correlation with T_p99 (all candidates incl. the shrink)
+
+| measure | synth |
+|---|---|
+| ꟻLIP mean @96 ppd | 0.72 |
+| ꟻLIP p99 @96 ppd | 0.78 |
+| ꟻLIP mean @48 ppd (2× zoom) | 0.69 |
+| ꟻLIP p99 @48 ppd | 0.91 |
+| Butteraugli max | 0.81 |
+| Butteraugli 3-norm | 0.86 |
+| SSIMULACRA2 | 0.90 |
+| worst 64-px tile SSIM | 0.89 |
+
 ## Edit detectability
 
 
@@ -637,27 +767,27 @@ The same by codec of the copy (synth):
 ## Unsharp-mask sweep
 
 
-#### Unsharp mask after Lanczos3/Catmull-Rom (float), medians over images × kernels × factors 1.5/2/3 × png/jpg85
+#### Unsharp mask after Lanczos3/Catmull-Rom (float), synth images: medians over images × kernels × factors 1.5/2/3 × png/jpg85 (84 unedited pairs, 336 edited)
 
 | candidate | blocks marked @T16 | T_p99 | PSNR | edit blocks found | edits visible |
 |---|---|---|---|---|---|
-| crf_usm_r0.75_a0.5 | 0.358 | 248 | 20 | 0.754 | 1 |
-| crf_usm_r1.0_a0.5 | 0.357 | 248 | 20.5 | 0.755 | 1 |
-| Catmull-Rom (float) | 0.356 | 250 | 19.1 | 0.729 | 0.979 |
-| Lanczos3 (float) | 0.356 | 247 | 19.6 | 0.73 | 1 |
-| l3f_usm_r0.5_a0.25 | 0.357 | 245 | 20 | 0.732 | 1 |
-| l3f_usm_r0.5_a0.5 | 0.36 | 244 | 20.3 | 0.732 | 1 |
-| l3f_usm_r0.5_a0.75 | 0.36 | 245 | 20.7 | 0.733 | 1 |
-| l3f_usm_r0.5_a1.0 | 0.362 | 245 | 21 | 0.733 | 1 |
-| l3f_usm_r0.75_a0.25 | 0.359 | 245 | 20.4 | 0.732 | 1 |
-| Lanczos3 float + USM r0.75 50% | 0.363 | 245 | 21.2 | 0.734 | 1 |
-| l3f_usm_r0.75_a0.75 | 0.366 | 247 | 21.8 | 0.73 | 0.99 |
-| l3f_usm_r0.75_a1.0 | 0.372 | 251 | 22.2 | 0.731 | 0.99 |
-| l3f_usm_r1.0_a0.25 | 0.359 | 245 | 20.8 | 0.734 | 1 |
-| Lanczos3 float + USM r1.0 50% | 0.365 | 248 | 21.7 | 0.735 | 1 |
-| l3f_usm_r1.0_a0.75 | 0.371 | 253 | 22.3 | 0.731 | 0.99 |
-| l3f_usm_r1.0_a1.0 | 0.376 | 262 | 22.5 | 0.732 | 0.99 |
-| l3f_usm_r1.5_a0.25 | 0.357 | 247 | 21.2 | 0.735 | 1 |
-| l3f_usm_r1.5_a0.5 | 0.363 | 255 | 22.2 | 0.737 | 1 |
-| l3f_usm_r1.5_a0.75 | 0.367 | 268 | 22.5 | 0.727 | 0.99 |
-| l3f_usm_r1.5_a1.0 | 0.375 | 283 | 22.2 | 0.714 | 0.979 |
+| crf_usm_r0.75_a0.5 | 0.396 | 210 | 24.8 | 0.683 | 0.908 |
+| crf_usm_r1.0_a0.5 | 0.398 | 205 | 24.6 | 0.691 | 0.914 |
+| Catmull-Rom (float) | 0.396 | 209 | 24 | 0.643 | 0.869 |
+| Lanczos3 (float) | 0.396 | 198 | 24.8 | 0.666 | 0.893 |
+| l3f_usm_r0.5_a0.25 | 0.396 | 197 | 24.9 | 0.676 | 0.905 |
+| l3f_usm_r0.5_a0.5 | 0.399 | 197 | 25.5 | 0.681 | 0.908 |
+| l3f_usm_r0.5_a0.75 | 0.398 | 195 | 26.1 | 0.684 | 0.917 |
+| l3f_usm_r0.5_a1.0 | 0.4 | 195 | 26.4 | 0.689 | 0.92 |
+| l3f_usm_r0.75_a0.25 | 0.399 | 197 | 25.7 | 0.682 | 0.914 |
+| Lanczos3 float + USM r0.75 50% | 0.4 | 195 | 26.4 | 0.689 | 0.92 |
+| l3f_usm_r0.75_a0.75 | 0.403 | 198 | 26 | 0.692 | 0.917 |
+| l3f_usm_r0.75_a1.0 | 0.407 | 204 | 25.3 | 0.696 | 0.917 |
+| l3f_usm_r1.0_a0.25 | 0.399 | 195 | 26.2 | 0.688 | 0.92 |
+| Lanczos3 float + USM r1.0 50% | 0.403 | 199 | 26 | 0.693 | 0.92 |
+| l3f_usm_r1.0_a0.75 | 0.408 | 207 | 25.2 | 0.698 | 0.917 |
+| l3f_usm_r1.0_a1.0 | 0.409 | 217 | 24.5 | 0.702 | 0.92 |
+| l3f_usm_r1.5_a0.25 | 0.401 | 198 | 26.3 | 0.691 | 0.92 |
+| l3f_usm_r1.5_a0.5 | 0.407 | 210 | 25.2 | 0.7 | 0.92 |
+| l3f_usm_r1.5_a0.75 | 0.41 | 225 | 24 | 0.704 | 0.92 |
+| l3f_usm_r1.5_a1.0 | 0.421 | 236 | 23.6 | 0.703 | 0.917 |

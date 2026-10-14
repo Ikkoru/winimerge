@@ -22,3 +22,28 @@ OUTDIR=/some/dir ./build.sh ...                          # where tests that writ
 | `test_combined.cpp` | a tree with both features (`tools/make_combined.sh`, or the `-combined` branch) | alignment following scale changes (30 checks) |
 | `test_bounds.cpp` | `claude/trusting-brown-3d75mh-fix-bounds` (crashes on master) | Delete and Paste rectangles that reach past the image (10 checks; run with AddressSanitizer) |
 | `test_timing.cpp` | the scale branch | timing of the modes at 1000×1500 vs 4000×6000 (build with `EXTRA_CXXFLAGS=-O2`) |
+
+## Random stress test (`fuzz/`)
+
+`fuzz/fuzz.cpp` drives `CImgMergeBuffer` like the UI with random operation sequences (2 or 3 panes of
+random, derived or rescaled images; every option incl. the new ones; ghost lines, rotation/flip, offsets,
+CopyDiff/All/3Way, Undo/Redo, Resize, select+Delete, Paste, position mapping), each sequence in a child
+process under AddressSanitizer/UBSan. The same seed runs the same sequence on every tree, so the crash
+sites of a branch can be compared with `master`'s:
+
+```sh
+fuzz/run.sh /path/to/master-checkout none 400 7     # baseline
+fuzz/run.sh /path/to/align-checkout  align 400 7
+fuzz/run.sh /path/to/scale-checkout  scale 400 7
+fuzz/run.sh /path/to/combined-tree   both  400 7
+```
+
+It ends with one line per crash site (function, `file:line`, last operation). On the final branch tips
+(2026-10-14) all three trees hit only sites `master` has too: `PasteImageInternal` (fixed by the
+fix-bounds branch), the per-pixel and row-insertion `memcpy` in `CopyDiffInternal`, and
+`Make3WayLineDiff(..., compfunc02)` (see HANDOFF.md, pre-existing bugs). Options: `-DUI_RECTS` passes
+the unclamped rectangles the UI computes to Delete/Copy, `-DSAFE_PASTE` avoids the known paste crash,
+`-DNO_GHOST` leaves insertion/deletion detection off; `DIGEST=1` prints a digest of the final state per
+sequence (for checking that a branch with its options at their defaults behaves exactly like `master`).
+`fuzz/minimize.py fuzz_<what> <seed> <iteration>` (the binary `run.sh` leaves next to its output) drops
+the steps that are not needed for a crash.

@@ -41,8 +41,8 @@ tools that predict what a person sees when flipping.
 - **You were right that a smooth enlargement does not make the comparison truthful, but nearest
   neighbour does not either.** Any enlargement leaves about a third of the 8×8 blocks marked at threshold 16
   on detailed images, because the copy does not contain the detail. Whole-number NN marks about as many blocks as Lanczos3,
-  with stronger differences, finds fewer edits, and cannot be used below 2× or without a border at
-  factors like 2.5×. It is the right view for pixel art (where it beats Lanczos3) and for looking at the
+  with stronger differences, finds fewer edits, and below 2× or at factors like 2.5× it does not line the
+  two images up at all (at 2.5× the copy is shown at 80 % of the original's size). It is the right view for pixel art (where it beats Lanczos3) and for looking at the
   copy's own pixels, so it is in the PR as requested.
 - **Lanczos3 + unsharp mask: not worth implementing.** Lanczos3 is the best common enlarger (FreeImage's
   8-bit and float paths measure the same). An unsharp mask (σ 0.5–1.5 px, 25–100 %) changes the
@@ -177,7 +177,8 @@ with its six candidates). **T_p99** is the colour-distance threshold that leaves
 | JPEG q85 | enlarge, Lanczos3 | 98 | 142 | 216 | 265 | 252 | 257 |
 | JPEG q85 | **shrink, matched filter** | **45** | **46** | **42** | **52** | **53** | **60** |
 
-"–": whole-number NN does nothing below 2× and leaves a border at 2.5× (k = 2), which WinMerge marks.
+"–": whole-number NN does nothing below 2×; at 2.5× it enlarges by 2, so the copy is shown at 80 % of the
+original's size and lines up with it only at the alignment anchor, and the uncovered border is marked too.
 
 Share of blocks still marked at the thresholds WinIMerge's menu offers (PNG copies / JPEG q85 copies):
 
@@ -301,8 +302,8 @@ The matched shrink is within one point of the upper bound (knowing the true resa
 89 %, Lanczos3 54 %, whole-number NN 37 %), the smudge (96 % / 67 % / 24 %) and the 3-px dot, which is
 about one pixel of the copy at 3× (100 % / 62 % / 38 %). Text, bars, lines, mosaics and moved regions
 are found by every smooth mode almost always. By factor, the matched shrink stays at 96–99 %, Lanczos3
-falls from 89 % (2×) to 67 % (4×), and whole-number NN is at 0 % at 2.5× (the uncovered border is
-always marked, so no threshold leaves only the edit) and 58–87 % elsewhere. PNG and JPEG q85 copies
+falls from 89 % (2×) to 67 % (4×), and whole-number NN is at 0 % at 2.5× (the copy is shown at 80 % of
+the original's size, so nothing lines up) and 58–87 % elsewhere. PNG and JPEG q85 copies
 differ little (matched shrink 100 % vs 97 %).
 
 The unsharp mask makes edits slightly easier to see among the enlargers (82 % vs 80 %, mostly the
@@ -399,9 +400,10 @@ pixel. The original has its edges at full resolution; the NN-enlarged copy has t
 k×k staircases. So every edge in the picture differs, by up to its full contrast, and NN needs a
 *higher* threshold than any smooth filter before the diff stops being yellow everywhere (section 4).
 NN avoids inventing values, but it does not avoid differences: it adds them. At factors that are not
-whole numbers it also leaves part of the canvas uncovered (below 2× it does nothing at all; at 2.5×
-it enlarges 2× and leaves a 20 % border), and NN to the exact size makes pixels unevenly wide and
-moves features by up to half a copy pixel (`DISCOVERIES.md` §2).
+whole numbers the two images do not line up at all: at 2.5× it enlarges 2×, so the copy is shown at
+80 % of the original's size and only the alignment anchor (e.g. the centre) coincides; below 2× it does
+nothing. NN to the exact size instead makes pixels unevenly wide and moves features by up to half a
+copy pixel (`DISCOVERIES.md` §2).
 
 **What a smooth filter does.** It estimates in-between values. The estimate is wrong exactly where the
 copy lost detail, but it is closer to the original than a staircase, so fewer and weaker differences
@@ -441,7 +443,7 @@ For the WinIMerge/WinMerge feature (implemented in the PR branches, see `notes/u
    8-bit path too: the float path (no clipped overshoot) measured the same and costs 2.4× the time.
 3. No unsharp-mask option.
 4. Image alignment **Center** is the useful companion when sizes still differ (crops, letterboxing,
-   or a factor where whole-number NN leaves a border).
+   or whole-number NN at a factor like 2.5×, where the enlarged copy stays smaller).
 
 For comparing duplicates by eye (your use):
 

@@ -33,7 +33,10 @@ The two WinIMerge branches are independent. Merged together they need the confli
   .rc files compile with MinGW i686 (`tools/mingw-syntax-check.sh`, syntax only).
 - An independent review (a separate agent) ran ~2,500 random edit sequences under AddressSanitizer on
   both branches: no new crash sites; with the options at their defaults, results are bit-identical to
-  master. Its real findings were fixed (see the PR descriptions); its tools are not kept.
+  master. Its real findings were fixed (see the PR descriptions); its fuzzer is kept in
+  `tools/winimerge-linux-test/fuzz/` (README there). A re-run on the
+  final commits (400 sequences each on align, scale and master, same seed) hit only crash sites that master
+  has too (the pre-existing bugs below).
 - **Not verified**: an MSVC build, running WinIMerge.exe or WinMerge on Windows, and the WinMerge (MFC)
   changes at all beyond reading them.
 
