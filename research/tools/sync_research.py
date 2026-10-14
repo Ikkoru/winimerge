@@ -19,7 +19,7 @@ SKIP_DIRS = {'__pycache__', '.ipynb_checkpoints'}
 SKIP_EXT = {'.so', '.o', '.a', '.npy', '.npz'}
 IMAGE_EXT = {'.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.tif', '.tiff'}
 KEEP_IMAGES_UNDER = ('figures/', 'charts/')   # small, curated images that belong with the docs
-SKIP_FILES = {'eyecheck/artifact.html'}       # same page as eyecheck/index.html (which embeds the crops)
+SKIP_FILES = {'eyecheck/artifact.html', 'eyecheck2/artifact.html'}   # same pages as the index.html files
 MAX_BYTES = 8 * 1024 * 1024
 
 

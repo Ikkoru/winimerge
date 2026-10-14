@@ -78,11 +78,11 @@ Size Matching, that the choice is remembered after restarting, and that the menu
 
 ## Possible follow-ups (measured, not implemented)
 
-- **Round trip** (REPORT §4.12): after the matched shrink, enlarge both scaled images back to the
-  original's size (Lanczos3 or bilinear) and compare there. For JPEG copies it needs a lower threshold
-  (synthetic 28–32 instead of 40, real 35–42 instead of 47) and finds a few points more edits (real
-  pictures: 88–91 % instead of 84 %), the best of all the ways tried; for PNG copies it changes nothing.
-  Costs a comparison at full size (~15× slower at 4×). Would be a flag on DOWN_MATCHED.
+- ~~Round trip~~ (REPORT §4.12): dropped after the follow-up (§10.1). Its gain was WinMerge's block
+  size; the matched shrink with Diff Block Size 8/k does as well.
+- **A point-sampling candidate for the matched shrink** (REPORT §10.2): thumbnails made with nearest
+  neighbour (Pillow NEAREST) are reproduced by no current candidate; point sampling at the common phases
+  would make pixel-art thumbnails exact.
 - **Linear-light candidate for the matched shrink** (REPORT §4.11): copies resized in linear light are the
   matched shrink's main failure (threshold ~70–80); a Lanczos3 candidate resampled between two gamma
   conversions (FreeImage's float path) would reproduce them exactly. Only worth it if such copies are
@@ -111,4 +111,8 @@ rebuild the tools and rerun everything, including on your own image pairs), `eye
 (flip page, works offline; also published privately at https://claude.ai/artifact/6VCaQkq5egCxeAi9tqepCp).
 The experiments ran through `harness/run_chain3.sh` and `harness/run_chain4.sh` (logs in `results/`); every
 run is resumable, so rerunning a chain only fills in what is missing. Side experiments: `roundtrip_test.py`,
-`im_spotcheck.py`, `chroma_test.py`.
+`im_spotcheck.py`, `chroma_test.py`. Follow-up round by comparison goal (REPORT §10): `tiny_edits.py`,
+`blocksize_check.py`, `cr_vs_l3.py`, `pixelart_test.py`, `compression_test.py`, `jpeg_history.py`
+(`results/tables_followup.md`), the round-2 flip page `eyecheck2/index.html` (published privately at
+https://claude.ai/artifact/AZuXdaiba6Qw86YBqfJtyn), and two tools for your own files: `keep_check.py`
+(keep the smaller copy too?) and `jpeg_history.py FILE.jpg` (saved before at a lower quality?).

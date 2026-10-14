@@ -1,0 +1,41 @@
+32 of 48 tasks to run
+1/32 tasks
+2/32 tasks
+3/32 tasks
+4/32 tasks
+5/32 tasks
+6/32 tasks
+7/32 tasks
+8/32 tasks
+9/32 tasks
+10/32 tasks
+11/32 tasks
+12/32 tasks
+13/32 tasks
+14/32 tasks
+15/32 tasks
+16/32 tasks
+17/32 tasks
+18/32 tasks
+19/32 tasks
+20/32 tasks
+21/32 tasks
+22/32 tasks
+23/32 tasks
+24/32 tasks
+25/32 tasks
+26/32 tasks
+27/32 tasks
+28/32 tasks
+29/32 tasks
+30/32 tasks
+31/32 tasks
+32/32 tasks
+method               rt_l3  small  up_cr  up_l3  up_l3usm  up_nn  up_nn_int
+scenario  direction                                                        
+big90_png in_large    0.92   0.90   0.72   0.75      0.76   0.66       0.66
+          in_small    0.93   0.90   0.44   0.48      0.52   0.40       0.40
+jpg85     in_large    0.76   0.71   0.72   0.71      0.72   0.61       0.61
+          in_small    0.71   0.69   0.43   0.47      0.49   0.39       0.39
+png       in_large    1.00   1.00   0.70   0.73      0.73   0.61       0.61
+          in_small    1.00   1.00   0.44   0.47      0.53   0.40       0.40

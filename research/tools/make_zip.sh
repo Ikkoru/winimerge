@@ -11,6 +11,6 @@ zip -q -r -9 "$OUT" "$(basename "$SRC")" \
   -x '*/__pycache__/*' '*.pyc' \
   -x 'research/testset/synth/*' 'research/testset/real/*.png' 'research/testset/sources/*.png' 'research/testset/sources/*.jpg' \
   -x 'research/testset/large/*' 'research/testset/large_real/*' \
-  -x 'research/eyecheck/img/*' 'research/eyecheck/artifact.html'
+  -x 'research/eyecheck/img/*' 'research/eyecheck/artifact.html' 'research/eyecheck2/artifact.html'
 ls -la "$OUT"
 unzip -l "$OUT" | tail -1

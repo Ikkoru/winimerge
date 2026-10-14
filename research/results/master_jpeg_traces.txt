@@ -1,0 +1,17 @@
+synth_flatcolor.png blocks 4095 max 14 at x+4 y+5 step 23, median 12.4 clean
+synth_lineart.png too few unclipped textured blocks 21
+synth_manga.png too few unclipped textured blocks 0
+synth_painterly.png blocks 18598 max 16 at x+6 y+6 step 24, median 14.4 clean
+synth_pixelart.png too few unclipped textured blocks 0
+synth_text_ui.png blocks 8674 max 58 at x+0 y+5 step 2, median 53.7 clean
+synth_zoneplate.png too few unclipped textured blocks 484
+real_astronaut.png blocks 2851 max 11 at x+4 y+4 step 24, median 9.4 clean
+real_coffee.png blocks 3074 max 6 at x+2 y+5 step 24, median 4.2 clean
+real_hokusai_hodogaya.png blocks 29999 max 117 at x+5 y+1 step 3, median 7.3 JPEG TRACES
+real_kenney_city_tiles.png blocks 2103 max 12 at x+4 y+1 step 24, median 7.6 clean
+real_kitty_screenshot.png blocks 1198 max 19 at x+1 y+6 step 8, median 13.3 clean
+real_krita_anime_banner.png blocks 1716 max 8 at x+5 y+3 step 24, median 6.2 clean
+real_lion_appel.png blocks 29369 max 121 at x+2 y+0 step 3, median 5.4 JPEG TRACES
+real_peppercarrot_cover.png blocks 14108 max 17 at x+3 y+5 step 24, median 14.9 clean
+real_peppercarrot_witches.png blocks 18676 max 15 at x+0 y+1 step 24, median 13.8 clean
+real_vangogh_starry_night.png blocks 29777 max 131 at x+0 y+0 step 4, median 5.1 JPEG TRACES

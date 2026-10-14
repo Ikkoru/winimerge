@@ -13,7 +13,9 @@ Lanczos3 is not worth it. All three modes are implemented for
 WinIMerge (draft PR https://github.com/Ikkoru/winimerge/pull/2, alignment in
 https://github.com/Ikkoru/winimerge/pull/1) with WinMerge menus (https://github.com/Ikkoru/winmerge/pull/1
 and /pull/2). An eye-check page for flipping between the candidates:
-https://claude.ai/artifact/6VCaQkq5egCxeAi9tqepCp (also `eyecheck/index.html`, works offline).
+https://claude.ai/artifact/6VCaQkq5egCxeAi9tqepCp (also `eyecheck/index.html`, works offline); round 2,
+after your review: https://claude.ai/artifact/AZuXdaiba6Qw86YBqfJtyn (`eyecheck2/index.html`). Section 10
+takes your three comparison goals one by one.
 
 ## 1. The question
 
@@ -58,6 +60,14 @@ tools that predict what a person sees when flipping.
   8-bit and float paths measure the same). An unsharp mask (σ 0.5–1.5 px, 25–100 %) changes the
   threshold needed by −2 % to +20 % depending on strength, finds 1–3 points more edits, and sharpens
   JPEG noise with them. The enlargement mode in the PR is plain Lanczos3.
+- **By goal (follow-up, section 10).** For finding edits in illustrations and photos the result holds and
+  sharpens: with a lossless small copy the shrink marks every tiny edit down to a quarter of a copy pixel
+  (enlarging: 51–60 %), with Diff Block Size 8/k and zoom to help the eye; only sub-pixel edits against a
+  JPEG copy escape it. For pixel art it is exact. For judging which copy is cleaner it diverges: compare at
+  the smaller size by eye after restoring JPEGs, not by WinMerge's marks; a one-time q90–q95 JPEG makes a
+  lossless half-size copy redundant except for saturated colour saved 4:2:0, a re-saved one does not, and
+  a JPEG thumbnail is almost never worth keeping (`harness/keep_check.py` does the measuring). The round
+  trip is not needed: its gain was WinMerge's block size.
 - **Implemented** as separate PRs in your forks: image alignment (nine anchors, including centre) and
   size matching (the three modes), each a library commit plus a small UI commit, with matching WinMerge
   menu PRs. The setting lives behind one API call, so the maintainer can put it wherever they want.
@@ -473,9 +483,10 @@ pairs per setting) and with small text or a thin line (48 edited pairs per setti
 - Real pictures (both Pepper&Carrot images, the Hokusai print, the lion photo; same settings, 24
   unedited and 48 edited pairs per setting) behave the same way: the matched shrink needs 43 → 54–55
   at q85 and 65 → 75–78 at q60, Lanczos3 89 → 92–93; every edit is found with or without jpegQS.
-- So jpegQS is for looking at a JPEG, not for diffing it: when comparing a copy with its original,
-  open the JPEG as it was downloaded, or, with jpegQS PNGs, set the threshold about 10 higher. Adding
-  jpegQS to WinMerge (an LGPL-2.1 dependency) would not pay off.
+- So for finding edits, open the JPEG as it was downloaded, or, with jpegQS PNGs, set the threshold
+  about 10 higher; adding jpegQS to WinMerge for diffing (an LGPL-2.1 dependency) would not pay off.
+  Choosing which copy to keep is a different question: there jpegQS belongs in the comparison, because
+  it can only undo the last save and the copy you keep will be viewed restored (section 10.3).
 - The measure here is WinMerge's own (where the largest differences are); the earlier finding that
   jpegQS raises SSIMULACRA2 (the brief, item 9) is about how good the copy looks, a different question.
   Part of the effect may come from `-q 6` writing 4:2:0 input out as 4:4:4 with its own chroma
@@ -643,10 +654,12 @@ trip needs a threshold of 42 (Lanczos3) or 35 (bilinear) instead of 47, marks 40
 at threshold 16 instead of 61 %, and finds 88–91 % of the edits instead of 84 % (Lanczos3 enlargement
 86 %), the faint recolour most of all (88–95 % against 82 %).
 
-So for JPEG copies the round trip is the best of all the ways tried, by a few points; for PNG copies it
-changes nothing. It was not added to the PR, which is large enough already; it would be a small
-follow-up (a flag on DOWN_MATCHED that enlarges both scaled images back to the larger size, with
-bilinear or Lanczos3) if you or the maintainer want it.
+So for JPEG copies the round trip looked like the best of all the ways tried, by a few points; for PNG
+copies it changes nothing. The follow-up (section 10.1) found where those points come from: WinMerge
+marks 8×8 blocks of the images it compares, which in the round trip cover 8×8 pixels of the original
+but at the small size 8k × 8k. With the same block area (WinMerge's Diff Block Size set to 8/k at the
+small size) the plain matched shrink finds as many edits as the round trip, with Lanczos3 or bilinear,
+and needs the same threshold. The round trip is therefore not needed as a mode.
 
 ## 5. Is anything other than nearest neighbour a flawed comparison?
 
@@ -716,15 +729,14 @@ For the WinIMerge/WinMerge feature (implemented in the PR branches, see `notes/u
 2. Match the filter on FreeImage's 8-bit path (what Pillow and most libraries do), with exact area
    averaging as an extra candidate, and choose by the lowest mean absolute difference. Enlarge on the
    8-bit path too: the float path (no clipped overshoot) measured the same and costs 2.4× the time.
-3. No unsharp-mask option, and no JPEG restoration (jpegQS) inside WinMerge: it does not make the
-   comparison cleaner (section 4.8).
+3. No unsharp-mask option, and no JPEG restoration (jpegQS) inside WinMerge for diffing: it does not
+   make the comparison cleaner (section 4.8). For choosing which copy to keep, restore both copies first,
+   outside WinMerge (section 10.3).
 4. Image alignment **Center** is the useful companion when sizes still differ (crops, letterboxing,
    or whole-number NN at a factor like 2.5×, where the enlarged copy stays smaller).
-5. A possible follow-up, not in the PR: an option to enlarge both panes back to the original's size
-   after the matched shrink ("round trip"). For JPEG copies it needs a lower threshold (synthetic 28–32
-   instead of 40, real 35–42 instead of 47) and finds a few points more edits (real: 88–91 % instead of
-   84 %), and it shows the comparison at full size; the cost is comparing 24 instead of 1.5 megapixels
-   (section 4.12).
+5. No "round trip" option (enlarge both panes back after the matched shrink). Its small gain in
+   section 4.12 was WinMerge's block grid: with Diff Block Size 8/k the matched shrink does as well
+   (section 10.1), comparing a quarter (2×) to a sixteenth (4×) of the pixels.
 
 For comparing duplicates by eye (your use):
 
@@ -746,6 +758,17 @@ For comparing duplicates by eye (your use):
   the synthetic and 96 % of the real edited pairs (97 % and 92 % of the JPEG q85 ones; section 4.4).
 - Make sure WinMerge is not bitmap-stretched by Windows (section 7), and zoom in (200 % or more) on the
   small comparison: at the copy's resolution one pixel is small on a 4K screen.
+- **By goal** (section 10):
+  - *Finding edits and variants*: the above, plus Diff Block Size 8/k (4 for a half-size copy, 2 for
+    smaller) and zoom k× or more while flipping. With a lossless copy, set the threshold as low as the pair
+    allows (2–4). With a JPEG copy, sub-pixel details of the large file are the one thing the shrink
+    misses; a pass in Enlarge to Largest catches about a third of them.
+  - *Pixel art*: Shrink to Smallest at threshold 0, or Enlarge by Whole Number when the ratio is whole.
+  - *Which copy to keep*: judge at the smaller size by eye (Shrink to Smallest, zoomed), never by the
+    marks; restore JPEGs with jpegQS first; or run `harness/keep_check.py`. A JPEG thumbnail is almost
+    never worth keeping; a lossless small copy is worth keeping next to a re-saved or q80-or-lower large
+    JPEG, and next to a 4:2:0 one of saturated-colour art at half size. `harness/jpeg_history.py` flags
+    files that were saved before at a lower quality (it cannot see same-quality re-saves).
 
 For your video comparisons (the brief: the lower-resolution side enlarged with FFmpeg's Lanczos, then a
 difference blend) the same reasoning applies: enlarging leaves the lost detail as a difference along
@@ -805,8 +828,8 @@ both panes equally blocky, so it adds no difference of its own.
   (canvas `drawImage`), Photoshop ("Bicubic Sharper"), GIMP (NoHalo/LoHalo) or Paint.NET
   (supersampling): not available on Linux. WIC Fant and Paint.NET supersampling are area-averaging-like,
   which FreeImage cannot reproduce at non-integer factors (`DISCOVERIES.md` §7).
-- Copies that were also cropped, padded, rotated, colour-converted (ICC profiles, gamma), resized twice
-  or recompressed several times; factors above 4; very small thumbnails.
+- Copies that were also cropped, padded, rotated, colour-converted (ICC profiles, gamma) or resized
+  twice; factors above 4; very small thumbnails. (Recompressed several times: section 10.3.)
 - Learned super-resolution (waifu2x, Real-ESRGAN) as an enlarger: it invents plausible detail, which is
   the opposite of what a diff needs.
 - A real manga page with screentone (no freely licensed one was reachable; the synthetic page stands in).
@@ -815,13 +838,361 @@ both panes equally blocky, so it adds no difference of its own.
 - Alpha channels, 16-bit and animated images, and colour management (ICC profiles).
 - Aligning a copy that was also cropped (that needs feature matching, which WinMerge does not have).
 - LPIPS and DISTS: not used, as the brief advised (they reward plausible texture over the right pixels).
-- Your own pairs: the harness runs on them offline (`harness/compare_pairs.py`, section 10).
-- The eye-check page was built and checked to work, but no person has looked through it yet; ꟻLIP,
-  Butteraugli and SSIMULACRA2 stand in for the eye.
+- Your own pairs: the harness runs on them offline (`harness/compare_pairs.py`, section 11).
+- People's eyes: you looked through round 1 of the eye-check page (your notes are answered in section 10);
+  round 2 (blind trials, compression cases, filters on PNG copies) is unseen. Elsewhere ꟻLIP, Butteraugli
+  and SSIMULACRA2 stand in for the eye, and the "visible" thresholds of section 10.3 (Butteraugli max 1)
+  are the metric's, not measured on you.
+- Keep decisions for copies that were resized from an already-compressed upload more than once, WebP or
+  AVIF copies, and upscaling a small lossless copy with a learned upscaler as an alternative to a damaged
+  large file.
 - The WinIMerge/WinMerge changes were compiled with MinGW and unit-tested on Linux, not built with MSVC
   or run on Windows.
 
-## 10. Reproducing and running it on your own pairs
+## 10. By comparison goal (after your first review)
+
+Your review separated three goals that resampling serves differently: finding edits between variants of
+an illustration or photo, the same for pixel art, and judging which of two copies carries more (and
+less recoverable) compression damage. Big edits show with every method (section 4.4 and your own
+flip check), so this round looks at tiny edits, pixel art and compression damage, with your two
+caveats: the smaller file lossless while searching for differences, and lossless next to a
+high-quality JPEG when deciding what to keep.
+
+| goal | does the earlier result hold? | best way in WinMerge | where it stops |
+|---|---|---|---|
+| edits and variants (illustrations, photos) | yes, and more clearly for tiny edits: with a lossless small copy the shrink marks every dot down to a quarter of a copy pixel, the enlargers 51–60 % of all the tiny edits | Shrink to Smallest; threshold by how the files were saved; Diff Block Size 8/k; zoom k× or more and flip | edits under half a copy pixel against a JPEG copy: the copy's noise hides them at the small size (2–34 % found); enlarging marks about a third of them among many resampling marks (10.1) |
+| pixel art | yes, exactly: two NN zooms of the same art compare clean at any ratio | Shrink to Smallest, threshold 0 (or whole-number NN at whole ratios) | point-sampled thumbnails (10.2) |
+| which copy is cleaner, is the small one worth keeping | **no, it diverges**: the shrink is built to make the two look alike, so it shows the sum of both copies' damage, not whose it is; and WinMerge's marks ignore masking | judge at the smaller size, zoomed, after restoring JPEGs with jpegQS; `keep_check.py` puts numbers on it; the centred NN view answers a different question | a JPEG re-saved at the same quality on a shifted grid cannot be recognised from the file (10.3) |
+
+### 10.1 Edits and variants (illustrations, photos): tiny differences
+
+`harness/tiny_edits.py`: 8 pictures (synthetic line art, flat colour, manga and UI text; the
+Pepper&Carrot cover, the Krita banner, the lion photo and the terminal screenshot), copies at ½ and ¼ size
+made with Pillow's Lanczos, and three ways the two files were saved: both lossless; the small copy a JPEG
+q85 (a typical web thumbnail); the large file a JPEG q90 and the small copy a PNG. 18 edits: a square dot
+of 1, 2, 4 or 6 pixels of the large picture (¼ to 3 pixels of the copy) in full or half contrast on a flat
+or a busy spot, and a 1-pixel anti-aliased hairline 40 pixels long. Each edit is made either in the small
+copy's source (the large file lacks it) or in the large file (the copy never had it, like the dot in c02):
+1728 edited pairs per method. "Marked": WinMerge marks the edit at the threshold that leaves 1 % of the
+unedited pair's blocks marked. "Eye": the edit's spot stands out of ꟻLIP's map the same way, i.e. when you
+flip, it flickers more than all but 1 % of the picture.
+
+| method | both lossless: marked · eye | small JPEG q85 | large JPEG q90 + small PNG |
+|---|---|---|---|
+| **shrink, matched (DOWN_MATCHED)**, at 1:1 | **100 · 98 %** | **70 · 56 %** | **90 · 76 %** |
+| the same, viewed zoomed k× | – · 99 % | – · 65 % | – · 86 % |
+| round trip (both enlarged with Lanczos3) | 100 · 100 % | 74 · 69 % | 93 · 89 % |
+| enlarge, Lanczos3 (UP_SMOOTH) | 60 · 68 % | 59 · 62 % | 61 · 67 % |
+| enlarge, Catmull-Rom | 57 · 69 % | 57 · 59 % | 58 · 69 % |
+| enlarge, Lanczos3 + unsharp mask | 63 % | 61 % | 64 % |
+| enlarge, NN to the exact size | 51 · 69 % | 50 · 61 % | 53 · 69 % |
+| enlarge, whole-number NN | 51 % | 50 % | 53 % |
+
+By the size of the dot, in pixels of the copy (marked · eye; for the shrink the eye viewing it zoomed k×):
+
+| dot size | ≤ ⅓ px | ½ px | 1 px | 1½–2 px | 3 px |
+|---|---|---|---|---|---|
+| *both lossless:* shrink | 100 · 94 % | 100 · 100 % | 100 · 100 % | 100 · 100 % | 100 · 100 % |
+| Lanczos3 | 39 · 19 % | 39 · 32 % | 55 · 71 % | 77 · 95 % | 88 · 100 % |
+| *small JPEG q85:* shrink | 2 · 0 % | 34 · 30 % | 83 · 74 % | 98 · 92 % | 100 · 100 % |
+| Lanczos3 | 39 · 16 % | 37 · 16 % | 53 · 66 % | 75 · 92 % | 88 · 98 % |
+| *large q90 + small PNG:* shrink | 50 · 42 % | 83 · 72 % | 98 · 94 % | 100 · 100 % | 100 · 100 % |
+| Lanczos3 | 34 · 19 % | 40 · 28 % | 56 · 73 % | 79 · 95 % | 89 · 100 % |
+
+- **With a lossless small copy (your caveat) the shrink finds every tiny edit and the enlargers about
+  half.** Every dot down to a quarter of a copy pixel and every hairline is marked (an unedited pair
+  needs a threshold of 0–1 when the copy comes from a common resizer); Lanczos3 marks 60 %, nearest
+  neighbour 51 %. With the large file a q90 JPEG the shrink still marks 90 % (98–100 % of the dots of a
+  copy pixel or more; half of those under a third of a pixel, which sink into the large file's JPEG noise).
+- **For the eye, zoom in.** At 1:1 a dot under half a copy pixel is faint in the shrink view (ꟻLIP 0.02–0.06,
+  where 1 is black against white) although nothing else flickers; zoomed k× it reaches 0.11–0.23 against a
+  background of 0.02. In the enlarged views the same dot is drawn at full strength in the large pane
+  (0.25–0.33) but 1 % of the picture flickers more than that (0.42–0.45: every fine detail the copy lost),
+  so the eye singles it out in only 16–19 % of pairs. Your c09 experience in one line.
+- **Your c02 dot** is the centre of a small bullseye in the original line art, under half a copy pixel at
+  1/2.5. The copy never had it, and the shrunk original loses it the same way, so the shrink view shows
+  it in neither pane: what the copy cannot hold cannot differ. Had that dot been *added* to the large file
+  after the copy was made, the shrink would still mark it (100 % with a lossless copy), as a faint smudge
+  you would find by its mark rather than by flipping.
+- **A JPEG small copy is where the methods diverge.** Edits of a copy pixel or more: shrink 83–100 %,
+  Lanczos3 53–88 %. Under half a copy pixel the copy's own compression noise at the small size (an
+  unedited pair needs a threshold of 47) swallows the edit in the shrink view (2–34 %), while Lanczos3
+  still marks 37–39 %, because the large pane shows the edit sharp. It depends on the picture too: on line
+  art, manga and UI text the shrink marks 74–85 % of all the tiny edits against Lanczos3's 29–53 %; on the
+  Pepper&Carrot cover, the Krita banner and the flat colour Lanczos3 marks more (65–83 % against 54–74 %),
+  and on the four real pictures it is also a little ahead by eye (64 % against 57 % zoomed).
+- **Where the edit is matters to the enlargers only**: the shrink finds edits in the copy and in the large
+  file alike (69–100 % either way); Lanczos3 finds edits in the large file far more often (71–75 % against
+  47–48 %).
+- **Catmull-Rom against Lanczos3**: the same edits (marked 57 % against 60 %, eye 66 % against 65 %);
+  the edit stands out more with Lanczos3 in 67 % of the pairs, with Catmull-Rom in 6 %. The unsharp mask
+  adds 2–3 points by marks and sharpens the noise with them; still not worth a mode.
+
+**The round trip (your question 2).** In section 4.12 the round trip looked a few points better with JPEG
+copies, and here it is again 2–4 points ahead of the shrink. The reason is WinMerge's block grid, not the
+enlargement: at the copy's size each 8×8 block covers 8k × 8k pixels of the original, so a tiny edit
+shares its block with that much more compression noise; in the round trip the blocks cover 8 × 8. With the
+same block area (WinMerge's Diff Block Size, section 10.4) the plain shrink does as well
+(`harness/blocksize_check.py`, 4 pictures × factors 2 and 4 × 36 edited pairs each):
+
+| view | small JPEG q85: marked · eye | large q90 + small PNG: marked · eye |
+|---|---|---|
+| shrink, block size 8 | 76 · 76 % | 94 · 92 % |
+| **shrink, block size 8/k** (4 at ½ size, 2 at ¼) | **78 · 82 %** | **96 · 94 %** |
+| round trip (Lanczos3), block size 8 | 78 · 80 % | 95 · 94 % |
+| round trip (bilinear), block size 8 | 78 · 80 % | 96 · 94 % |
+| round trip, block size 8k (as coarse as the shrink's) | 75–76 · 76 % | 93–94 · 91 % |
+
+To the eye the zoomed shrink and the round trip show a tiny edit about equally strongly (ꟻLIP within
+0.00–0.08 at every size, with the background scaled alike). So my answer is to leave the round trip
+out: Diff Block Size gives its finer marks, zoom gives its view, and it would cost comparing 4–16 times
+the pixels with both panes softened. For judging compression (10.3) it would be the wrong view anyway: a
+smooth enlargement of both panes blurs the very artifacts you look for.
+
+**In WinMerge, for this goal:**
+- Size Matching: Shrink to Smallest (Matched Filter).
+- Ignore Color Difference: 2–4 with a lossless copy; 16 when the large file is a q90-ish JPEG (an
+  unedited pair needs 12); 64 for a JPEG copy (needs 47; 32 leaves noise marked).
+- Diff Block Size: 4 for a half-size copy, 2 for smaller ones.
+- Zoom to k× or more and flip with the space bar. XOR is useful here with a lossless copy, where an
+  unedited pair is nearly black; with a JPEG copy it lights up the noise.
+- Let the marks point at candidates, then look at each spot in the large file. With a JPEG copy, if
+  sub-pixel details matter, add a pass in Enlarge to Largest (Lanczos3): it marks about a third of the
+  sub-pixel edits the shrink cannot see, among many resampling marks.
+
+### 10.2 Pixel art
+
+Three pixel-art pictures (two procedural scenes and a crop of Kenney's city tiles, 200×150 logical
+pixels), the two files related in eleven ways, with edits made on the logical pixels: one pixel to a
+contrasting palette colour, the same on a flat spot, one pixel shifted subtly (+16/+8/−12 RGB), a 2×2
+block, and a subtle 6×6 recolour (+10/0/−10), in either file (`harness/pixelart_test.py`). Threshold
+needed for the unedited pair (T_p99) and share of edits visible:
+
+| how the two files relate | shrink, matched | round trip | NN to exact size | whole-number NN | Lanczos3 | Catmull-Rom |
+|---|---|---|---|---|---|---|
+| NN zooms, whole ratio (×8 and ×4, ×8 and ×2) | 0 · 100 % | 0 · 100 % | 0 · 100 % | 0 · 100 % | 62–97 · 57 % | 58–99 · 56 % |
+| NN zooms, other ratio (×8 and ×3, ×6 and ×4) | 0 · 100 % | 0 · 100 % | 0 · 100 % | does not line up | 42–81 · 57 % | 39–78 · 57 % |
+| smooth thumbnail (Lanczos 1/2–1/3, bilinear 1/2.5), PNG | 0 · 100 % | 0 · 100 % | 16–117 · 61–89 % | 16–137 or none · 0–89 % | 69–95 · 57 % | 65–96 · 57 % |
+| Lanczos thumbnail 1/3 saved as JPEG q85 | 66 · 58 % | 54 · 56 % | 113 · 61 % | 132 · 44 % | 105 · 61 % | 105 · 58 % |
+| point-sampled thumbnail (Pillow NEAREST 1/2.5, 1/3) | 95–101 · 53–56 % | 70–83 · 56–67 % | 173 · 56–61 % | none–182 · 0–53 % | 118–123 · 58–61 % | 117–123 · 56–61 % |
+
+- **Two nearest-neighbour zooms of the same art** (sprites, pixel-art posts at different zooms): the
+  matched shrink is exact at any ratio, 2.67 and 1.5 included (FreeImage's box filter reproduces the
+  smaller zoom pixel for pixel), and so is nearest neighbour to the exact size; whole-number NN is
+  exact only at whole ratios. Every edit is found, the subtle one-pixel shift too.
+- **Smooth enlargers are wrong for pixel art**: Lanczos3 and Catmull-Rom turn every logical-pixel edge
+  into a difference (threshold 39–123) and miss subtle edits almost entirely (0–11 % of the subtle
+  one-pixel shifts, 33–36 % of the subtle recolours; strong changes still show).
+- **A thumbnail made with a smooth filter** is reproduced exactly by the matched shrink; enlarging it
+  with NN is not exact, because its pixels are blends of the logical pixels.
+- **Point-sampled thumbnails** (made with nearest neighbour) are the hard case: no candidate
+  reproduces them, because the sampling phase differs from FreeImage's box, and only strong edits
+  show. A point-sampling candidate in DOWN_MATCHED (with the common sampling phases) would make them
+  exact; it is not implemented.
+
+So for pixel art the general result holds and is even cleaner: compare at the smaller size with the
+matched filter. Whole-number NN (the mode you asked for) is equally exact when the ratio is a whole
+number and shows the larger view; nearest neighbour to the exact size would extend that to any ratio
+between two zooms (not a WinIMerge mode; a possible addition).
+
+### 10.3 Which copy carries more compression damage, and is a smaller copy worth keeping?
+
+Here the goal is different from finding edits. The matched shrink is built to make the two files look
+alike, so what it leaves is the *sum* of both copies' damage, without saying whose it is, and WinMerge's
+marks weigh every level of difference the same wherever it is (the eye does not: noise in fur or foliage is
+masked, the same noise on a flat sky is not). What decides whether a smaller copy is worth keeping is
+whether it holds anything the larger file does not: at the smaller size, is it cleaner than the larger file
+shrunk to that size? At the larger size it cannot compete, as it lacks the detail.
+
+`compression_test.py keep`: the 9 masters at ½ and ⅓ size; the large file saved once at q95, q90, q80 or
+q70, three times at q90 on shifted grids, or at q75 and then q90; the small copy as PNG, JPEG q95, q85 or
+q75, a q85 saved twice, or a q85 thumbnail made from the q90 upload (all JPEGs 4:2:0, Pillow's default).
+Truth: Butteraugli of each side against the master shrunk to the small size (the large file shrunk the same
+way), as saved and after jpegQS. A max-norm of 1 is Butteraugli's "just noticeable".
+
+**A lossless small copy next to a high-quality JPEG (your caveat).** What the PNG adds is exactly the
+large file's damage that survives the shrink (Butteraugli max-norm, median of 9; in brackets, in how many
+of the 9 it is visible):
+
+| large file | at ½ size: as saved → restored with jpegQS | at ⅓ size |
+|---|---|---|
+| q95 once | 0.64 → 0.62 (3 → 3) | 0.49 → 0.49 (1 → 1) |
+| q90 once | 0.83 → 0.77 (4 → 3) | 0.62 → 0.53 (1 → 1) |
+| q80 once | 1.23 → 1.20 (7 → 6) | 0.92 → 0.86 (3 → 2) |
+| q70 once | 1.58 → 1.32 (7 → 7) | 1.13 → 0.93 (7 → 4) |
+| q90 saved 3 times (shifted grid) | 1.45 → 1.22 (7 → 6) | 1.11 → 0.91 (6 → 3) |
+| q75, then q90 | 1.71 → 1.34 (7 → 7) | 1.18 → 0.99 (7 → 4) |
+
+- **A one-time q90–q95 large file mostly makes the PNG redundant, except for saturated colour.** The
+  q90 file shrunk to half size is within the threshold of the PNG for the line art, manga, Hokusai, the
+  lion and the Witches (0.48–0.83), and visibly worse along saturated colour edges for the Krita banner,
+  the Pepper&Carrot cover, the flat colour and the painterly strokes (1.08–1.64). The cause is mostly
+  4:2:0 chroma subsampling: the colour was stored at half resolution to begin with, so halving the size
+  does not average its errors away. Saved 4:4:4 at q90, the Krita banner drops from 1.39 to 0.64, the flat
+  colour from 1.64 to 1.22, the Pepper&Carrot cover from 1.16 to 1.02. At ⅓ size only the flat colour
+  and the Krita banner stay at the threshold (1.06, 1.00).
+- **A re-saved or q70–q80 large file leaves visible damage at half size in 7 of 9 pictures**, and jpegQS
+  does not remove it (6–7 of 9 still visible): next to such a file the PNG is the cleaner picture at its
+  size. At ⅓ size restoring helps more (2–4 of 9 left).
+
+**A lossy small copy (a thumbnail) is almost never worth keeping.** Its own damage at its size is larger
+than what the large file leaves after shrinking (Butteraugli max 1.31–1.43 for q95, 2.46–2.65 for q85 and
+for a q85 thumbnail of the q90 upload, 3.05–3.27 for q75 or a twice-saved q85), because shrinking averages
+the large file's noise away while the thumbnail keeps its own. Which is cleaner at the small size:
+
+| large file | small copy cleaner, against a q95 copy | against q85, q75, re-saved or thumbnail copies |
+|---|---|---|
+| q95 or q90 once | 0 of 18 | 0 of 72 |
+| q80 once | 1 of 18 | 0 of 72 |
+| q70 once | 4 of 18 | 0 of 72 |
+| q90 saved 3 times | 2 of 18 | 0 of 72 |
+| q75, then q90 | 5 of 18 | 0 of 72 |
+
+(The rest are the large file cleaner, or within 10 %.) Restoring both with jpegQS moves these counts by up
+to three. So a JPEG thumbnail only earns its keep when it is q95 and the large file is badly or repeatedly
+compressed.
+
+**The centred whole-number NN view** (the large file at its size against the small copy enlarged by
+whole-number NN, the way you meant to use it with centring) shows each file's damage relative to its own
+resolution: the large file's blocking and ringing, the small copy's magnified ones. That is a fair answer
+to "which file was compressed harder", and it named the same cleaner side as the small-size truth in 85 %
+of the 540 lossy pairs (87 % restored). It leans towards the small copy, calling it cleaner in 9 % of the
+pairs where the truth says 2 %: the typical case is a q95 thumbnail that looks cleaner than a q90 large
+file in this view while the q90 file shrunk to the thumbnail's size is cleaner still. So for "keep the
+small one too?" judge at the small size: Shrink to Smallest, zoomed k×, flipping and watching which pane
+the blocking, ringing and colour bleeding belong to (ꟻLIP, modelling that zoomed view, agrees with
+Butteraugli on the cleaner side in 94 % of the pairs).
+
+**WinMerge's marks do not measure compression damage.** With a PNG copy, the share of blocks marked at
+threshold 8 or 16 agrees with "the large file's damage is visible at the small size" in only 62–68 % of
+the 108 pairs: textured pictures get marked everywhere even where Butteraugli sees nothing (a q90 lion
+photo, 0.48, has 77 % of its blocks marked at 8), while at threshold 16 a fifth of the visibly damaged
+pairs show almost no marks. Use the marks to find differences, the eye (or the script below) to judge
+damage.
+
+**What to do with a pair:**
+
+1. Run `harness/keep_check.py LARGE SMALL --jpegqs` (or on a folder of pairs). It says what each file is
+   (lossless or JPEG with its last quality and chroma subsampling; for JPEGs whether an earlier save left
+   a trace, for lossless files whether they carry an old JPEG grid), measures the large file's damage
+   that survives at the small size, as saved and restored, and gives the verdict below. On 6 test pairs it
+   called a q90 lion photo next to its PNG "adds nothing visible" (0.48), a three-times-saved q90 manga
+   page and a q80 painting at ⅓ size "borderline" (1.08, 0.94), and the Pepper&Carrot cover saved at q75
+   then q90 "visibly cleaner" (2.06), flagging it as saved twice ("an earlier save at about q75").
+2. Small copy lossless and clean: keep it only if the large file's damage at the small size is visible
+   (Butteraugli max above about 1.2; 0.8–1.2 is borderline, look yourself). In practice: next to a
+   one-time q90–q95 4:4:4 JPEG, no; next to a 4:2:0 one of saturated-colour art at half size, often yes;
+   next to a re-saved or q80-or-lower file, yes.
+3. Small copy lossy: almost never; check only when it is q95 and the large file is damaged.
+4. Two lossy copies of the same size or of different quality histories: restore both with jpegQS and
+   compare restored; a one-time q80 can beat a re-saved "q90" (below).
+
+**Recoverable or not: one-time against re-saved JPEGs** (`compression_test.py recover`; 9 masters, each
+saved with one of ten histories, measured against the master as saved and after jpegQS `-q 6`; medians):
+
+| JPEG history | PSNR as saved → restored | Butteraugli 3-norm | SSIMULACRA2 | ꟻLIP @96 |
+|---|---|---|---|---|
+| q95 once | 39.9 → 41.9 | 0.55 → 0.54 | 88.4 → 87.9 | 0.025 → 0.027 |
+| q90 once | 38.7 → 40.4 | 0.77 → 0.73 | 85.0 → 85.4 | 0.031 → 0.031 |
+| q85 once | 37.1 → 39.1 | 0.95 → 0.87 | 82.2 → 83.3 | 0.036 → 0.036 |
+| q80 once | 36.5 → 38.2 | 1.07 → 0.98 | 79.8 → 81.0 | 0.041 → 0.038 |
+| q70 once | 35.1 → 35.2 | 1.29 → 1.18 | 74.4 → 76.4 | 0.050 → 0.049 |
+| q90, re-saved twice at q90 (grid shifted) | 36.0 → 37.8 | 1.19 → 1.07 | 78.8 → 81.0 | 0.042 → 0.040 |
+| q80 shifted, then q90 | 35.9 → 37.5 | 1.19 → 1.10 | 77.6 → 78.9 | 0.045 → 0.043 |
+| q85 shifted, then q85 | 36.0 → 37.7 | 1.17 → 1.06 | 78.3 → 80.0 | 0.044 → 0.042 |
+| q75, then q90 (same grid) | 35.7 → 36.7 | 1.37 → 1.13 | 75.4 → 78.1 | 0.049 → 0.045 |
+| q60, then q90 | 33.2 → 33.6 | 1.64 → 1.44 | 69.4 → 70.5 | 0.059 → 0.057 |
+
+- **You are right about re-saved JPEGs.** A JPEG whose tables say q90 but that was saved three times is
+  about as damaged as a one-time q80 (PSNR 36.0 against 36.5, Butteraugli 1.19 against 1.07), and after
+  jpegQS the one-time q80 is as good or slightly better (better in 5–7 of the 9 pictures by PSNR,
+  Butteraugli and ꟻLIP, 4 of 9 by SSIMULACRA2). A one-time q85 beats the re-saved "q90" in every picture
+  on every measure, restored or not. A q75 later re-saved at q90 is worse than a one-time q80 everywhere.
+- **jpegQS recovers about the same slice whatever the history**: +0.8 to +1.3 dB, Butteraugli −0.08 to
+  −0.19, SSIMULACRA2 +0.4 to +2.0 (median gains per picture; more where the damage is larger), but the
+  damage from earlier saves stays: it can only undo the last one. At q95 it smooths away a little real
+  detail (SSIMULACRA2 and ꟻLIP slightly worse).
+- **The file's header does not tell you its history.** The quantisation tables give the last save's
+  quality, and how much jpegQS changes a file follows that last save too (mean change 1.2–1.4 levels for
+  every chain ending in q90, 1.17 for a one-time q90). To see which of two copies is better, restore both
+  and compare them with each other; the quality number alone can mislead. The pixels sometimes do tell
+  (next table).
+- For diffing (finding edits) jpegQS does not help (section 4.8); for deciding which copy to keep it is
+  the right step, because the copy you keep will be viewed restored.
+
+**Recognising a re-saved JPEG from its pixels** (`harness/jpeg_history.py`, usable on your files). Two
+classic forensic traces: a save on the same 8×8 grid at a lower quality leaves a *ghost* (re-saving the
+picture at that quality changes it less than at the qualities around it; Farid 2009), and a save on a
+shifted grid (the picture was cropped or padded in between) leaves its quantisation steps in the DCT
+coefficients at that offset (Bianchi and Piva 2012). Tested on the same 9 masters × 10 histories:
+
+| JPEG history | flagged as saved more than once | by the ghost | by the shifted grid |
+|---|---|---|---|
+| saved once (q95, q90, q85, q80, q70) | 2 of 45 (both correct, below) | 0 | 2 |
+| q75 then q90, q60 then q90 (same grid) | 18 of 18 | 18 | 0 |
+| q80 shifted, then q90 | 5 of 9 | 0 | 5 |
+| q85 shifted, then q85; q90 three times, shifted | 0 of 18 | 0 | 0 |
+
+- An earlier save at a clearly lower quality is found: on the same grid every time (the lowest ghost dip
+  is the earlier quality; a shallower dip near q80–86 is an alias), on a shifted grid when the picture has
+  textured areas the decoder did not clip (5 of 9; not the black-and-white line art and manga, the flat
+  colour or the small Krita banner).
+- **The case you described cannot be recognised**: a JPEG re-saved at about the same quality on a
+  shifted grid (three q90 saves) looks like a one-time save, because the last save's rounding hides the
+  earlier steps. Only the comparison shows it (it is as damaged as a one-time q80, above).
+- No false alarms on one-time saves. The two flags were the lion and Hokusai masters themselves: they are
+  crops of q≈90 JPEGs (the source files are JPEGs), and the check found each source's grid at exactly the
+  offset where the crop left it (2 pixels across; 5 across and 1 down). The same check finds a PNG that
+  was a JPEG at q90 or below (`keep_check.py` runs it on lossless files), so "lossless" copies made
+  from JPEGs can be told apart from clean ones.
+
+
+
+### 10.4 Reading WinMerge's numbers
+
+WinMerge's status bar counts *differences* as connected regions of marked 8×8 blocks, so the count
+can fall while more pixels differ: neighbouring marked blocks merge into one region. None of the
+numbers in this report use that count; they use the share of blocks marked and the threshold needed
+(T_p99). When comparing two ways of showing a pair, compare the marked area (or flip), not the count.
+
+The blocks are counted in the pixels of the images being compared, and their size is a setting
+(right-click in the image view > Diff Block Size: 1, 2, 4, 8, 16, 32; default 8; stored as
+`Settings/ImageDiffBlockSize`). In the matched-shrink view an 8×8 block covers 8k × 8k pixels of the
+original, so each mark is coarser than in a full-size view and a tiny edit shares its block with more
+compression noise. Block size 8/k (4 for a half-size copy, 2 for a quarter-size one) makes the marks as
+fine as 8 pixels of the original; that is all the round trip's advantage was (section 10.1). The region
+count depends on the block size too.
+
+### 10.5 Catmull-Rom next to Lanczos3
+
+You felt Catmull-Rom looked a little better. Section 4.10 had measured Lanczos3, bilinear and nearest
+neighbour with the models of the eye but not Catmull-Rom, so `harness/cr_vs_l3.py` enlarged PNG copies
+(Pillow Lanczos, factors 2, 2.5, 3 and 4) of 5 synthetic and 9 real pictures with both filters on
+FreeImage's 8-bit path, as WinIMerge would, and compared each with the original (56 pairs per filter;
+filters only, no compression, as you asked for this kind of test):
+
+| measure | real pictures: Lanczos3 / Catmull-Rom | Catmull-Rom closer | synthetic: Lanczos3 / Catmull-Rom | Catmull-Rom closer |
+|---|---|---|---|---|
+| ꟻLIP at 96 ppd | 0.041 / 0.044 | 0 % | 0.046 / 0.044 | 50 % |
+| ꟻLIP at 48 ppd | 0.077 / 0.083 | 0 % | 0.074 / 0.072 | 35 % |
+| Butteraugli 3-norm | 3.66 / 3.76 | 14 % | 6.63 / 6.31 | 65 % |
+| SSIMULACRA2 (higher is closer) | 45.1 / 41.9 | 0 % | 10.0 / 8.5 | 5 % |
+| WinMerge's T_p99 | 147 / 151 | 3 % | 280 / 288 | 25 % |
+| overshoot next to edges (levels) | 0.105 / 0.070 | 86 % less | 0.816 / 0.678 | 75 % less |
+
+- **Your impression holds for hard-edged art and text, not for paintings and photos.** Catmull-Rom's
+  one clear advantage is ringing: it adds less overshoot next to edges in 82 % of the pairs (its kernel
+  is shorter: one side lobe each way where Lanczos3 has two). On the UI text it is closer by every measure; on line art,
+  flat colour and manga, Butteraugli prefers it in three of four factors and ꟻLIP is split. On every real
+  picture, the Krita anime banner and the screenshot included, Lanczos3 is closer by ꟻLIP at both
+  viewing distances and by SSIMULACRA2.
+- For tiny edits (10.1) the two are within a few points, Lanczos3 slightly ahead by marks.
+
+So Lanczos3 stays the better single choice for Enlarge to Largest; the difference is small, and a
+Catmull-Rom option would only pay off for crisp art viewed enlarged, where Shrink to Smallest compares
+better anyway.
+
+## 11. Reproducing and running it on your own pairs
 
 See `harness/README.md`. In short (Linux or WSL, Python 3 with numpy, opencv-python, pillow, scipy,
 skia-python, flip-evaluator; FreeImage 3.18 via `FREEIMAGE_LIB`; libjxl tools for Butteraugli and
@@ -833,6 +1204,10 @@ python3 harness/study.py run spurious --images testset/large --tag synth  # the 
 python3 harness/report.py && python3 harness/charts.py                    # tables and charts
 python3 harness/eyecheck.py --out eyecheck                                # the flip page
 python3 harness/roundtrip_test.py; python3 harness/im_spotcheck.py         # side experiments (4.12, 4.2)
+python3 harness/tiny_edits.py; python3 harness/blocksize_check.py           # follow-up, section 10.1
+python3 harness/compression_test.py keep; python3 harness/jpeg_history.py --test   # section 10.3
+python3 harness/followup_report.py && python3 harness/eyecheck2.py          # follow-up tables, page 2
+python3 harness/keep_check.py LARGE SMALL --jpegqs                          # keep both? (your files)
 ```
 
 The scripts find the research folder from their own location (or `$RESEARCH_DIR`), so the folder can

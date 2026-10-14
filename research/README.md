@@ -23,3 +23,7 @@ Session of 2026-10-14. Read in this order:
 | `results/` | CSV results (gzip-compressed in git), `tables.md` (every table), run logs |
 | `charts/` | Charts used in REPORT.md |
 | `eyecheck/index.html` | Self-contained page for flipping between the candidates by eye (works offline) |
+| `eyecheck2/index.html` | Round 2 of the eye check: blind tiny-edit trials, which copy is cleaner, filters on PNG copies (works offline; also published privately at https://claude.ai/artifact/AZuXdaiba6Qw86YBqfJtyn) |
+| `results/tables_followup.md` | Tables of the follow-up round (tiny edits, block size, Catmull-Rom vs Lanczos3, pixel art, compression damage, JPEG history) |
+| `harness/keep_check.py` | **For your own pairs**: is the smaller copy worth keeping next to the larger one? (`python3 harness/keep_check.py LARGE SMALL --jpegqs`, or a folder of pairs) |
+| `harness/jpeg_history.py` | **For your own JPEGs**: was this file saved before at a lower quality? (`python3 harness/jpeg_history.py FILE.jpg`) |

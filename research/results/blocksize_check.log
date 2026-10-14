@@ -1,0 +1,26 @@
+16 tasks to run
+1/16
+2/16
+3/16
+4/16
+5/16
+6/16
+7/16
+8/16
+9/16
+10/16
+11/16
+12/16
+13/16
+14/16
+15/16
+16/16
+                   eye       visible      
+granularity     coarse  fine  coarse  fine
+scenario  view                            
+big90_png rt      0.91  0.94    0.93  0.95
+          rtbl    0.91  0.94    0.94  0.96
+          small   0.92  0.94    0.94  0.96
+jpg85     rt      0.76  0.80    0.76  0.78
+          rtbl    0.76  0.80    0.75  0.78
+          small   0.76  0.82    0.76  0.78
