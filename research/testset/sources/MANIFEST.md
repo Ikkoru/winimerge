@@ -43,7 +43,7 @@ Licence obligations: CC0 and public domain need nothing (credit is a courtesy). 
 - **SHA-256:** `c910a2225a45bc2695e2bce7991df5d006d520b8b6d9d8fc45b2eb796c440c8f` · git blob `49d4be831da3f1a7097f39c81c44e2bdf715e6a6`
 - **Source:** https://github.com/Deevad/peppercarrot_print_book @ `57779d89ae0ac378311f43a3ebdd50740706506f` (2017-11-12), path `img/2015-09-15_witches-of-chaosah-family_by-David-Revoy.jpg`
 - **Raw URL:** https://raw.githubusercontent.com/Deevad/peppercarrot_print_book/57779d89ae0ac378311f43a3ebdd50740706506f/img/2015-09-15_witches-of-chaosah-family_by-David-Revoy.jpg
-- **Upstream/origin:** David Revoy, Pepper&Carrot artwork (2015-09-15), included by the artist in his book repo.
+- **Upstream/origin:** David Revoy, Pepper&Carrot artwork (2015-09-15), included by the artist in their book repo.
 - **Licence:** CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
 - **Attribution:** 'Witches of Chaosah' artwork (2015) by David Revoy, www.peppercarrot.com, licensed CC BY 4.0.
 - **Why the licence is clear:** Same artist-owned repo and README licence statement (CC BY 4.0) as peppercarrot_cover.png. The filename carries the credit '_by-David-Revoy'.
@@ -130,7 +130,7 @@ Licence obligations: CC0 and public domain need nothing (credit is a courtesy). 
 - **Upstream/origin:** 'African Lion' by Mathias Appel, Flickr https://www.flickr.com/photos/91501748@N07/30219791437. Downsized to at most 2048 px and re-saved without EXIF/XMP by the tessellatum maintainers.
 - **Licence:** CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
 - **Attribution:** 'African Lion' by Mathias Appel, CC0 1.0 (https://www.flickr.com/photos/91501748@N07/30219791437). Credit is a courtesy.
-- **Why the licence is clear:** tessellatum's tests/sample_images/SOURCES.md lists this file as CC0 1.0 with the Flickr link, and says every image was checked on its source page before being added. Mathias Appel publishes his Flickr photos as public domain (EOL, for example, lists another of his lion photos as public domain).
+- **Why the licence is clear:** tessellatum's tests/sample_images/SOURCES.md lists this file as CC0 1.0 with the Flickr link, and says every image was checked on its source page before being added. Mathias Appel publishes their Flickr photos as public domain (EOL, for example, lists another of their lion photos as public domain).
 - **Caveats:** The Flickr page could not be opened from this environment, so the CC0 status rests on the repo's SOURCES.md. This is a downsized copy, not the camera original. JPEG quality about 90, 4:4:4, sRGB ICC.
 
 ### `kenney_city_tiles.png`

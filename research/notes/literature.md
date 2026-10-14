@@ -88,7 +88,7 @@ Compiled 2026-10-14 for the WinIMerge feature "centre the smaller image" / "upsc
     - #1916 (2023, open, labelled, no comment) asks for exactly this: "size everything to fit the first image compared".
     - In WinIMerge #26 (2021), sdottaka wrote: "Unfortunately, WinMerge doesn't have the ability to scale an image to fit an image in another pane."
     - #2371 asks for per-image X/Y offsets. WinIMerge already has an `ADJUST_OFFSET` dragging mode and `AddImageOffset()`.
-    - The maintainer usually questions the need, merges focused PRs within a day, then generalises or gates them behind an option himself.
+    - The maintainer usually questions the need, merges focused PRs within a day, then generalises or gates them behind an option themselves.
 13. **Expected pitfalls in the diff.**
     - JPEG decoder differences: WinIMerge #37 led to the "prefer WIC" option in 2.16.59.
     - Nearly every pixel of a resampled pane differs slightly. The Color Distance threshold (Euclidean RGBA) needs a sane value whenever scaling is on; sdottaka has suggested about 16 for rendering drift (#1391).
@@ -567,16 +567,16 @@ Details and sources:
 **Decoder fidelity**
 - **WinIMerge #37** (Ikkoru, 2026-08-11, open): "Image compare decodes JPEGs differently from every other viewer, causing false differences" ([issue](https://github.com/WinMerge/winimerge/issues/37)).
 - sdottaka: "I tried loading the image with FreeImage's JPEG_ACCURATE option, but it did not resolve the difference." Also: "The image is displayed identically when decoded with Windows Imaging Component (WIC)."
-- He added "prefer WIC" in WinIMerge PR #38 ("planned to be available in WinMerge 2.16.59 and later"); the option is `Settings/ImagePreferWICDecoder`.
+- They added "prefer WIC" in WinIMerge PR #38 ("planned to be available in WinMerge 2.16.59 and later"); the option is `Settings/ImagePreferWICDecoder`.
 
 **How the maintainer handles feature PRs**
 - The clearest recent case is #3591, "Remember the image compare splitter position" (Ikkoru, 2026-08-29) ([issue](https://github.com/WinMerge/winmerge/issues/3591)):
-  - sdottaka first probed the need: "I was wondering if what you really want might be a single-pane view rather than persistent splitter position." He also raised a reset: "we would also need a way to restore the default 50:50 split."
-  - He merged WinIMerge PR #39 and WinMerge PR #3593 as-is the next day with "Thank you!" and no formal review ([#39](https://github.com/WinMerge/winimerge/pull/39), [#3593](https://github.com/WinMerge/winmerge/pull/3593)).
-  - He then generalised it himself. WinIMerge PR #40 (2026-09-04) switched the API to `GetSplitterRatio()/SetSplitterRatios()/ResetSplitterRatios()`, with a Copilot "lite" review ([#40](https://github.com/WinMerge/winimerge/pull/40)).
-  - He stated: "I plan to make the splitter position persistent only when Window → Keep Splitter Position is checked."
-- Other issues show fast, terse fixes with commit references (#3368 Blink state; #3382 WebP regression), and he asks for use cases and samples before acting.
-- *Inference:* a focused, well-described WinIMerge PR plus a thin WinMerge PR, with the behaviour behind an explicit option and a clear default, matches what he merges. Expect him to adjust naming or menus afterwards, and to ask whether the need is really "alignment" or "scaling".
+  - sdottaka first probed the need: "I was wondering if what you really want might be a single-pane view rather than persistent splitter position." They also raised a reset: "we would also need a way to restore the default 50:50 split."
+  - They merged WinIMerge PR #39 and WinMerge PR #3593 as-is the next day with "Thank you!" and no formal review ([#39](https://github.com/WinMerge/winimerge/pull/39), [#3593](https://github.com/WinMerge/winmerge/pull/3593)).
+  - They then generalised it themselves. WinIMerge PR #40 (2026-09-04) switched the API to `GetSplitterRatio()/SetSplitterRatios()/ResetSplitterRatios()`, with a Copilot "lite" review ([#40](https://github.com/WinMerge/winimerge/pull/40)).
+  - They stated: "I plan to make the splitter position persistent only when Window → Keep Splitter Position is checked."
+- Other issues show fast, terse fixes with commit references (#3368 Blink state; #3382 WebP regression), and they ask for use cases and samples before acting.
+- *Inference:* a focused, well-described WinIMerge PR plus a thin WinMerge PR, with the behaviour behind an explicit option and a clear default, matches what they merge. Expect them to adjust naming or menus afterwards, and to ask whether the need is really "alignment" or "scaling".
 
 **Existing WinIMerge mechanisms to build on** [doc] ([WinIMergeLib.h](https://github.com/WinMerge/winimerge/blob/master/src/WinIMergeLib/WinIMergeLib.h), [ImgDiffBuffer.hpp](https://github.com/WinMerge/winimerge/blob/master/src/WinIMergeLib/ImgDiffBuffer.hpp))
 - `DRAGGING_MODE { NONE, MOVE, ADJUST_OFFSET, VERTICAL_WIPE, HORIZONTAL_WIPE, RECTANGLE_SELECT, … }`, `AddImageOffset(pane, dx, dy)` and `GetImageOffset(pane)`.

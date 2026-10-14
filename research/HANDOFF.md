@@ -76,6 +76,21 @@ Size Matching, that the choice is remembered after restarting, and that the menu
    (they call methods a pre-release DLL does not have, which would crash).
 3. New menu strings go through the translation files (the maintainer usually regenerates them).
 
+## Possible follow-ups (measured, not implemented)
+
+- **Round trip** (REPORT §4.12): after the matched shrink, enlarge both scaled images back to the
+  original's size (Lanczos3 or bilinear) and compare there. For JPEG copies it needs a lower threshold
+  (synthetic 28–32 instead of 40, real 35–42 instead of 47) and finds a few points more edits (real
+  pictures: 88–91 % instead of 84 %), the best of all the ways tried; for PNG copies it changes nothing.
+  Costs a comparison at full size (~15× slower at 4×). Would be a flag on DOWN_MATCHED.
+- **Linear-light candidate for the matched shrink** (REPORT §4.11): copies resized in linear light are the
+  matched shrink's main failure (threshold ~70–80); a Lanczos3 candidate resampled between two gamma
+  conversions (FreeImage's float path) would reproduce them exactly. Only worth it if such copies are
+  common in your collection.
+- **A threshold above 64**: JPEG q60 copies need ~80–95; WinMerge's menu stops at 64, but the option
+  (`Settings/ImageColorDistanceThreshold`, × 1000) accepts up to 442. A "96" or "128" menu item, or a
+  free value on the options page, would be a small separate WinMerge PR.
+
 ## Pre-existing upstream bugs found (not fixed in these PRs)
 
 1. Copying a difference that lies right of or below a smaller image enlarges it, but the new columns/rows
@@ -94,5 +109,6 @@ Size Matching, that the choice is remembered after restarting, and that the menu
 `README.md` (index), `REPORT.md` (the study), `DISCOVERIES.md` (findings log), `harness/README.md` (how to
 rebuild the tools and rerun everything, including on your own image pairs), `eyecheck/index.html`
 (flip page, works offline; also published privately at https://claude.ai/artifact/6VCaQkq5egCxeAi9tqepCp).
-Experiments still running at the end of the session are listed in `results/run_chain3.log`; every run is
-resumable (`harness/run_chain3.sh`).
+The experiments ran through `harness/run_chain3.sh` and `harness/run_chain4.sh` (logs in `results/`); every
+run is resumable, so rerunning a chain only fills in what is missing. Side experiments: `roundtrip_test.py`,
+`im_spotcheck.py`, `chroma_test.py`.

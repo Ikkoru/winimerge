@@ -84,7 +84,7 @@ whole-number enlargement is exact nearest neighbour.
 - Translations: new menu strings must reach `Translations/WinMerge/English.pot` and the `.po` files; the maintainer
   regenerates them with scripts (Windows), which rewrites the line references in every `.po`.
 - Upstream history shows the maintainer (Takashi Sawanaka, sdottaka) merging contributor PRs quickly and then
-  adjusting the API himself (e.g. the splitter position API, winimerge #39 → #40).
+  adjusting the API themselves (e.g. the splitter position API, winimerge #39 → #40).
 
 ## Building and testing without Windows (this session's tools)
 

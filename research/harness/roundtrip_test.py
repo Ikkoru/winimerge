@@ -2,7 +2,7 @@
 and compare at the original's size ("round trip"), or compare at the copy's size (WinIMerge DOWN_MATCHED)?
 And do edits stand out for the eye (ꟻLIP), not only for WinMerge's threshold?
 
-    python3 roundtrip_test.py [--jobs 2] [--out ../results/roundtrip_synth.csv]
+    python3 roundtrip_test.py [--jobs 2] [--set synth|real] [--out ../results/roundtrip_<set>.csv]
 
 Synthetic set; copies made with Pillow Lanczos and OpenCV area averaging at factors 2 and 3, saved as PNG
 and JPEG q85; unedited and with four edits that are hard to see (small text, a thin line, a faint recolour,
@@ -60,9 +60,14 @@ def panes(L, D, Sm):
     }
 
 
+REAL = ['real_peppercarrot_cover', 'real_peppercarrot_witches', 'real_hokusai_hodogaya', 'real_lion_appel',
+        'real_kitty_screenshot']
+SETS = {'synth': (IMAGES, 'large'), 'real': (REAL, 'large_real')}
+
+
 def task(args):
-    name, shrinker, factor, cod = args
-    L0 = np.asarray(Image.open(os.path.join(TESTSET, 'large', f'{name}.png')).convert('RGB'))
+    name, shrinker, factor, cod, folder = args
+    L0 = np.asarray(Image.open(os.path.join(TESTSET, folder, f'{name}.png')).convert('RGB'))
     H, W = L0.shape[:2]
     w, h = R.small_size(W, H, factor)
     S0 = S.codec(R.SHRINKERS[shrinker](L0, w, h), cod)
@@ -110,9 +115,12 @@ def task(args):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--jobs', type=int, default=2)
-    ap.add_argument('--out', default=os.path.join(RESULTS, 'roundtrip_synth.csv'))
+    ap.add_argument('--set', default='synth', choices=sorted(SETS))
+    ap.add_argument('--out', default='')
     a = ap.parse_args()
-    tasks = [(n, s, f, c) for n in IMAGES for s in ('pil_lanczos', 'area') for f in (2, 3) for c in ('png', 'jpg85')]
+    names, folder = SETS[a.set]
+    a.out = a.out or os.path.join(RESULTS, f'roundtrip_{a.set}.csv')
+    tasks = [(n, s, f, c, folder) for n in names for s in ('pil_lanczos', 'area') for f in (2, 3) for c in ('png', 'jpg85')]
     with Pool(a.jobs) as pool:
         rows = [r for rr in pool.imap_unordered(task, tasks) for r in rr]
     df = pd.DataFrame(rows)

@@ -182,8 +182,9 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
   outcome.** It finds the true filter whenever one of the five is it (126/126 Pillow-made PNG pairs),
   and judged by the outcome itself (the threshold that leaves ≤1 % of blocks marked) it is within 1
   level of the best of the five filters in 85 % of PNG pairs and 78 % of JPEG q85 pairs, with the same
-  median (10.4 vs 10.4 PNG; 50.6 vs 50.2 JPEG). Against a fixed Catmull-Rom shrink it wins 67 % of
-  pairs, ties 18 %, loses 15 %. Measured, 840 synthetic pairs.
+  median (10.4 vs 10.4 PNG; 50.6 vs 50.2 JPEG). With the area-averaging candidate added (the final rule):
+  88 % and 80 %, medians 2.2 and 48. Against a fixed Catmull-Rom shrink the final rule needs a lower
+  threshold in 75 % of pairs, the same in 14 %, a higher one in 11 %. Measured, 840 synthetic pairs.
 - **Whole-number NN and Lanczos3 enlargement mark about the same share of 8×8 blocks** at every
   threshold WinMerge's menu offers (NN slightly fewer at low thresholds: it keeps flat areas exactly
   flat, while a smooth filter spreads each edge's error over more blocks), **but NN's differences are
@@ -230,25 +231,28 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
 
 ## 10. Perceptual metrics: where the models of the eye and WinMerge's marks part ways
 
-- **ꟻLIP rates nearest neighbour as the closest enlargement at 2×** (measured, 84 synthetic pairs,
-  `results/heavy_synth.csv`): NN to the exact size beats Lanczos3 on ꟻLIP's mean error at 96 pixels per
-  degree in 89 % of the pairs at 2×, 64 % at 3×, 43 % at 2.5× (median error about 10 % lower at 2× and
-  3×); in every pair of line art, flat colour, manga and UI text, but only a quarter to a third of the
-  painterly and pixel-art pairs. Butteraugli is split (71 % at 2×), SSIMULACRA2 prefers Lanczos3, and
-  WinMerge's threshold prefers Lanczos3 in 95 % of the pairs. Reason (inferred): at 96 ppd a 2× NN step
-  is 1.25 arcmin, near the acuity limit, while a smooth filter lowers every edge's contrast; WinMerge's
-  per-pixel colour distance counts every staircase pixel in full.
-- **At 48 ppd the staircases become visible**: NN beats Lanczos3 in 75 % of the pairs at 2×, 57 % at 3×,
-  21 % at 2.5× (measured). Viewing distance and zoom decide which enlargement looks closer.
-- **Among enlargers, the perceptual metrics do not predict WinMerge's outcome** (measured): mean
-  within-pair Spearman correlation with T_p99 is −0.06 for ꟻLIP's mean, 0.08 for Butteraugli's
-  3-norm, 0.47 for SSIMULACRA2 and worst-tile SSIM. Over all candidates (the matched shrink included)
-  they agree well (0.71–0.85): the big differences are seen by everything, the fine ranking is not.
+- **Which enlargement looks closest depends on the picture** (measured, ꟻLIP at 96 pixels per degree,
+  `results/heavy_*.csv`): at 2×, NN to the exact size beats Lanczos3 in 89 % of the synthetic pairs and
+  65 % of the real ones: in every pair of line art, flat colour, manga, UI text, the Krita anime banner
+  and the terminal screenshot, but in few of the paintings and photos (Pepper&Carrot 0–12 %, Hokusai
+  12 %, photos 25–38 %). At 3× NN wins 64 % (synthetic) and 28 % (real), at 2.5× never. Over the real
+  set ꟻLIP ranks Lanczos3 (± unsharp mask) first. Butteraugli's 3-norm and SSIMULACRA2 lean to Lanczos3
+  (NN better in 35–71 % and 45–50 % of the pairs at 2×), WinMerge's threshold almost never prefers NN.
+  Reason (inferred): at 96 ppd a 2× NN step is 1.25 arcmin, near the acuity limit, while a smooth filter
+  lowers every hard edge's contrast; where edges are soft anyway, the staircase is the larger error.
+- **At 48 ppd the staircases become visible**: NN beats Lanczos3 at 2× in 75 % of the synthetic and 30 %
+  of the real pairs (measured). Viewing distance and zoom decide which enlargement looks closer.
+- **Among enlargers, the perceptual metrics predict WinMerge's outcome on photos and paintings, not on
+  hard-edged art** (measured): mean within-pair Spearman correlation with T_p99 is −0.06 (synthetic) and
+  0.43 (real) for ꟻLIP's mean, 0.08 / 0.40 for Butteraugli's 3-norm, 0.47 / 0.63 for SSIMULACRA2. Over
+  all candidates (the matched shrink included) they agree well (0.71–0.91): the big differences are seen
+  by everything, the fine ranking is not.
 - **Butteraugli's max-norm ranks the unsharp mask last** of all enlargers (its halos are the worst
   spots), while SSIMULACRA2 ranks it first: one more reason not to ship a sharpening option.
 - **Enlarging both panes after the matched shrink smooths their difference** (measured, `harness/
   roundtrip_test.py`): with JPEG q85 copies the threshold needed falls from 40 to 32 (Lanczos3) or 28
-  (bilinear) and the faint recolour edit is found in every pair (91 % at the small size); with PNG copies
+  (bilinear) and the faint recolour edit is found in every pair (91 % at the small size); on 5 real
+  pictures 47 → 42 / 35, edits found 84 % → 88–91 % (Lanczos3 enlargement 86 %); with PNG copies
   nothing changes (exact either way). JPEG noise is finer-grained than most edits, so a low-pass on the
   difference removes more noise than signal.
 - **ꟻLIP's error map works as an edit detector** (measured): taking each 8×8 block's maximum of the
@@ -256,7 +260,7 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
   100 % of pairs at the small size and 94–95 % with an enlarger (WinMerge's colour distance: 96–100 % and
   74–78 %). Same ranking of the modes, slightly more forgiving.
 
-## 11. JPEG restoration and codecs
+## 11. JPEG restoration and codecs of the copy
 
 - **jpegQS (QuantSmooth) before comparing makes WinMerge's comparison slightly harder, not easier**
   (measured, `results/jpegqs_synth.csv`, 4 synthetic images, Pillow Lanczos/area copies at 2–3×): with
@@ -271,9 +275,28 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
   `results/codec_synth.csv`, matched shrink, 28 pairs per codec): PNG 0, JPEG q95 31, WebP q90 32, JPEG
   q85 4:4:4 35, WebP q75 40, JPEG q85 41, q75 57, q60 79 (medians of T_p99). WinMerge's menu stops at 64,
   which cleans everything down to q75 (≤ 1 % of blocks in 93–100 % of pairs) but leaves 5 % at q60.
+- **JPEG copies of pixel art and screenshots need about twice the threshold** (measured,
+  `results/codec_real.csv`): 85–140 at every JPEG/WebP quality for the pixel-art tiles and the terminal
+  screenshot, against 31–61 for illustrations, paintings and photos at q85–q95; saved 4:4:4 they need
+  about half (50, 66). At the small size each coloured hard edge fills a large share of a block, and
+  4:2:0 smears its colour.
 - **4:2:0 chroma subsampling makes the worst blocks worse even at q95** (90th percentile 51 vs 38 for
   q85 at 4:4:4): saturated colour edges carry the largest errors. (Measured; the decoder's chroma
   upsampling choice, by contrast, hardly matters: §9.)
 - **WinMerge's threshold option accepts more than the menu offers** (read in the source): the menu has
   0, 2, 4, 8, 16, 32, 64, but the option `Settings/ImageColorDistanceThreshold` is stored × 1000 with a
   range up to 442 × 1000 (442 = the largest RGB distance between two opaque colours). Not tried.
+## 12. Real pictures and linear light
+
+- **On real pictures the enlargers find more edits than on synthetic art, and with JPEG copies the
+  matched shrink loses its lead on finding them** (measured, 1080 real edited pairs): edits visible 92 %
+  (shrink) vs 93 % (Lanczos3) with JPEG q85 copies, 100 % vs 94 % with PNG copies. The shrink still marks
+  far more of each edit (71 % vs 51 % of its blocks). Its weak spot is a faint recolour (colour distance
+  26) under the small copy's JPEG noise (threshold 40–60): found in 55 % of pairs, Lanczos3 73 %.
+- **Enlarging in linear light does not help a comparison** (measured, `results/linear_synth.csv`): the
+  threshold needed is the same or higher than for the usual sRGB enlargement, even for copies that were
+  themselves made in linear light (288 vs 288; area-made copies 284 vs 260; real pictures 152–165 vs
+  147–155, `results/linear_real.csv`). Linear light matters for the
+  *shrink* instead: linear-light copies are the matched shrink's main failure (T_p99 71–83), and the
+  true linear-light shrink reproduces them exactly (0 for PNG). A linear-light Lanczos3 candidate would
+  fix that if such copies turn out to be common.

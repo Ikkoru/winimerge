@@ -363,18 +363,21 @@ LABEL.update({'small': 'Compare at the small size (DOWN_MATCHED)',
 
 
 def roundtrip_tables(results, out):
-    path = os.path.join(results, 'roundtrip_synth.csv')
-    if not os.path.exists(path):
-        return
-    d = pd.read_csv(path).replace([np.inf, -np.inf], np.nan)
+    for st in ['synth', 'real']:
+        path = os.path.join(results, f'roundtrip_{st}.csv')
+        if os.path.exists(path):
+            roundtrip_set(pd.read_csv(path).replace([np.inf, -np.inf], np.nan), st, out)
+
+
+def roundtrip_set(d, st, out):
     un, ed = d[d.edit == 'none'], d[d.edit != 'none']
-    out.append('\n## Round trip (brief suggestion 4) vs comparing at the small size\n')
-    out.append(f'Synthetic set, Pillow Lanczos and area copies, factors 2 and 3, PNG and JPEG q85 '
+    out.append(f'\n## Round trip (brief suggestion 4) vs comparing at the small size, {st} images\n')
+    out.append(f'{un.image.nunique()} images, Pillow Lanczos and area copies, factors 2 and 3, PNG and JPEG q85 '
                f'({un.groupby(["image", "shrinker", "factor", "codec"]).ngroups} unedited pairs; edits: '
                f'{", ".join(sorted(ed.edit.unique()))}). `harness/roundtrip_test.py`.\n')
     for metric, fmt in [('T_p99', '{:.1f}'), ('share_T16', '{:.1%}'), ('share_T64', '{:.1%}'), ('flip_mean_ppd96', '{:.4f}')]:
         t = un.groupby(['candidate', 'codec'])[metric].median().unstack()
-        out.append(f'\n#### Unedited pairs: median {metric}\n')
+        out.append(f'\n#### Unedited pairs ({st}): median {metric}\n')
         out.append(md(order(t, RT_CANDS), fmt))
     t = un[un.candidate == 'small'].groupby('codec')['flip_mean_zoomed'].median()
     out.append('\nꟻLIP mean of the small comparison viewed zoomed to the original\'s size (96/k ppd): ' +
@@ -385,13 +388,14 @@ def roundtrip_tables(results, out):
     for codec in sorted(ed.codec.unique()):
         e = ed[ed.codec == codec]
         t = pd.DataFrame({lab: e.groupby('candidate')[c].mean() for c, lab in cols})
-        out.append(f'\n#### Edited pairs, copies saved as {codec}: share of pairs / blocks ({e.groupby(["image", "edit", "shrinker", "factor"]).ngroups} pairs)\n')
+        out.append(f'\n#### Edited pairs ({st}), copies saved as {codec}: share of pairs / blocks '
+                   f'({e.groupby(["image", "edit", "shrinker", "factor"]).ngroups} pairs)\n')
         out.append(md(order(t, RT_CANDS), '{:.0%}'))
     t = ed.groupby(['candidate', 'edit'])['any_T1'].mean().unstack()
-    out.append('\n#### Edit visible (colour distance), by edit, PNG and JPEG together\n')
+    out.append(f'\n#### Edit visible (colour distance), by edit, PNG and JPEG together ({st})\n')
     out.append(md(order(t, RT_CANDS), '{:.0%}'))
     t = ed.groupby(['candidate', 'edit'])['flip_any_T1'].mean().unstack()
-    out.append('\n#### Edit stands out in ꟻLIP @96, by edit\n')
+    out.append(f'\n#### Edit stands out in ꟻLIP @96, by edit ({st})\n')
     out.append(md(order(t, RT_CANDS), '{:.0%}'))
 
 

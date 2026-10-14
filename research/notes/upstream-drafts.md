@@ -16,11 +16,11 @@ review copies. To submit upstream, open a PR from the fork branch to `WinMerge/<
 3. WinMerge: the two small integration PRs (options + Image menu), after the maintainer has released a
    WinIMerge build with the new methods (WinMerge downloads WinIMergeLib.dll from releases; calling a method the
    loaded DLL lacks would crash). In the user's earlier contribution (winimerge#39 + winmerge#3593) the maintainer
-   handled the release and the submodule bump himself.
+   handled the release and the submodule bump themselves.
 
-Why PRs rather than an issue first: the maintainer merges focused PRs quickly and adjusts details himself
+Why PRs rather than an issue first: the maintainer merges focused PRs quickly and adjusts details themselves
 (winimerge#39 → #40 reworked the splitter API the next day). A PR with the core in the library, the UI as a
-separate small commit, and an explicit "happy to move the setting" lets him place the setting wherever he likes
+separate small commit, and an explicit "happy to move the setting" lets them place the setting wherever they like
 without a round-trip. WinMerge issue #1916 (open, no maintainer reply) can be referenced from the scaling PR.
 
 ---
@@ -74,11 +74,12 @@ with the real numbers, and the research link if the branch moves):
 >
 > At the menu's highest threshold, 64, shrinking leaves at most 0.4 % of the blocks marked even with JPEG copies (with PNG copies, 0 % already at 16); the enlargers leave 8–35 % (and NN 70–83 % at the factors where it does not fill the canvas).
 >
-> Real changes stay visible: on 1008 edited pairs (small text, a thin line, a faint recolour, a smudge, a moved region, a 3-px dot, ...; factors 2–4; PNG and JPEG), with the threshold set where 1 % of the unedited blocks are marked, the edit is still marked in **98 %** of pairs when shrinking (99 % if the true resampler were known), 80 % with Lanczos3 and 53 % with whole-number NN.
+> Real changes stay visible: on 1008 edited pairs (small text, a thin line, a faint recolour, a smudge, a moved region, a 3-px dot, ...; factors 2–4; PNG and JPEG), with the threshold set where 1 % of the unedited blocks are marked, the edit is still marked in **98 %** of pairs when shrinking (99 % if the true resampler were known), 80 % with Lanczos3 and 53 % with whole-number NN. On 1080 edited pairs of real pictures: 96 % when shrinking (100 % with PNG copies), 94 % with Lanczos3, 51 % with whole-number NN; with JPEG copies the smooth modes find about as many edits, but shrinking marks much more of each one (71 % of its blocks against 51 %).
 >
-> - **Shrinking to the smaller size is the useful mode for resized copies.** The original then goes through the same resampling as the copy, so what remains is real changes and compression noise. Copies made by Pillow's bilinear, bicubic or Lanczos resize and by OpenCV's `INTER_AREA` are reproduced exactly (threshold 0 for PNG copies), Mitchell-made ones to within rounding and libvips ones closely (median 14). Copies resized in linear light, sharpened afterwards, or shrunk without antialiasing (nearest neighbour, OpenCV's `INTER_LINEAR`) cannot be reproduced exactly, but still compare far better than any enlargement.
+> - **Shrinking to the smaller size is the useful mode for resized copies.** The original then goes through the same resampling as the copy, so what remains is real changes and compression noise. Copies made by Pillow's bilinear, bicubic or Lanczos resize and by OpenCV's `INTER_AREA` are reproduced exactly (threshold 0 for PNG copies), Mitchell-made ones to within rounding, ImageMagick's (WordPress thumbnails included) to within a level or two, and libvips ones closely (median 14). Copies resized in linear light, sharpened afterwards, or shrunk without antialiasing (nearest neighbour, OpenCV's `INTER_LINEAR`) cannot be reproduced exactly, but still compare far better than any enlargement.
 > - **Enlarging cannot remove most differences on detailed images**, whatever the filter, because the detail lost in the copy is not there to restore. Of the common filters, Lanczos3 (and Lanczos4) need the lowest threshold; an unsharp mask after it moved the numbers by only a few percent either way, so I left it out.
 > - **Whole-number nearest neighbour** keeps every pixel of the copy exact, which is right for pixel art and for looking at the copy itself. As a comparison it marks about as many blocks as Lanczos3 at whole-number factors, but its differences are stronger (each edge becomes a staircase), it does nothing below 2×, and at factors such as 2.5× it enlarges by 2, so the copy stays smaller than the original (80 %) and the two line up only at the anchor point.
+> - **Perceptual metrics** (ꟻLIP, Butteraugli, SSIMULACRA2) agree that shrinking is by far the closest. Between the two enlargers it depends on the picture: at 2×, ꟻLIP (built to predict what a viewer notices when flipping between two images) rates the nearest-neighbour enlargement closer to the original than Lanczos3 for line art, flat colour, manga and text (89 % of the synthetic pairs, 65 % of the real ones), while for paintings and photos, at 3×, and by WinMerge's own threshold and the share of edits found, Lanczos3 comes out ahead. So both enlargers have a use: NN for looking at a 2× copy of line art or pixel art, Lanczos3 otherwise (though for finding differences, shrinking is far better than either).
 >
 > The full study (method, test images, harness, all tables, and a page for flipping between the candidates by eye) is here: https://github.com/Ikkoru/winimerge/tree/claude/trusting-brown-3d75mh/research (`REPORT.md`).
 >

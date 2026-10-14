@@ -4,10 +4,11 @@
 
 **In one paragraph.** To compare a picture with a resized copy of it, shrink the original to the
 copy's size with the filter that reproduces the copy best; do not enlarge the copy. That makes an
-unedited pair look clean (Pillow-made copies match exactly) and keeps 98 % of real edits visible,
-where enlarging leaves about a third of the 8×8 blocks marked at threshold 16 and finds 53–82 % of edits. Whole-number
-nearest neighbour is honest about the copy's pixels and, at 2×, even looks closer to the original to
-the models of the eye, but as a comparison it is no better than Lanczos3; an unsharp mask on top of
+unedited pair look clean (Pillow-made copies match exactly) and keeps 98 % of edits visible on the
+synthetic set (real pictures: 96 %, all of them with lossless copies), where enlarging leaves about a
+third of the 8×8 blocks marked at threshold 16 and finds 53–82 % of edits (real pictures: 51–95 %). Whole-number
+nearest neighbour is honest about the copy's pixels and, at 2× on line art, flat colour and text, even
+looks closer to the original to the models of the eye, but as a comparison it is no better than Lanczos3; an unsharp mask on top of
 Lanczos3 is not worth it. All three modes are implemented for
 WinIMerge (draft PR https://github.com/Ikkoru/winimerge/pull/2, alignment in
 https://github.com/Ikkoru/winimerge/pull/1) with WinMerge menus (https://github.com/Ikkoru/winmerge/pull/1
@@ -37,17 +38,21 @@ tools that predict what a person sees when flipping.
   (Matched Filter)") is the only way to make an unedited pair look clean, and it keeps real changes
   visible: on the synthetic set the threshold needed to leave ≤ 1 % of blocks marked is 2–5 for PNG
   copies and 42–60 for JPEG q85 copies (enlarging: 94–326), and 98 % of edits stay visible (Lanczos3
-  enlargement 80 %, whole-number NN 53 %). Copies made with Pillow's resize or OpenCV's area
-  averaging are reproduced exactly.
+  enlargement 80 %, whole-number NN 53 %). On real pictures: 100 % with PNG copies (Lanczos3 94 %);
+  with JPEG copies the smooth modes find about as many edits (92–94 %), but the shrink marks much more
+  of each one (71 % of its blocks against 51 %). Copies made with Pillow's resize, OpenCV's area
+  averaging, ImageMagick or WordPress are reproduced exactly or to within a level or two.
 - **You were right that a smooth enlargement does not make the comparison truthful, but nearest
   neighbour does not either.** Any enlargement leaves about a third of the 8×8 blocks marked at threshold 16
   on detailed images, because the copy does not contain the detail. Whole-number NN marks about as many blocks as Lanczos3,
   with stronger differences, finds fewer edits, and below 2× or at factors like 2.5× it does not line the
   two images up at all (at 2.5× the copy is shown at 80 % of the original's size). It is the right view for pixel art (where it beats Lanczos3) and for looking at the
-  copy's own pixels, so it is in the PR as requested. And for the eye it has a point: at 2× on your
-  BenQ, ꟻLIP (which models flipping) rates the NN enlargement closer to the original than Lanczos3 in
-  89 % of the pairs, because 2× staircases are near the limit of acuity while a smooth filter softens
-  every edge; WinMerge's marks say the opposite (section 4.10).
+  copy's own pixels, so it is in the PR as requested. And for the eye it has a point with crisp art: at
+  2× on your BenQ, ꟻLIP (which models flipping) rates the NN enlargement closer to the original than
+  Lanczos3 in every pair of line art, flat colour, manga and text (89 % of the synthetic pairs, 65 % of
+  the real ones), because 2× staircases are near the limit of acuity while a smooth filter softens every
+  hard edge. For paintings and photos, at 3× and at non-integer factors Lanczos3 looks closer, and
+  WinMerge's marks favour Lanczos3 throughout (section 4.10).
 - **Lanczos3 + unsharp mask: not worth implementing.** Lanczos3 is the best common enlarger by WinMerge's
   outcome (FreeImage's
   8-bit and float paths measure the same). An unsharp mask (σ 0.5–1.5 px, 25–100 %) changes the
@@ -55,7 +60,7 @@ tools that predict what a person sees when flipping.
   JPEG noise with them. The enlargement mode in the PR is plain Lanczos3.
 - **Implemented** as separate PRs in your forks: image alignment (nine anchors, including centre) and
   size matching (the three modes), each a library commit plus a small UI commit, with matching WinMerge
-  menu PRs. The setting lives behind one API call, so the maintainer can put it wherever he wants.
+  menu PRs. The setting lives behind one API call, so the maintainer can put it wherever they want.
 
 ## 3. What was tested
 
@@ -140,7 +145,8 @@ For every pair, against the large original (or, for `down_*`, the copy against t
   (a guard ring of 3·factor+2 px around the edit is excluded). At the threshold that leaves 1 %
   (0.1 %) of blocks marked in the unedited twin pair, the share of edit blocks still marked, and
   whether any edit block is marked at all ("edit visible"); plus the number of unedited blocks
-  louder than the edit's strongest block.
+  louder than the edit's strongest block. The same test on ꟻLIP's error map (each block's maximum)
+  asks whether the edit stands out for the eye when flipping (section 4.12).
 
 ### 3.6 Controls and geometry checks (run first)
 
@@ -331,7 +337,31 @@ differ little (matched shrink 100 % vs 97 %).
 The unsharp mask makes edits slightly easier to see among the enlargers (82 % vs 80 %, mostly the
 small dot and the small text), but comparing at the smaller size is far ahead of any enlarger.
 
-<!-- RESULTS-EDITS -->
+**Real images** (1080 edited pairs: the 10 real originals × the 9 edits × Pillow Lanczos and area copies
+× factors 2, 2.5, 3 × PNG and JPEG q85; same rule for the threshold):
+
+| mode | edit visible, PNG / JPEG | … at the 0.1 % threshold | share of the edit's blocks marked |
+|---|---|---|---|
+| enlarge, whole-number NN | 51 % / 51 % | 30 % / 29 % | 25 % / 24 % |
+| enlarge, NN to the exact size | 91 % / 92 % | 69 % / 69 % | 44 % / 43 % |
+| **enlarge, Lanczos3 (UP_SMOOTH)** | **94 % / 93 %** | **82 % / 82 %** | **53 % / 51 %** |
+| enlarge, Lanczos3 + unsharp σ1 px 50 % | 95 % / 94 % | 83 % / 82 % | 54 % / 52 % |
+| **shrink, matched filter (DOWN_MATCHED)** | **100 % / 92 %** | **100 % / 88 %** | **100 % / 71 %** |
+| shrink, the true filter (upper bound) | 100 % / 92 % | 100 % / 87 % | 100 % / 72 % |
+
+- On real pictures the enlargers do better than on the synthetic set (photos and paintings have less
+  hard-edged detail for an enlargement to get wrong). With PNG copies the matched shrink still finds every
+  edit in every pair; with JPEG copies all the smooth modes find about as many edits (92–94 %), but the
+  shrink marks much more of each edit (71 % of its blocks against 51 %), so an edit shows as a shape
+  rather than a few scattered blocks.
+- The shrink's weak spot is the faint recolour in a JPEG copy: found in 55 % of the pairs, against 73 %
+  for Lanczos3 and 87 % for NN. +18/−6/−18 RGB is a colour distance of 26, below the JPEG noise of the
+  small copy (the threshold there is 40–60); in an enlarged comparison the same shift adds to differences
+  that are already there and pushes some blocks over the (much higher) threshold. The 3-px dot (one pixel
+  of the copy at 3×) is the other hard case (75 % for every smooth mode).
+- Whole-number NN finds about half of the edits: at 2.5× nothing lines up (0 %), and at 3× the copy's
+  rounded size (533 px for 1600) makes the whole-number grid drift by up to a pixel against the original
+  (57 %); at 2× it finds 95 %, as many as Lanczos3.
 
 ### 4.5 Real images
 
@@ -406,6 +436,13 @@ threshold needed (T_p99), and what the menu's highest values leave marked:
 - The enlargers hardly notice the codec (Lanczos3 228–242): the resampling difference swamps the
   compression noise.
 
+**Real pictures** (the 10 real originals, 40 pairs per codec): the matched shrink needs 0 (PNG), 43
+(q95), 37 (q85 4:4:4), 51 (q85), 61 (q75), 71 (q60), 42 (WebP q90), 51 (WebP q75); Lanczos3 enlargement
+142–156. Illustrations, paintings and photos need 31–61 at q85–q95, but the pixel-art tiles and the
+terminal screenshot need 85–140 at every JPEG and WebP quality, and about half that at 4:4:4 (50 and 66):
+4:2:0 subsampling smears their coloured hard edges, and at the small size every such edge is a large
+share of a block. So 64 cleans 80 % of the real JPEG q85 pairs; the rest are pixel art and text.
+
 ### 4.8 Restoring the small JPEG with jpegQS before comparing
 
 You pass JPEG copies through jpegQS (QuantSmooth) and open the restored PNGs in WinMerge; the brief also
@@ -433,6 +470,9 @@ pairs per setting) and with small text or a thin line (48 edited pairs per setti
   smoothed estimate of the lost detail departs from the original by more than the JPEG noise did in some
   places (the worst blocks get worse). Edits are found as often as without it. Restoring before enlarging
   (the brief's suggestion 3) does not help either: Lanczos3 needs up to 9 more.
+- Real pictures (both Pepper&Carrot images, the Hokusai print, the lion photo; same settings, 24
+  unedited and 48 edited pairs per setting) behave the same way: the matched shrink needs 43 → 54–55
+  at q85 and 65 → 75–78 at q60, Lanczos3 89 → 92–93; every edit is found with or without jpegQS.
 - So jpegQS is for looking at a JPEG, not for diffing it: when comparing a copy with its original,
   open the JPEG as it was downloaded, or, with jpegQS PNGs, set the threshold about 10 higher. Adding
   jpegQS to WinMerge (an LGPL-2.1 dependency) would not pay off.
@@ -468,56 +508,106 @@ worse (+4 to +20 %), because the halos it adds are differences too. Catmull-Rom 
 (203 vs 205 with σ 1.0 px, 50 %). Next to comparing at the smaller size (threshold 2–5, 98 % of edits
 visible), none of this matters, so WinIMerge's enlargement mode stays plain Lanczos3.
 
+On real pictures (5 of them: both Pepper&Carrot images, the Hokusai print, the lion photo, the terminal
+screenshot; 60 unedited and 240 edited pairs) the result is the same. The brief's candidate (σ 1 px,
+50 %) leaves the threshold needed where it was (89 against 89), marks 2.3 points more blocks at
+threshold 16 and finds 1.3 points more edits (96 % against 95 %). The best setting by threshold (σ 0.5
+px, 75 %) gains 1 %; the strongest (σ 1.5 px, 100 %) finds 3 points more edits but needs a 28 % higher
+threshold and marks 7 points more blocks.
+
 ### 4.10 Perceptual metrics: what the models of the eye say
 
-ꟻLIP (at 96 and 48 pixels per degree), Butteraugli (max-norm and 3-norm) and SSIMULACRA2 on 84 unedited
-synthetic pairs: 7 images × copies made with Pillow Lanczos and OpenCV area averaging × factors 2, 2.5, 3
-× PNG and JPEG q85 (`results/heavy_synth.csv`; `harness/heavy_analysis.py`). The enlargers are compared
-with the original at its size, the matched shrink at the copy's size (so its numbers describe a smaller
-picture). Medians at 2× and 3× (28 pairs per codec; lower is closer, except SSIMULACRA2):
+ꟻLIP (at 96 and 48 pixels per degree), Butteraugli (max-norm and 3-norm) and SSIMULACRA2 on unedited
+pairs: copies made with Pillow Lanczos and OpenCV area averaging × factors 2, 2.5, 3 × PNG and JPEG q85,
+of the 7 synthetic images (84 pairs) and the 10 real ones (120 pairs) (`results/heavy_*.csv`;
+`harness/heavy_analysis.py`). The enlargers are compared with the original at its size, the matched
+shrink at the copy's size (so its numbers describe a smaller picture). Medians at 2× and 3× (lower is
+closer, except SSIMULACRA2), each cell PNG / JPEG copies:
 
-| mode | ꟻLIP @96 PNG / JPEG | ꟻLIP @48 PNG / JPEG | Butteraugli 3-norm PNG / JPEG | SSIMULACRA2 PNG / JPEG | T_p99 PNG / JPEG |
+| mode | ꟻLIP @96 | ꟻLIP @48 | Butteraugli 3-norm | SSIMULACRA2 | T_p99 |
 |---|---|---|---|---|---|
+| *synthetic images (28 pairs per codec)* | | | | | |
 | enlarge, whole-number NN | 0.041 / 0.084 | 0.063 / 0.109 | 6.2 / 6.3 | 22 / 15 | 274 / 276 |
 | enlarge, NN to the exact size | 0.038 / 0.082 | 0.059 / 0.109 | 5.6 / 6.2 | 24 / 15 | 251 / 257 |
 | enlarge, bilinear | 0.044 / 0.091 | 0.064 / 0.111 | 5.4 / 6.1 | 17 / 4 | 220 / 224 |
 | **enlarge, Lanczos3 (UP_SMOOTH)** | **0.041 / 0.085** | **0.064 / 0.108** | **5.7 / 6.0** | **25 / 20** | **220 / 227** |
 | enlarge, Lanczos3 + unsharp σ1 px 50 % | 0.043 / 0.083 | 0.065 / 0.109 | 6.2 / 6.4 | 26 / 22 | 227 / 235 |
 | **shrink, matched filter (DOWN_MATCHED)** | **0 / 0.024** | **0 / 0.031** | **0 / 0.98** | **100 / 81** | **0 / 40** |
+| *real images (40 pairs per codec)* | | | | | |
+| enlarge, whole-number NN | 0.060 / 0.105 | 0.095 / 0.137 | 4.4 / 4.7 | 44 / 28 | 192 / 195 |
+| enlarge, NN to the exact size | 0.052 / 0.100 | 0.088 / 0.134 | 4.0 / 4.4 | 44 / 30 | 202 / 206 |
+| enlarge, bilinear | 0.060 / 0.106 | 0.104 / 0.140 | 3.9 / 4.2 | 33 / 23 | 164 / 165 |
+| **enlarge, Lanczos3 (UP_SMOOTH)** | **0.043 / 0.098** | **0.078 / 0.128** | **3.5 / 3.9** | **47 / 33** | **149 / 152** |
+| enlarge, Lanczos3 + unsharp σ1 px 50 % | 0.041 / 0.092 | 0.075 / 0.131 | 3.6 / 4.0 | 51 / 34 | 143 / 148 |
+| **shrink, matched filter (DOWN_MATCHED)** | **0 / 0.045** | **0 / 0.065** | **0 / 1.07** | **100 / 79** | **0 / 53** |
 
 ![How each measure ranks the enlargers](charts/enlargers_by_measure.png)
 
 - **Every measure puts the matched shrink far ahead.** With PNG copies it is identical to the copy; with
-  JPEG copies only the compression noise remains (ꟻLIP 0.024 against 0.082–0.091 for the enlargers,
-  SSIMULACRA2 81 against 4–22). Over all candidates the perceptual measures order the pairs much as
-  WinMerge's outcome does (mean within-pair Spearman correlation with T_p99: 0.71–0.85).
-- **Among the enlargers they disagree with each other and with WinMerge's outcome.** ꟻLIP, the measure
-  built to predict what a viewer notices when flipping between two images, rates nearest neighbour as the
-  closest enlargement: NN to the exact size beats Lanczos3 in 89 % of the pairs at 2×, 64 % at 3× and
-  43 % at 2.5× (median error 10 % lower at 2× and 3×), and in every pair of line art, flat colour, manga
-  and UI text at 2× and 3×, but in only a quarter to a third of the painterly and pixel-art pairs. Butteraugli is split (NN
-  better in 71 % of the pairs at 2×, 14 % at 2.5×); SSIMULACRA2 prefers Lanczos3, slightly more with the
-  unsharp mask; WinMerge's threshold prefers Lanczos3 in 95 % of the pairs. Among the enlargers, the
-  within-pair correlation with T_p99 is −0.06 for ꟻLIP, 0.08 for Butteraugli's 3-norm and 0.47 for
-  SSIMULACRA2: what WinMerge marks and what the eye models predict are different things here.
+  JPEG copies only the compression noise remains (ꟻLIP 0.024–0.045 against 0.082–0.106 for the
+  enlargers, SSIMULACRA2 79–81 against 4–34). Over all candidates the perceptual measures order the pairs
+  much as WinMerge's outcome does (mean within-pair Spearman correlation with T_p99: 0.71–0.85 synthetic,
+  0.76–0.91 real).
+- **Among the enlargers, which looks closest depends on the picture.** ꟻLIP, the measure built to
+  predict what a viewer notices when flipping between two images, rates nearest neighbour (to the exact
+  size) closer to the original than Lanczos3 at 2× in 89 % of the synthetic pairs and 65 % of the real
+  ones: in *every* pair of line art, flat colour, manga, UI text, the Krita anime banner and the terminal
+  screenshot, and in most of Van Gogh's, but in few of the photos and paintings (Pepper&Carrot 0–12 %,
+  Hokusai 12 %, the photos 25–38 %). At 3× NN wins 64 % of the synthetic and 28 % of the real pairs; at
+  2.5× (uneven pixel widths) it loses on every measure. On the real pictures overall ꟻLIP ranks Lanczos3
+  (with or without the unsharp mask) first.
+- The other measures lean towards Lanczos3: Butteraugli's 3-norm prefers NN in 71 % of the synthetic and
+  35 % of the real pairs at 2×, SSIMULACRA2 in 50 % and 45 %, WinMerge's threshold in 14 % and 0 %.
+  Among the enlargers, the within-pair correlation with T_p99 is −0.06 (synthetic) and 0.43 (real) for
+  ꟻLIP, 0.47 and 0.63 for SSIMULACRA2: what WinMerge marks and what the eye models predict agree on
+  photos and paintings, much less on hard-edged art.
 - Why: at 96 ppd one pixel of a 2× NN enlargement spans 1.25 arcminutes, close to the limit of visual
-  acuity, so its staircases hardly show, while a smooth filter visibly lowers the contrast of every edge.
-  WinMerge counts every staircase pixel at its full colour difference. At 48 ppd (the BenQ at 2× zoom or
-  stretched by Windows, or roughly the HP and Packard Bell monitors at 1:1) the staircases become visible
-  and NN's lead shrinks: better than Lanczos3 in 75 % of the pairs at 2×, 57 % at 3×, 21 % at 2.5×.
-  At non-integer factors NN loses on every measure (uneven pixel widths).
+  acuity, so its staircases hardly show, while a smooth filter visibly lowers the contrast of every hard
+  edge. Where the edges are soft anyway (paintings, photos) the smooth filter costs little and the
+  staircase is the more visible error. WinMerge counts every staircase pixel at its full colour
+  difference. At 48 ppd (the BenQ at 2× zoom or stretched by Windows, or roughly the HP and Packard Bell
+  monitors at 1:1) the staircases become visible and NN's lead shrinks: closer than Lanczos3 in 75 % of
+  the synthetic and 30 % of the real pairs at 2×.
 - Whole-number NN ranks a little below NN to the exact size, because when the small size was rounded
   (1600 px / 3 = 533) the copy's grid drifts by up to a pixel against the original's.
-- The unsharp mask: ꟻLIP is mixed (a little better with JPEG copies, a little worse with PNG ones),
-  SSIMULACRA2 likes it slightly (+1–2 points), Butteraugli's max-norm ranks it last of all (its halos are
-  the worst spots). As in 4.9, no clear gain. Lanczos3 on the 8-bit path and in float differ by under
-  2 % on every median.
+- The unsharp mask: on real pictures ꟻLIP and SSIMULACRA2 rank Lanczos3 + unsharp mask first and
+  Butteraugli's max-norm ranks it last (its halos are the worst spots); on synthetic art ꟻLIP is mixed.
+  As in 4.9, no clear gain. Lanczos3 on the 8-bit path and in float differ by under 2 % on every median.
 - For edits, ꟻLIP agrees with WinMerge (section 4.12): an edit stands out of the resampling noise in
   ꟻLIP's map in 94–95 % of the pairs with either enlarger and in 100 % at the small size.
 
-So the eye models side with you about nearest neighbour when *looking* at a 2× copy next to the original,
-while WinMerge's marks (and the threshold you would need) side with Lanczos3. Neither enlargement comes
-close to comparing at the smaller size.
+So the eye models side with you about nearest neighbour for crisp line art, flat colour, manga and text
+viewed at 2×, which is much of what you compare, while for paintings and photos, and at 3× or
+non-integer factors, Lanczos3 looks closer. WinMerge's marks side with Lanczos3 throughout. Neither
+enlargement comes close to comparing at the smaller size.
+
+### 4.11 Resampling in linear light
+
+Most tools resample the gamma-encoded sRGB values directly; resampling in linear light is often called
+more correct (it keeps the brightness of fine detail). Enlarging in linear light (`lin_*`: sRGB → linear,
+FreeImage float resample, → sRGB) against the usual way, 7 synthetic images × copies made with OpenCV area
+averaging, Pillow Lanczos, and Lanczos3 in linear light × factors 2, 2.5, 3, PNG (63 unedited pairs, 126
+with small text or a thin line):
+
+| enlarger | T_p99 for copies made by: area | Pillow Lanczos | Lanczos3 in linear light | edits visible |
+|---|---|---|---|---|
+| Lanczos3 (float) | 260 | 232 | 288 | 87 % |
+| Lanczos3 in linear light | 284 | 236 | 288 | 87 % |
+| Catmull-Rom (float) | 251 | 229 | 286 | 82 % |
+| Catmull-Rom in linear light | 258 | 230 | 286 | 84 % |
+
+- Enlarging in linear light does not help, not even for copies that were themselves made in linear
+  light (288 either way); for area-averaged copies it is worse (284 against 260). The share of blocks
+  marked moves by under half a point and edits are found as often. On the 10 real pictures (90 unedited,
+  180 edited pairs) it is slightly worse everywhere: Lanczos3 needs 152–165 in linear light against
+  147–155 in sRGB (even for linear-light copies: 165 against 155) and marks 3–5 points more blocks at
+  threshold 16; edits are found equally often (95–97 %). The enlargement mode stays in sRGB.
+- Linear light matters for the *shrink*: copies made in linear light are the ones the matched shrink
+  cannot reproduce (median T_p99 76 synthetic, 71 real, 83 for ImageMagick's `-colorspace RGB`), while
+  shrinking the original the same way would reproduce them exactly (0 for PNG copies, 42–64 for JPEG
+  q85). A linear-light Lanczos3 candidate in DOWN_MATCHED (FreeImage's float path between two gamma
+  conversions) would close that gap at the cost of one more resample; it is left out because the common
+  web resizers measured here (Pillow, libvips, ImageMagick, WordPress) work in sRGB by default.
 
 ### 4.12 Round trip: enlarge both panes after the matched shrink (the brief's suggestion 4)
 
@@ -544,13 +634,19 @@ Lanczos3, 28 with bilinear, against 40), marks fewer blocks at threshold 16, and
 in every pair (91 % at the small size). Seen at the same size on screen, it also flickers less than the
 small comparison zoomed in (ꟻLIP 0.038 against 0.045). The costs: comparing at the original's size
 (about 15× slower per comparison at 4×, section 8), a second resample of both images, and both panes
-shown softened (the original pane is no longer the original). The gain is a few points for JPEG copies,
-nothing for PNG copies, so it was not added to the PR; it would be a small follow-up (a flag on
-DOWN_MATCHED that enlarges both scaled images back) if the maintainer wants it.
+shown softened (the original pane is no longer the original).
 
-<!-- RESULTS-MORE -->
+On 5 real pictures (both Pepper&Carrot images, the Hokusai print, the lion photo, the terminal
+screenshot; 40 unedited and 160 edited pairs) the result is the same. With PNG copies every way of using
+the matched shrink is exact and finds every edit (Lanczos3 enlargement: 91 %). With JPEG copies the round
+trip needs a threshold of 42 (Lanczos3) or 35 (bilinear) instead of 47, marks 40 % or 24 % of the blocks
+at threshold 16 instead of 61 %, and finds 88–91 % of the edits instead of 84 % (Lanczos3 enlargement
+86 %), the faint recolour most of all (88–95 % against 82 %).
 
-
+So for JPEG copies the round trip is the best of all the ways tried, by a few points; for PNG copies it
+changes nothing. It was not added to the PR, which is large enough already; it would be a small
+follow-up (a flag on DOWN_MATCHED that enlarges both scaled images back to the larger size, with
+bilinear or Lanczos3) if you or the maintainer want it.
 
 ## 5. Is anything other than nearest neighbour a flawed comparison?
 
@@ -571,18 +667,20 @@ whole numbers the two images do not line up at all: at 2.5× it enlarges 2×, so
 nothing. NN to the exact size instead makes pixels unevenly wide and moves features by up to half a
 copy pixel (`DISCOVERIES.md` §2).
 
-**What the eye sees is another matter, and there you are right at 2×.** The perceptual models
-(section 4.10) rate the NN enlargement as *closer* to the original than Lanczos3 when the two are viewed
-at 1:1 on your BenQ (96 pixels per degree): ꟻLIP, which models flipping, in 89 % of the pairs at 2× and
-64 % at 3×; Butteraugli in 71 % at 2×. A 2× staircase is near the limit of visual acuity there, while a
-smooth filter visibly softens every edge. At 2.5×, at 48 pixels per degree (zoomed in), or with
-WinMerge's marks, NN loses. So whole-number NN is a fair way to *look at* a 2× copy next to the
-original, but not a better way to have WinMerge find the differences.
+**What the eye sees is another matter, and there you are right for crisp art at 2×.** The perceptual
+models (section 4.10) rate the NN enlargement as *closer* to the original than Lanczos3 when the two are
+viewed at 1:1 on your BenQ (96 pixels per degree), for line art, flat colour, manga and text: ꟻLIP, which
+models flipping, in every such pair at 2× (89 % of the synthetic pairs, 65 % of the real ones, the
+anime banner and the screenshot included). A 2× staircase is near the limit of visual acuity there,
+while a smooth filter visibly softens every hard edge. For paintings and photos, at 3× (NN closer in
+28 % of the real pairs), at 2.5×, at 48 pixels per degree (zoomed in), and with WinMerge's marks, NN
+loses. So whole-number NN is a fair way to *look at* a 2× copy of line art next to the original, but not
+a better way to have WinMerge find the differences.
 
 **What a smooth filter does.** It estimates in-between values. The estimate is wrong exactly where the
 copy lost detail, but it is closer to the original than a staircase, so fewer and weaker differences
 remain. Lanczos3 is the closest of the common filters by WinMerge's own outcome, SSIMULACRA2 and the
-share of edits found (ꟻLIP and Butteraugli prefer NN at 2×, above). Still, on detailed
+share of edits found (for hard-edged art at 2×, ꟻLIP prefers NN, above). Still, on detailed
 images about a third of all 8×8 blocks stay marked at threshold 16 whatever enlarger is used: the
 detail is not in the copy, so no filter can bring it back, and an enlarged comparison can never be
 clean.
@@ -602,8 +700,9 @@ The brief also suggested a variant: after the matched shrink, enlarge *both* ima
 filter and compare at the large size, so both carry the same blur. Measured (section 4.12), it is the
 same as comparing at the small size for lossless copies and a little better for JPEG copies (the
 enlargement smooths the compression noise in the difference more than the edits: threshold 32 instead
-of 40, the faint recolour found in every pair), at the cost of comparing at the large size (about 15×
-slower per comparison at 4×) and of showing both panes softened. Only the compare-at-the-smaller-size
+of 40 on the synthetic set, 35–42 instead of 47 on real pictures, and a few points more edits found), at
+the cost of comparing at the large size (about 15× slower per comparison at 4×) and of showing both
+panes softened. Only the compare-at-the-smaller-size
 version was implemented; the round trip would be a small follow-up if wanted.
 
 ## 6. Recommendations
@@ -617,9 +716,15 @@ For the WinIMerge/WinMerge feature (implemented in the PR branches, see `notes/u
 2. Match the filter on FreeImage's 8-bit path (what Pillow and most libraries do), with exact area
    averaging as an extra candidate, and choose by the lowest mean absolute difference. Enlarge on the
    8-bit path too: the float path (no clipped overshoot) measured the same and costs 2.4× the time.
-3. No unsharp-mask option.
+3. No unsharp-mask option, and no JPEG restoration (jpegQS) inside WinMerge: it does not make the
+   comparison cleaner (section 4.8).
 4. Image alignment **Center** is the useful companion when sizes still differ (crops, letterboxing,
    or whole-number NN at a factor like 2.5×, where the enlarged copy stays smaller).
+5. A possible follow-up, not in the PR: an option to enlarge both panes back to the original's size
+   after the matched shrink ("round trip"). For JPEG copies it needs a lower threshold (synthetic 28–32
+   instead of 40, real 35–42 instead of 47) and finds a few points more edits (real: 88–91 % instead of
+   84 %), and it shows the comparison at full size; the cost is comparing 24 instead of 1.5 megapixels
+   (section 4.12).
 
 For comparing duplicates by eye (your use):
 
@@ -631,13 +736,14 @@ For comparing duplicates by eye (your use):
   |---|---|---|
   | PNG or other lossless, resized by Pillow, OpenCV, ImageMagick, WordPress | 4–8 | reproduced to within rounding (0–5) |
   | PNG, resizer unknown | 16; 64 if many blocks stay marked | libvips copies need about 14; sharpened, linear-light and non-antialiased copies 63–76 (nearest-neighbour shrinks about 200) |
-  | JPEG q90+ or WebP q90 | 32, or 64 if a few blocks stay marked | median 31, 90th percentile 51–54 |
-  | JPEG q75–85 or WebP q75 (most web images) | 64 | ≤ 1 % of blocks marked in 93–96 % of pairs |
+  | JPEG q90+ or WebP q90 | 32, or 64 if a few blocks stay marked | median 31 (synthetic) to 43 (real); 64 cleans 80–100 % of the pairs |
+  | JPEG q75–85 or WebP q75 (most web images) | 64 | ≤ 1 % of blocks marked in 93–96 % of the synthetic pairs and 65–80 % of the real ones |
   | JPEG q60 or lower | 64 leaves ~5 % marked | a custom value around 96 cleans it: WinMerge keeps the threshold in `Settings/ImageColorDistanceThreshold` (× 1000; read in the source, not tried) |
+  | JPEG or WebP copies of pixel art, screenshots, coloured text | 64 leaves blocks marked along the edges | they need 85–140 (half that if saved 4:4:4); a custom value of ~128 |
   | your jpegQS-restored PNGs of JPEG copies | as for the JPEG, plus about 10 | section 4.8 |
 
-  With the threshold where 1 % of an unedited pair's blocks stay marked, real edits stayed visible in
-  98 % of the edited pairs, 97 % of the JPEG q85 ones (section 4.4).
+  With the threshold where 1 % of an unedited pair's blocks stay marked, edits stayed visible in 98 % of
+  the synthetic and 96 % of the real edited pairs (97 % and 92 % of the JPEG q85 ones; section 4.4).
 - Make sure WinMerge is not bitmap-stretched by Windows (section 7), and zoom in (200 % or more) on the
   small comparison: at the copy's resolution one pixel is small on a 4K screen.
 
@@ -658,8 +764,8 @@ differences are then attenuated. ꟻLIP was run at 96 pixels per degree (BenQ RD
 pixels) and 48 (2× stretch or zoom); the HP 23xw (≈53–59) and the Packard Bell Maestro 226DX (≈55–62)
 fall between. How the candidates compare at the two densities is in section 4.10: at 96 ppd a 2× NN
 enlargement's staircases are close to the acuity limit, so ꟻLIP rates it closer to the original than
-Lanczos3 in 89 % of the pairs; at 48 ppd they become visible and NN's lead shrinks (75 % at 2×, 21 % at
-2.5×). For the comparison at the smaller size, zooming in (WinMerge zooms with nearest neighbour) makes
+Lanczos3 for line art, flat colour and text (89 % of the synthetic pairs, 65 % of the real ones); at 48
+ppd they become visible and NN's lead shrinks (75 % and 30 % at 2×). For the comparison at the smaller size, zooming in (WinMerge zooms with nearest neighbour) makes
 both panes equally blocky, so it adds no difference of its own.
 
 ## 8. The WinIMerge implementation in brief
@@ -693,6 +799,8 @@ both panes equally blocky, so it adds no difference of its own.
 
 ## 9. What was not tested
 
+- WordPress's path for reductions beyond 3× per axis (it point-samples to 5× the target first), and
+  ImageMagick beyond the four recipes of the spot check (section 4.2).
 - Copies made by Windows' own scalers (WIC Fant and high-quality cubic, Direct2D, GDI+), browsers
   (canvas `drawImage`), Photoshop ("Bicubic Sharper"), GIMP (NoHalo/LoHalo) or Paint.NET
   (supersampling): not available on Linux. WIC Fant and Paint.NET supersampling are area-averaging-like,
@@ -724,4 +832,8 @@ python3 harness/compare_pairs.py FOLDER [--heavy] [--eyecheck OUTDIR]   # your o
 python3 harness/study.py run spurious --images testset/large --tag synth  # the study (resumable)
 python3 harness/report.py && python3 harness/charts.py                    # tables and charts
 python3 harness/eyecheck.py --out eyecheck                                # the flip page
+python3 harness/roundtrip_test.py; python3 harness/im_spotcheck.py         # side experiments (4.12, 4.2)
 ```
+
+The scripts find the research folder from their own location (or `$RESEARCH_DIR`), so the folder can
+live anywhere.

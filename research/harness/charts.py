@@ -168,7 +168,7 @@ def ranks_chart(hv, out):
     handles, labels = axes[0][0].get_legend_handles_labels()
     fig.legend(handles, labels, loc='lower center', ncol=3, frameon=False, fontsize=8.5, labelcolor=INK,
                bbox_to_anchor=(0.5, 0.0))
-    fig.suptitle('Which enlarger is closest? The measures disagree about nearest neighbour',
+    fig.suptitle('Which enlarger is closest? It depends on the measure, and on the picture',
                  fontsize=10, color=INK, x=0.01, ha='left')
     fig.tight_layout(rect=(0, 0.12, 1, 0.95))
     path = os.path.join(out, 'enlargers_by_measure.png')

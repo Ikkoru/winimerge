@@ -25,6 +25,7 @@ import edits as E
 import fi
 import metrics as M
 import resample as R
+from paths import RESULTS, TESTSET
 
 # ------------------------------------------------------------------ candidates (enlargers)
 
@@ -144,7 +145,7 @@ DOWN_NAMES = ['down_area', 'down_oracle'] + ['down_fi_' + k for k in FI_DOWN] + 
 # ------------------------------------------------------------------ codecs
 
 
-JPEGQS = os.environ.get('JPEGQS', '/tmp/claude-0/-home-user/c93e777e-edee-5658-827e-7ebd2f76571d/scratchpad/ext/jpeg-quantsmooth/jpegqs')
+JPEGQS = os.environ.get('JPEGQS') or 'jpegqs'   # the jpeg-quantsmooth binary (README), or found on PATH
 
 
 def codec(img, name):
@@ -317,8 +318,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('cmd', choices=['run', 'list'])
     ap.add_argument('exp', nargs='?')
-    ap.add_argument('--images', default='/home/user/research/testset/large')
-    ap.add_argument('--out', default='/home/user/research/results')
+    ap.add_argument('--images', default=os.path.join(TESTSET, 'large'))
+    ap.add_argument('--out', default=RESULTS)
     ap.add_argument('--jobs', type=int, default=4)
     ap.add_argument('--only', default='', help='comma-separated image names to include')
     ap.add_argument('--tag', default='', help='suffix for the output CSV name')
