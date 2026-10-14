@@ -2351,6 +2351,8 @@ protected:
 		CImgDiffBuffer& m_buffer;
 	};
 
+	static constexpr int RESAMPLE_AREA = -2;   // a filter that is not one of FreeImage's
+
 	struct ScaledImage
 	{
 		Image image;               // the scaled image (empty when the pane is not scaled)
@@ -2520,6 +2522,60 @@ protected:
 		return true;
 	}
 
+	/**
+	 * @brief Shrinks a 32-bit image by area averaging: every source pixel counts in proportion to the
+	 * part of it that a destination pixel covers. This is OpenCV's INTER_AREA (used e.g. by Discord)
+	 * and what "supersampling" or "box" shrinkers in many programs do; FreeImage's box filter weighs
+	 * whole pixels, so it gives the same result only at whole-number factors.
+	 */
+	static bool ResizeImageArea(const Image& src, Image& dst, unsigned width, unsigned height)
+	{
+		const unsigned sw = src.width(), sh = src.height();
+		if (width == 0 || height == 0 || width > sw || height > sh)
+			return false;
+		struct Tap { unsigned index; float weight; };
+		auto makeTaps = [](unsigned srcSize, unsigned dstSize)
+		{
+			std::vector<std::vector<Tap>> taps(dstSize);
+			const double scale = static_cast<double>(srcSize) / dstSize;
+			for (unsigned i = 0; i < dstSize; ++i)
+			{
+				const double x0 = i * scale, x1 = (i + 1) * scale;
+				for (unsigned j = static_cast<unsigned>(x0); j < srcSize && j < x1; ++j)
+				{
+					const double covered = (std::min)(x1, j + 1.0) - (std::max)(x0, static_cast<double>(j));
+					if (covered > 1e-9)
+						taps[i].push_back({ j, static_cast<float>(covered / scale) });
+				}
+			}
+			return taps;
+		};
+		const std::vector<std::vector<Tap>> tx = makeTaps(sw, width), ty = makeTaps(sh, height);
+		std::vector<float> sum(static_cast<size_t>(width) * 4);
+		dst.setSize(width, height);
+		for (unsigned y = 0; y < height; ++y)
+		{
+			std::fill(sum.begin(), sum.end(), 0.f);
+			for (const Tap& row : ty[y])
+			{
+				const unsigned char *s = src.scanLine(row.index);
+				for (unsigned x = 0; x < width; ++x)
+				{
+					float px[4] = {};
+					for (const Tap& col : tx[x])
+						for (int c = 0; c < 4; ++c)
+							px[c] += col.weight * s[col.index * 4 + c];
+					for (int c = 0; c < 4; ++c)
+						sum[x * 4 + c] += row.weight * px[c];
+				}
+			}
+			unsigned char *d = dst.scanLine(y);
+			for (unsigned i = 0; i < width * 4; ++i)
+				d[i] = static_cast<unsigned char>((std::min)((std::max)(sum[i] + 0.5f, 0.f), 255.f));
+		}
+		return true;
+	}
+
 	static double MeanAbsoluteDifference(const Image& a, const Image& b)
 	{
 		const unsigned w = a.width(), h = a.height();
@@ -2537,7 +2593,7 @@ protected:
 	 * @brief Shrinks src to width x height with the filter whose result is closest to ref.
 	 *
 	 * A smaller copy is usually made by a site or program that resamples with one of the common
-	 * filters (area/box, bilinear, Mitchell, Catmull-Rom = "bicubic" in Pillow and libvips,
+	 * filters (area averaging, bilinear, Mitchell, Catmull-Rom = "bicubic" in Pillow and libvips,
 	 * Lanczos3). Shrinking the larger image with the same filter reproduces the copy almost
 	 * exactly, so only real changes (and compression noise) remain as differences. When ref has
 	 * another size (the aspect ratios differ), Catmull-Rom is used.
@@ -2547,12 +2603,12 @@ protected:
 		chosen = FILTER_CATMULLROM;
 		if (!ref || ref->width() != width || ref->height() != height)
 			return ResizeImage(src, dst, width, height, FILTER_CATMULLROM);
-		static const FREE_IMAGE_FILTER filters[] = { FILTER_BOX, FILTER_BILINEAR, FILTER_BICUBIC, FILTER_CATMULLROM, FILTER_LANCZOS3 };
+		static const int filters[] = { FILTER_BOX, FILTER_BILINEAR, FILTER_BICUBIC, FILTER_CATMULLROM, FILTER_LANCZOS3, RESAMPLE_AREA };
 		double best = -1.0;
-		for (FREE_IMAGE_FILTER filter : filters)
+		for (int filter : filters)
 		{
 			Image resized;
-			if (!ResizeImage(src, resized, width, height, filter))
+			if (!ResizeImageWith(src, resized, width, height, filter))
 				continue;
 			const double diff = MeanAbsoluteDifference(resized, *ref);
 			if (best < 0.0 || diff < best)
@@ -2563,6 +2619,16 @@ protected:
 			}
 		}
 		return best >= 0.0;
+	}
+
+	/**
+	 * @brief Resamples with one of FreeImage's filters or, for RESAMPLE_AREA, by area averaging.
+	 */
+	static bool ResizeImageWith(const Image& src, Image& dst, unsigned width, unsigned height, int filter)
+	{
+		if (filter == RESAMPLE_AREA)
+			return ResizeImageArea(src, dst, width, height);
+		return ResizeImage(src, dst, width, height, static_cast<FREE_IMAGE_FILTER>(filter));
 	}
 
 	/**
@@ -2619,7 +2685,7 @@ protected:
 						scaled.matchedHeight = th;
 					}
 					else
-						resized = ResizeImage(m_imgOrig32[i], scaled.image, tw, th, static_cast<FREE_IMAGE_FILTER>(scaled.filter));
+						resized = ResizeImageWith(m_imgOrig32[i], scaled.image, tw, th, scaled.filter);
 				}
 				else
 					resized = ResizeImage(m_imgOrig32[i], scaled.image, tw, th,
