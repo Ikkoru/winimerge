@@ -363,7 +363,8 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
   the original by ꟻLIP at 96 and 48 ppd in every pair, by Butteraugli's 3-norm in 86 %, by SSIMULACRA2 in
   all and by WinMerge's threshold in 97 %. On synthetic art it is mixed: Butteraugli's 3-norm prefers
   Catmull-Rom in 65 % of the pairs (line art, flat colour, manga, UI text), ꟻLIP at 96 ppd half and
-  half, SSIMULACRA2 Lanczos3 in 95 %; on the UI text Catmull-Rom is closer by every measure. What
+  half, SSIMULACRA2 Lanczos3 in 95 %; on the UI text Catmull-Rom is closer by ꟻLIP and Butteraugli at
+  every factor (SSIMULACRA2 and WinMerge's threshold still prefer Lanczos3). What
   Catmull-Rom does better everywhere is ringing: it adds less overshoot next to hard edges in 82 % of the
   pairs (0.165 against 0.208 levels on average; manga screentone is the exception). So the user's
   impression fits hard-edged art and text, not paintings or photos; Lanczos3 stays the better general

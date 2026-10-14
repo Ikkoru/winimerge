@@ -1182,7 +1182,8 @@ filters only, no compression, as you asked for this kind of test):
 
 - **Your impression holds for hard-edged art and text, not for paintings and photos.** Catmull-Rom's
   one clear advantage is ringing: it adds less overshoot next to edges in 82 % of the pairs (its kernel
-  is shorter: one side lobe each way where Lanczos3 has two). On the UI text it is closer by every measure; on line art,
+  is shorter: one side lobe each way where Lanczos3 has two). On the UI text it is closer by ꟻLIP and
+  Butteraugli at every factor (SSIMULACRA2 and WinMerge's threshold still prefer Lanczos3); on line art,
   flat colour and manga, Butteraugli prefers it in three of four factors and ꟻLIP is split. On every real
   picture, the Krita anime banner and the screenshot included, Lanczos3 is closer by ꟻLIP at both
   viewing distances and by SSIMULACRA2.
