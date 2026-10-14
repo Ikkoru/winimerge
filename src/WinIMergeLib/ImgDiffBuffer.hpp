@@ -29,6 +29,8 @@
 #include <chrono>
 #include <cmath>
 #include <cassert>
+#include <cstdint>
+#include <climits>
 
 enum OP_TYPE
 {
@@ -488,6 +490,9 @@ public:
 	enum DIFF_ALGORITHM {
 		MYERS_DIFF, MINIMAL_DIFF, PATIENCE_DIFF, HISTOGRAM_DIFF, NONE_DIFF
 	};
+	enum IMAGE_SCALING_MODE {
+		IMAGE_SCALING_NONE = 0, IMAGE_SCALING_UP_NEAREST_INTEGER, IMAGE_SCALING_UP_SMOOTH, IMAGE_SCALING_DOWN_MATCHED
+	};
 	
 	enum { BLINK_INTERVAL = 800 };
 	enum { OVERLAY_ANIMATION_INTERVAL = 1000 };
@@ -521,6 +526,7 @@ public:
 		, m_blinkInterval(BLINK_INTERVAL)
 		, m_overlayAnimationInterval(OVERLAY_ANIMATION_INTERVAL)
 		, m_lastErrorCode(0)
+		, m_imageScalingMode(IMAGE_SCALING_NONE)
 	{
 		for (int i = 0; i < 3; ++i)
 			m_currentPage[i] = 0;
@@ -957,6 +963,32 @@ public:
 		m_preferWICDecoder = preferWIC;
 	}
 
+	IMAGE_SCALING_MODE GetImageScalingMode() const
+	{
+		return m_imageScalingMode;
+	}
+
+	void SetImageScalingMode(IMAGE_SCALING_MODE mode)
+	{
+		if (m_imageScalingMode == mode)
+			return;
+		m_imageScalingMode = mode;
+		CompareImages();
+	}
+
+	/**
+	 * @brief Returns how much the image in a pane is currently scaled for comparison
+	 * (preprocessed size / original size, 1.0 when the image is not scaled).
+	 */
+	void GetImageScale(int pane, double& scaleX, double& scaleY) const
+	{
+		scaleX = scaleY = 1.0;
+		if (pane < 0 || pane >= m_nImages)
+			return;
+		scaleX = m_scaledImage[pane].scaleX;
+		scaleY = m_scaledImage[pane].scaleY;
+	}
+
 	const DiffInfo *GetDiffInfo(int diffIndex) const
 	{
 		if (diffIndex < 0 || diffIndex >= m_diffCount)
@@ -1245,6 +1277,7 @@ public:
 			m_imgPreprocessed[i].clear();
 			m_offset[i].x = 0;
 			m_offset[i].y = 0;
+			m_scaledImage[i] = ScaledImage();
 		}
 		m_nImages = 0;
 		return true;
@@ -1439,6 +1472,46 @@ public:
 
 	bool ConvertToRealPos(int pane, int x, int y, int& rx, int& ry, bool clamp = true) const
 	{
+		bool inside = ConvertToScaledPos(pane, x, y, rx, ry, clamp);
+		if (IsImageScaled(pane))
+		{
+			// the original pixel that the scaled pixel was resampled from
+			const ScaledImage& scaled = m_scaledImage[pane];
+			rx = static_cast<int>(std::floor((rx + 0.5) / scaled.scaleX));
+			ry = static_cast<int>(std::floor((ry + 0.5) / scaled.scaleY));
+			if (clamp)
+			{
+				rx = std::clamp(rx, 0, static_cast<int>(scaled.srcWidth) - 1);
+				ry = std::clamp(ry, 0, static_cast<int>(scaled.srcHeight) - 1);
+			}
+		}
+		return inside;
+	}
+
+	/**
+	 * @brief Like ConvertToRealPos(), for a position on the boundary between pixels, such as
+	 * an edge of a selection. In a scaled image, the result is the boundary in front of the
+	 * first original pixel whose centre lies at or after the position, so that a rectangle
+	 * converts to the original pixels whose centres lie inside it.
+	 */
+	bool ConvertToRealEdgePos(int pane, int x, int y, int& rx, int& ry, bool clamp = true) const
+	{
+		if (!IsImageScaled(pane))
+			return ConvertToRealPos(pane, x, y, rx, ry, clamp);
+		bool inside = ConvertToScaledPos(pane, x, y, rx, ry, false);
+		const ScaledImage& scaled = m_scaledImage[pane];
+		rx = ScaledToRealEdge(rx, scaled.scaleX);
+		ry = ScaledToRealEdge(ry, scaled.scaleY);
+		if (clamp)
+		{
+			rx = std::clamp(rx, 0, static_cast<int>(scaled.srcWidth));
+			ry = std::clamp(ry, 0, static_cast<int>(scaled.srcHeight));
+		}
+		return inside;
+	}
+
+	bool ConvertToScaledPos(int pane, int x, int y, int& rx, int& ry, bool clamp = true) const
+	{
 		x -= m_offset[pane].x;
 		y -= m_offset[pane].y;
 
@@ -1508,10 +1581,10 @@ public:
 				}
 			}
 			ry = y - m_lineDiffInfos.back().dendmax + m_lineDiffInfos.back().end[pane];
-			if (ry >= GetImageHeight(pane))
+			if (ry >= GetScaledImageHeight(pane))
 			{
 				if (clamp)
-					ry = GetImageHeight(pane) - 1;
+					ry = GetScaledImageHeight(pane) - 1;
 				inside = false;
 			}
 			return inside;
@@ -1551,10 +1624,10 @@ public:
 				}
 			}
 			rx = x - m_lineDiffInfos.back().dendmax + m_lineDiffInfos.back().end[pane];
-			if (rx >= GetImageWidth(pane))
+			if (rx >= GetScaledImageWidth(pane))
 			{
 				if (clamp)
-					rx = GetImageWidth(pane) - 1;
+					rx = GetScaledImageWidth(pane) - 1;
 				inside = false;
 			}
 			return inside;
@@ -2124,22 +2197,22 @@ protected:
 		}	
 	}
 
-	void CopyImageWithGhostLine(const std::vector<LineDiffInfo>& lineDiffInfos, int npanes, Image src[], Image dst[])
+	void CopyImageWithGhostLine(const std::vector<LineDiffInfo>& lineDiffInfos, int npanes, const Image *const src[], Image dst[])
 	{
 		unsigned nlines;
 		if (lineDiffInfos.size() == 0)
 		{
-			nlines = src[0].height();
+			nlines = src[0]->height();
 		}
 		else
 		{
 			const LineDiffInfo& lastLineDiff = lineDiffInfos.back();
-			nlines = (lastLineDiff.dendmax + 1) + src[0].height() - (lastLineDiff.end[0] + 1);
+			nlines = (lastLineDiff.dendmax + 1) + src[0]->height() - (lastLineDiff.end[0] + 1);
 		}
 
 		int ydst = 0;
 		for (int pane = 0; pane < npanes; ++pane)
-			dst[pane].setSize(src[pane].width(), nlines);
+			dst[pane].setSize(src[pane]->width(), nlines);
 		for (size_t i = 0; i < lineDiffInfos.size(); ++i)
 		{
 			const LineDiffInfo& lineDiffInfo = lineDiffInfos[i];
@@ -2148,7 +2221,7 @@ protected:
 			{
 				int orgydst = ydst;
 				for (int ysrc = (i > 0) ? (lineDiffInfos[i - 1].end[pane] + 1) : 0; ysrc < lineDiffInfo.begin[pane]; ++ysrc)
-					memcpy(dst[pane].scanLine(ydst++), src[pane].scanLine(ysrc), src[pane].width() * 4);
+					memcpy(dst[pane].scanLine(ydst++), src[pane]->scanLine(ysrc), src[pane]->width() * 4);
 				ydst = orgydst;
 			}
 
@@ -2157,7 +2230,7 @@ protected:
 			{
 				int orgydst = ydst;
 				for (int ysrc = lineDiffInfo.begin[pane]; ysrc <= lineDiffInfo.end[pane]; ++ysrc)
-					memcpy(dst[pane].scanLine(ydst++), src[pane].scanLine(ysrc), src[pane].width() * 4);
+					memcpy(dst[pane].scanLine(ydst++), src[pane]->scanLine(ysrc), src[pane]->width() * 4);
 				ydst = orgydst;
 			}
 			ydst = lineDiffInfo.dendmax + 1;
@@ -2167,8 +2240,8 @@ protected:
 		{
 			int orgydst = ydst;
 			for (int ysrc = (lineDiffInfos.size() > 0) ? (lineDiffInfos[lineDiffInfos.size() - 1].end[pane] + 1) : 0;
-				ysrc < static_cast<int>(src[pane].height()); ++ysrc)
-				memcpy(dst[pane].scanLine(ydst++), src[pane].scanLine(ysrc), src[pane].width() * 4);
+				ysrc < static_cast<int>(src[pane]->height()); ++ysrc)
+				memcpy(dst[pane].scanLine(ydst++), src[pane]->scanLine(ysrc), src[pane]->width() * 4);
 			ydst = orgydst;
 		}
 	}
@@ -2278,6 +2351,292 @@ protected:
 		CImgDiffBuffer& m_buffer;
 	};
 
+	struct ScaledImage
+	{
+		Image image;               // the scaled image (empty when the pane is not scaled)
+		std::uint64_t key = 0;     // identifies the source image, target size and mode of `image`
+		unsigned srcWidth = 0;     // size of the (rotated/flipped) original image
+		unsigned srcHeight = 0;
+		unsigned width = 0;        // size after scaling
+		unsigned height = 0;
+		double scaleX = 1.0;       // width / srcWidth
+		double scaleY = 1.0;       // height / srcHeight
+		int filter = -1;           // IMAGE_SCALING_DOWN_MATCHED: the filter matched for matchedWidth x matchedHeight
+		unsigned matchedWidth = 0;
+		unsigned matchedHeight = 0;
+	};
+
+	bool IsImageScaled(int pane) const
+	{
+		return m_scaledImage[pane].scaleX != 1.0 || m_scaledImage[pane].scaleY != 1.0;
+	}
+
+	static int ScaledToRealEdge(int e, double scale)
+	{
+		return static_cast<int>(std::ceil(e / scale - 0.5));
+	}
+
+	/**
+	 * @brief Returns the original pixels [rx0, rx1) x [ry0, ry1) that the pixel (sx, sy) of the
+	 * scaled image stands for: those whose centres lie inside it (the pixel itself when the
+	 * image is not scaled, one or none when it is enlarged, one or more when it is shrunk).
+	 */
+	void ScaledToRealPixels(int pane, int sx, int sy, int& rx0, int& ry0, int& rx1, int& ry1) const
+	{
+		if (!IsImageScaled(pane))
+		{
+			rx0 = sx;
+			ry0 = sy;
+			rx1 = sx + 1;
+			ry1 = sy + 1;
+			return;
+		}
+		const ScaledImage& scaled = m_scaledImage[pane];
+		rx0 = (std::max)(ScaledToRealEdge(sx, scaled.scaleX), 0);
+		ry0 = (std::max)(ScaledToRealEdge(sy, scaled.scaleY), 0);
+		rx1 = (std::min)(ScaledToRealEdge(sx + 1, scaled.scaleX), static_cast<int>(scaled.srcWidth));
+		ry1 = (std::min)(ScaledToRealEdge(sy + 1, scaled.scaleY), static_cast<int>(scaled.srcHeight));
+	}
+
+	/**
+	 * @brief Whether differences can be copied into a pane. Not into a pane that is shown through a
+	 * smoothing filter (IMAGE_SCALING_UP_SMOOTH, IMAGE_SCALING_DOWN_MATCHED): the copied pixels would
+	 * be resampled together with their neighbours again, so the difference would grow instead of
+	 * disappear.
+	 */
+	bool CanCopyDiffTo(int pane) const
+	{
+		return !IsImageScaled(pane) || m_imageScalingMode == IMAGE_SCALING_UP_NEAREST_INTEGER;
+	}
+
+	/**
+	 * @brief Returns the image a pane shows: its scaled image, or the original when it is not scaled.
+	 */
+	const Image& GetShownImage(int pane) const
+	{
+		return IsImageScaled(pane) ? m_scaledImage[pane].image : m_imgOrig32[pane];
+	}
+
+	bool IsAnyImageScaled() const
+	{
+		for (int i = 0; i < m_nImages; ++i)
+			if (IsImageScaled(i))
+				return true;
+		return false;
+	}
+
+	int GetScaledImageWidth(int pane) const
+	{
+		return IsImageScaled(pane) ? static_cast<int>(m_scaledImage[pane].width) : GetImageWidth(pane);
+	}
+
+	int GetScaledImageHeight(int pane) const
+	{
+		return IsImageScaled(pane) ? static_cast<int>(m_scaledImage[pane].height) : GetImageHeight(pane);
+	}
+
+	/**
+	 * @brief Computes the size an image of w x h pixels is scaled to for comparison.
+	 *
+	 * wmin/hmin and wmax/hmax are the smallest and largest widths and heights of all images.
+	 * IMAGE_SCALING_UP_NEAREST_INTEGER enlarges by the largest whole-number factor that keeps
+	 * the image within wmax x hmax. IMAGE_SCALING_UP_SMOOTH enlarges until the image touches
+	 * wmax x hmax, IMAGE_SCALING_DOWN_MATCHED shrinks until it touches wmin x hmin. When the
+	 * aspect ratios differ by no more than the rounding of a resized copy, the size snaps to the
+	 * reference size so that both edges line up.
+	 */
+	void CalcScaledImageSize(unsigned w, unsigned h, unsigned wmin, unsigned hmin, unsigned wmax, unsigned hmax,
+		unsigned& tw, unsigned& th) const
+	{
+		tw = w;
+		th = h;
+		if (w == 0 || h == 0)
+			return;
+		switch (m_imageScalingMode)
+		{
+		case IMAGE_SCALING_UP_NEAREST_INTEGER:
+		{
+			const unsigned k = (std::min)(wmax / w, hmax / h);
+			if (k > 1)
+			{
+				tw = w * k;
+				th = h * k;
+			}
+			break;
+		}
+		case IMAGE_SCALING_UP_SMOOTH:
+		case IMAGE_SCALING_DOWN_MATCHED:
+		{
+			const bool up = (m_imageScalingMode == IMAGE_SCALING_UP_SMOOTH);
+			const unsigned rw = up ? wmax : wmin;
+			const unsigned rh = up ? hmax : hmin;
+			const double sx = static_cast<double>(rw) / w;
+			const double sy = static_cast<double>(rh) / h;
+			const double s = up ? (std::min)(sx, sy) : (std::max)(sx, sy);
+			if (up ? (s <= 1.0) : (s >= 1.0))
+				break;
+			const double tolerance = (std::max)(s, 1.0); // one source pixel
+			tw = (std::abs(w * s - rw) <= tolerance) ? rw : (std::max)(1u, static_cast<unsigned>(w * s + 0.5));
+			th = (std::abs(h * s - rh) <= tolerance) ? rh : (std::max)(1u, static_cast<unsigned>(h * s + 0.5));
+			break;
+		}
+		default:
+			break;
+		}
+	}
+
+	static std::uint64_t HashImage(const Image& img, std::uint64_t seed)
+	{
+		std::uint64_t hash = 14695981039346656037ULL ^ seed; // FNV-1a
+		const unsigned w = img.width(), h = img.height();
+		hash = (hash ^ w) * 1099511628211ULL;
+		hash = (hash ^ h) * 1099511628211ULL;
+		for (unsigned y = 0; y < h; ++y)
+		{
+			const unsigned char *p = img.scanLine(y);
+			for (unsigned x = 0; x < w * 4; x += 8)
+			{
+				std::uint64_t v = 0;
+				memcpy(&v, p + x, (std::min)(8u, w * 4 - x));
+				hash = (hash ^ v) * 1099511628211ULL;
+			}
+		}
+		return hash;
+	}
+
+	/**
+	 * @brief Resamples a 32-bit image with one of FreeImage's filters. With FILTER_BOX at a
+	 * whole-number factor this is exactly nearest neighbour. FreeImage keeps 8 bits per channel
+	 * between its horizontal and vertical pass, as Pillow and most other resamplers do, which is
+	 * what is wanted when reproducing how a smaller copy was made.
+	 */
+	static bool ResizeImage(const Image& src, Image& dst, unsigned width, unsigned height, FREE_IMAGE_FILTER filter)
+	{
+		FIBITMAP *dib = static_cast<FIBITMAP *>(*const_cast<fipImageEx *>(src.getImage()));
+		FIBITMAP *resized = FreeImage_Rescale(dib, width, height, filter);
+		if (!resized)
+			return false;
+		*dst.getFipImage() = resized;
+		return true;
+	}
+
+	static double MeanAbsoluteDifference(const Image& a, const Image& b)
+	{
+		const unsigned w = a.width(), h = a.height();
+		std::uint64_t sum = 0;
+		for (unsigned y = 0; y < h; ++y)
+		{
+			const unsigned char *p = a.scanLine(y), *q = b.scanLine(y);
+			for (unsigned x = 0; x < w * 4; ++x)
+				sum += (p[x] > q[x]) ? (p[x] - q[x]) : (q[x] - p[x]);
+		}
+		return (w > 0 && h > 0) ? static_cast<double>(sum) / (static_cast<double>(w) * h * 4) : 0.0;
+	}
+
+	/**
+	 * @brief Shrinks src to width x height with the filter whose result is closest to ref.
+	 *
+	 * A smaller copy is usually made by a site or program that resamples with one of the common
+	 * filters (area/box, bilinear, Mitchell, Catmull-Rom = "bicubic" in Pillow and libvips,
+	 * Lanczos3). Shrinking the larger image with the same filter reproduces the copy almost
+	 * exactly, so only real changes (and compression noise) remain as differences. When ref has
+	 * another size (the aspect ratios differ), Catmull-Rom is used.
+	 */
+	static bool ResizeImageMatching(const Image& src, Image& dst, unsigned width, unsigned height, const Image *ref, int& chosen)
+	{
+		chosen = FILTER_CATMULLROM;
+		if (!ref || ref->width() != width || ref->height() != height)
+			return ResizeImage(src, dst, width, height, FILTER_CATMULLROM);
+		static const FREE_IMAGE_FILTER filters[] = { FILTER_BOX, FILTER_BILINEAR, FILTER_BICUBIC, FILTER_CATMULLROM, FILTER_LANCZOS3 };
+		double best = -1.0;
+		for (FREE_IMAGE_FILTER filter : filters)
+		{
+			Image resized;
+			if (!ResizeImage(src, resized, width, height, filter))
+				continue;
+			const double diff = MeanAbsoluteDifference(resized, *ref);
+			if (best < 0.0 || diff < best)
+			{
+				best = diff;
+				chosen = filter;
+				dst.getFipImage()->swap(*resized.getFipImage());
+			}
+		}
+		return best >= 0.0;
+	}
+
+	/**
+	 * @brief Scales the images according to m_imageScalingMode and points src[pane] at the
+	 * scaled image of every pane that is scaled. Must be called while the images are
+	 * temporarily transformed (rotated/flipped). Scaled images are cached, so that
+	 * comparing again (e.g. after changing the color distance threshold) does not resample.
+	 */
+	void ScaleImages(const Image *src[3])
+	{
+		unsigned wmin = UINT_MAX, hmin = UINT_MAX, wmax = 0, hmax = 0;
+		for (int i = 0; i < m_nImages; ++i)
+		{
+			wmin = (std::min)(wmin, m_imgOrig32[i].width());
+			hmin = (std::min)(hmin, m_imgOrig32[i].height());
+			wmax = (std::max)(wmax, m_imgOrig32[i].width());
+			hmax = (std::max)(hmax, m_imgOrig32[i].height());
+		}
+		for (int i = 0; i < m_nImages; ++i)
+		{
+			ScaledImage& scaled = m_scaledImage[i];
+			const unsigned w = m_imgOrig32[i].width(), h = m_imgOrig32[i].height();
+			unsigned tw, th;
+			CalcScaledImageSize(w, h, wmin, hmin, wmax, hmax, tw, th);
+			scaled.srcWidth = w;
+			scaled.srcHeight = h;
+			scaled.width = tw;
+			scaled.height = th;
+			scaled.scaleX = (w > 0) ? static_cast<double>(tw) / w : 1.0;
+			scaled.scaleY = (h > 0) ? static_cast<double>(th) / h : 1.0;
+			if (tw == w && th == h)
+			{
+				scaled.image.clear();
+				scaled.key = 0;
+				continue;
+			}
+			const std::uint64_t key = HashImage(m_imgOrig32[i], (static_cast<std::uint64_t>(tw) << 32) ^ (th << 4) ^ m_imageScalingMode);
+			if (key != scaled.key || scaled.image.width() != tw || scaled.image.height() != th)
+			{
+				bool resized;
+				if (m_imageScalingMode == IMAGE_SCALING_DOWN_MATCHED)
+				{
+					// The filter that reproduces the smallest image best describes how the copy was
+					// made, so it is chosen once per size; after an edit of either image, the larger
+					// image is only shrunk again with it.
+					if (scaled.filter == -1 || scaled.matchedWidth != tw || scaled.matchedHeight != th)
+					{
+						const Image *ref = nullptr;
+						for (int j = 0; j < m_nImages && !ref; ++j)
+							if (j != i && m_imgOrig32[j].width() == wmin && m_imgOrig32[j].height() == hmin)
+								ref = &m_imgOrig32[j];
+						resized = ResizeImageMatching(m_imgOrig32[i], scaled.image, tw, th, ref, scaled.filter);
+						scaled.matchedWidth = tw;
+						scaled.matchedHeight = th;
+					}
+					else
+						resized = ResizeImage(m_imgOrig32[i], scaled.image, tw, th, static_cast<FREE_IMAGE_FILTER>(scaled.filter));
+				}
+				else
+					resized = ResizeImage(m_imgOrig32[i], scaled.image, tw, th,
+						m_imageScalingMode == IMAGE_SCALING_UP_SMOOTH ? FILTER_LANCZOS3 : FILTER_BOX);
+				if (!resized)
+				{
+					scaled = ScaledImage();
+					scaled.srcWidth = scaled.width = w;
+					scaled.srcHeight = scaled.height = h;
+					continue;
+				}
+				scaled.key = key;
+			}
+			src[i] = &scaled.image;
+		}
+	}
+
 	void TransformImages(bool reverse)
 	{
 		m_temporarilyTransformed = !reverse;
@@ -2306,6 +2665,12 @@ protected:
 
 	void PreprocessImages()
 	{
+		TemporaryTransformation tmp(*this);
+
+		// the images to compare: the originals, or scaled copies (see m_imageScalingMode)
+		const Image *src[3] = { &m_imgOrig32[0], &m_imgOrig32[1], &m_imgOrig32[2] };
+		ScaleImages(src);
+
 		auto compfunc02 = [&](const LineDiffInfo & wd3) {
 			unsigned wlen0 = wd3.end[0] + 1 - wd3.begin[0];
 			unsigned wlen2 = wd3.end[2] + 1 - wd3.begin[2];
@@ -2314,15 +2679,13 @@ protected:
 			for (unsigned i = 0; i < wlen0; ++i)
 			{
 				if (!alineEquals(
-					m_imgOrig32[0], m_imgOrig32[2],
+					*src[0], *src[2],
 					wd3.begin[0] + i, wd3.begin[2] + i,
 					m_colorDistanceThreshold))
 					return false;
 			}
 			return true;
 		};
-		
-		TemporaryTransformation tmp(*this);
 
 		std::vector<LineDiffInfo> lineDiffInfos10, lineDiffInfos12;
 		switch (m_insertionDeletionDetectionMode)
@@ -2330,20 +2693,20 @@ protected:
 		case INSERTION_DELETION_DETECTION_VERTICAL:
 		{
 			if (m_nImages == 2)
-				 m_lineDiffInfos = MakeLineDiff(m_imgOrig32[0], m_imgOrig32[1]);
+				 m_lineDiffInfos = MakeLineDiff(*src[0], *src[1]);
 			else
 			{
-				lineDiffInfos10 = MakeLineDiff(m_imgOrig32[1], m_imgOrig32[0]);
-				lineDiffInfos12 = MakeLineDiff(m_imgOrig32[1], m_imgOrig32[2]);
+				lineDiffInfos10 = MakeLineDiff(*src[1], *src[0]);
+				lineDiffInfos12 = MakeLineDiff(*src[1], *src[2]);
 				m_lineDiffInfos = ::Make3WayLineDiff(lineDiffInfos10, lineDiffInfos12, compfunc02);
 			}
-			PrimeLineDiffInfos(m_lineDiffInfos, m_nImages, m_imgOrig32[0].height());
-			CopyImageWithGhostLine(m_lineDiffInfos, m_nImages, m_imgOrig32, m_imgPreprocessed);
+			PrimeLineDiffInfos(m_lineDiffInfos, m_nImages, src[0]->height());
+			CopyImageWithGhostLine(m_lineDiffInfos, m_nImages, src, m_imgPreprocessed);
 			break;
 		}
 		case INSERTION_DELETION_DETECTION_HORIZONTAL:
 		{
-			Image imgTransposed[3] = { m_imgOrig32[0], m_imgOrig32[1], m_imgOrig32[2] };
+			Image imgTransposed[3] = { *src[0], *src[1], *src[2] };
 			for (int pane = 0; pane < m_nImages; ++pane)
 				imgTransposed[pane].rotate(-90);
 			if (m_nImages == 2)
@@ -2354,8 +2717,9 @@ protected:
 				lineDiffInfos12 = MakeLineDiff(imgTransposed[1], imgTransposed[2]);
 				m_lineDiffInfos = ::Make3WayLineDiff(lineDiffInfos10, lineDiffInfos12, compfunc02);
 			}
-			PrimeLineDiffInfos(m_lineDiffInfos, m_nImages, m_imgOrig32[0].height());
-			CopyImageWithGhostLine(m_lineDiffInfos, m_nImages, imgTransposed, m_imgPreprocessed);
+			PrimeLineDiffInfos(m_lineDiffInfos, m_nImages, src[0]->height());
+			const Image *transposed[3] = { &imgTransposed[0], &imgTransposed[1], &imgTransposed[2] };
+			CopyImageWithGhostLine(m_lineDiffInfos, m_nImages, transposed, m_imgPreprocessed);
 			for (int pane = 0; pane < m_nImages; ++pane)
 				m_imgPreprocessed[pane].rotate(90);
 			break;
@@ -2363,7 +2727,7 @@ protected:
 		default:
 			m_lineDiffInfos.clear();
 			for (int i = 0; i < m_nImages; ++i)
-				m_imgPreprocessed[i] = m_imgOrig32[i];
+				m_imgPreprocessed[i] = *src[i];
 			break;
 		}
 	}
@@ -2410,4 +2774,6 @@ protected:
 	int m_lastErrorCode;
 	bool m_imgDiffIsTransparent[3]{};
 	bool m_preferWICDecoder;
+	IMAGE_SCALING_MODE m_imageScalingMode;
+	ScaledImage m_scaledImage[3];
 };
