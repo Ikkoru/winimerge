@@ -541,6 +541,18 @@ public:
 		m_buffer.SetPreferWICDecoder(preferred);
 	}
 
+	IMAGE_SCALING_MODE GetImageScalingMode() const override
+	{
+		return static_cast<IMAGE_SCALING_MODE>(m_buffer.GetImageScalingMode());
+	}
+
+	void SetImageScalingMode(IMAGE_SCALING_MODE mode) override
+	{
+		m_buffer.SetImageScalingMode(static_cast<CImgMergeBuffer::IMAGE_SCALING_MODE>(mode));
+		UpdateScrollBars();
+		Invalidate();
+	}
+
 	int  GetDiffCount() const override
 	{
 		return m_buffer.GetDiffCount();
@@ -1682,9 +1694,9 @@ private:
 	RECT ConvertToRealRect(int pane, const RECT& rc, bool clamp = true) const
 	{
 		Point<int> ptRealStart, ptRealEnd;
-		m_buffer.ConvertToRealPos(pane, rc.left, rc.top,
+		m_buffer.ConvertToRealEdgePos(pane, rc.left, rc.top,
 			ptRealStart.x, ptRealStart.y, clamp);
-		m_buffer.ConvertToRealPos(pane, rc.right, rc.bottom,
+		m_buffer.ConvertToRealEdgePos(pane, rc.right, rc.bottom,
 			ptRealEnd.x, ptRealEnd.y, clamp);
 		return { ptRealStart.x, ptRealStart.y, ptRealEnd.x, ptRealEnd.y };
 	}
@@ -1863,12 +1875,14 @@ private:
 			RECT rc = GetPreprocessedImageRect(evt.pane);
 			int width = m_buffer.GetImageWidth(evt.pane);
 			int height = m_buffer.GetImageHeight(evt.pane);
+			double scaleX, scaleY;
+			m_buffer.GetImageScale(evt.pane, scaleX, scaleY);
 			if (m_draggingModeCurrent == DRAGGING_MODE::RESIZE_WIDTH || 
 			    m_draggingModeCurrent == DRAGGING_MODE::RESIZE_BOTH)
-				width += pt.x - rc.right;
+				width += static_cast<int>(std::lround((pt.x - rc.right) / scaleX));
 			if (m_draggingModeCurrent == DRAGGING_MODE::RESIZE_HEIGHT || 
 			    m_draggingModeCurrent == DRAGGING_MODE::RESIZE_BOTH)
-				height += pt.y - rc.bottom;
+				height += static_cast<int>(std::lround((pt.y - rc.bottom) / scaleY));
 			if (width > 0 && height > 0)
 			{
 				m_buffer.Resize(evt.pane, width, height);
