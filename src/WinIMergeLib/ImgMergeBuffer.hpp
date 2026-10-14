@@ -325,7 +325,13 @@ public:
 
 		{
 			TemporaryTransformation tmp(*this);
-			for (unsigned i = top; i < static_cast<unsigned>(bottom); ++i)
+			// the selection can extend beyond the image (e.g. into the area of a larger image)
+			const int width = m_imgOrig32[pane].width(), height = m_imgOrig32[pane].height();
+			left = std::clamp(left, 0, width);
+			right = std::clamp(right, left, width);
+			top = std::clamp(top, 0, height);
+			bottom = std::clamp(bottom, top, height);
+			for (int i = top; i < bottom; ++i)
 			{
 				unsigned char* scanline = m_imgOrig32[pane].scanLine(i);
 				memset(scanline + left * 4, 0, (right - left) * 4);
@@ -549,8 +555,8 @@ protected:
 		if (width == 0 || height == 0)
 			return;
 
-		int left = std::clamp(x, 0, width - 1);
-		int top = std::clamp(y, 0, height - 1);
+		int left = std::clamp(x, 0, width);
+		int top = std::clamp(y, 0, height);
 		int right = std::clamp(static_cast<int>(x + image.width()), 0, width);
 		int bottom = std::clamp(static_cast<int>(y + image.height()), 0, height);
 		if (right - left <= 0)
