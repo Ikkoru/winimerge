@@ -12,10 +12,23 @@
 |---|---|---|---|---|---|---|
 | UP_NEAREST_INTEGER (NN, whole-number factor), copy png |  |  | 238 |  | 321 | 314 |
 | UP_NEAREST_INTEGER (NN, whole-number factor), copy jpg85 |  |  | 248 |  | 326 | 317 |
-| UP_SMOOTH (Lanczos3, float), copy png | 94 | 139 | 207 | 261 | 242 | 253 |
-| UP_SMOOTH (Lanczos3, float), copy jpg85 | 98 | 142 | 216 | 265 | 251 | 258 |
-| DOWN_MATCHED (shrink, matched filter), copy png | 17 | 18 | 2 | 21 | 20 | 4 |
-| DOWN_MATCHED (shrink, matched filter), copy jpg85 | 49 | 51 | 42 | 59 | 62 | 60 |
+| UP_SMOOTH (Lanczos3), copy png | 94 | 139 | 207 | 261 | 242 | 253 |
+| UP_SMOOTH (Lanczos3), copy jpg85 | 98 | 142 | 216 | 265 | 252 | 257 |
+| DOWN_MATCHED (shrink, matched filter), copy png | 3 | 4 | 2 | 5 | 3 | 4 |
+| DOWN_MATCHED (shrink, matched filter), copy jpg85 | 45 | 46 | 42 | 52 | 53 | 60 |
+
+#### WinIMerge modes, real images: median colour-distance threshold needed to leave ≤1 % of 8×8 blocks marked (T_p99; lower = better)
+
+10 images × 7 shrinking kernels (840 pairs per mode). NN whole-number leaves part of the canvas uncovered at 1.25, 1.5 and 2.5, which WinMerge marks as different (T_p99 infinite, shown empty).
+
+| mode, small copy saved as | 1.25 | 1.5 | 2.0 | 2.5 | 3.0 | 4.0 |
+|---|---|---|---|---|---|---|
+| UP_NEAREST_INTEGER (NN, whole-number factor), copy png |  |  | 167 |  | 237 | 246 |
+| UP_NEAREST_INTEGER (NN, whole-number factor), copy jpg85 |  |  | 170 |  | 238 | 246 |
+| UP_SMOOTH (Lanczos3), copy png | 85 | 104 | 127 | 154 | 167 | 189 |
+| UP_SMOOTH (Lanczos3), copy jpg85 | 90 | 111 | 137 | 159 | 173 | 196 |
+| DOWN_MATCHED (shrink, matched filter), copy png | 2 | 1 | 0 | 1 | 1 | 1 |
+| DOWN_MATCHED (shrink, matched filter), copy jpg85 | 43 | 47 | 50 | 58 | 60 | 62 |
 
 #### WinIMerge modes, synth images: median share of 8×8 blocks marked at threshold 16 (lower = better)
 
@@ -25,10 +38,23 @@
 |---|---|---|---|---|---|---|
 | UP_NEAREST_INTEGER (NN, whole-number factor), copy png | 82.0% | 94.2% | 34.8% | 82.2% | 38.5% | 34.8% |
 | UP_NEAREST_INTEGER (NN, whole-number factor), copy jpg85 | 82.0% | 94.4% | 38.0% | 82.9% | 43.0% | 38.0% |
-| UP_SMOOTH (Lanczos3, float), copy png | 33.8% | 35.9% | 37.3% | 37.7% | 38.9% | 41.5% |
-| UP_SMOOTH (Lanczos3, float), copy jpg85 | 37.8% | 41.6% | 41.8% | 45.1% | 45.8% | 47.2% |
-| DOWN_MATCHED (shrink, matched filter), copy png | 1.3% | 1.6% | 0.0% | 4.8% | 2.1% | 0.0% |
-| DOWN_MATCHED (shrink, matched filter), copy jpg85 | 30.8% | 35.5% | 41.8% | 50.9% | 55.5% | 58.2% |
+| UP_SMOOTH (Lanczos3), copy png | 33.8% | 35.9% | 37.3% | 37.8% | 38.9% | 41.7% |
+| UP_SMOOTH (Lanczos3), copy jpg85 | 37.8% | 41.7% | 41.8% | 45.1% | 45.8% | 47.2% |
+| DOWN_MATCHED (shrink, matched filter), copy png | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% |
+| DOWN_MATCHED (shrink, matched filter), copy jpg85 | 29.4% | 34.7% | 41.8% | 50.8% | 55.5% | 58.2% |
+
+#### WinIMerge modes, real images: median share of 8×8 blocks marked at threshold 16 (lower = better)
+
+10 images × 7 shrinking kernels (840 pairs per mode). NN whole-number leaves part of the canvas uncovered at 1.25, 1.5 and 2.5, which WinMerge marks as different (T_p99 infinite, shown empty).
+
+| mode, small copy saved as | 1.25 | 1.5 | 2.0 | 2.5 | 3.0 | 4.0 |
+|---|---|---|---|---|---|---|
+| UP_NEAREST_INTEGER (NN, whole-number factor), copy png | 97.5% | 99.3% | 55.4% | 97.4% | 82.1% | 67.3% |
+| UP_NEAREST_INTEGER (NN, whole-number factor), copy jpg85 | 97.4% | 99.3% | 64.9% | 97.5% | 86.9% | 75.2% |
+| UP_SMOOTH (Lanczos3), copy png | 37.4% | 44.7% | 48.5% | 54.2% | 58.6% | 64.6% |
+| UP_SMOOTH (Lanczos3), copy jpg85 | 54.0% | 57.0% | 60.9% | 65.9% | 69.1% | 74.5% |
+| DOWN_MATCHED (shrink, matched filter), copy png | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% |
+| DOWN_MATCHED (shrink, matched filter), copy jpg85 | 40.8% | 48.8% | 56.1% | 63.8% | 66.3% | 71.5% |
 
 #### Spurious differences, synth images, small copy saved as png: median share of 8×8 blocks marked at threshold 16 (lower = cleaner)
 
@@ -69,7 +95,51 @@ The same, comparing at the small size (the original shrunk instead of the copy e
 | Shrink original: Lanczos3 | 16.3% | 18.3% | 20.6% | 26.8% | 29.0% | 30.4% |
 | Shrink original: Lanczos3 (8-bit) | 14.8% | 16.0% | 17.2% | 26.1% | 28.0% | 29.9% |
 | Shrink original: best-matching FreeImage filter (float, 6 filters) | 4.0% | 4.9% | 0.0% | 5.6% | 5.4% | 0.1% |
-| Shrink original: matched filter, WinIMerge rule (8-bit, 5 filters) | 1.3% | 1.6% | 0.0% | 4.8% | 2.1% | 0.0% |
+| Shrink original: matched filter, 5 FreeImage filters (8-bit), without area averaging | 1.3% | 1.6% | 0.0% | 4.8% | 2.1% | 0.0% |
+| Shrink original: WinIMerge DOWN_MATCHED (5 FreeImage filters + area averaging) | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% |
+| Shrink original: the true kernel (oracle) | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% |
+
+#### Spurious differences, real images, small copy saved as png: median share of 8×8 blocks marked at threshold 16 (lower = cleaner)
+
+Median over 10 images × 7 shrinking kernels (420 pairs); enlarged to the original size.
+
+| candidate | 1.25 | 1.5 | 2.0 | 2.5 | 3.0 | 4.0 |
+|---|---|---|---|---|---|---|
+| NN, whole-number factor, centred | 97.5% | 99.3% | 55.4% | 97.4% | 82.1% | 67.3% |
+| NN, whole-number factor, top-left | 98.3% | 99.2% | 55.4% | 98.2% | 82.1% | 67.3% |
+| NN to exact size | 52.6% | 55.4% | 55.4% | 64.1% | 65.7% | 67.3% |
+| NN whole-number, then bilinear to size | 45.2% | 46.9% | 55.4% | 59.7% | 62.9% | 67.3% |
+| Bilinear | 45.2% | 46.9% | 53.5% | 58.4% | 60.5% | 65.8% |
+| B-spline | 47.5% | 51.3% | 56.2% | 60.2% | 63.3% | 67.8% |
+| Mitchell (FreeImage "bicubic") | 44.5% | 45.8% | 52.2% | 56.8% | 60.0% | 64.8% |
+| Catmull-Rom (8-bit) | 40.5% | 45.2% | 49.9% | 55.3% | 59.4% | 64.0% |
+| Catmull-Rom (float) | 40.3% | 45.2% | 49.8% | 55.3% | 59.5% | 63.9% |
+| Lanczos3 (8-bit) | 37.4% | 44.7% | 48.5% | 54.2% | 58.6% | 64.6% |
+| Lanczos3 (float) | 37.3% | 44.7% | 48.5% | 54.2% | 58.5% | 64.6% |
+| Lanczos2 (float) | 40.1% | 45.2% | 49.9% | 55.2% | 59.5% | 64.0% |
+| Lanczos4 (float) | 36.9% | 44.8% | 48.9% | 53.8% | 58.3% | 64.5% |
+| Lanczos3 float + USM r0.75 50% | 34.6% | 43.9% | 47.6% | 54.0% | 58.8% | 64.7% |
+| Lanczos3 float + USM r1.0 50% | 38.6% | 44.2% | 47.6% | 54.1% | 58.8% | 64.8% |
+
+The same, comparing at the small size (the original shrunk instead of the copy enlarged; 420 pairs):
+
+| candidate | 1.25 | 1.5 | 2.0 | 2.5 | 3.0 | 4.0 |
+|---|---|---|---|---|---|---|
+| Shrink original: area (OpenCV) | 7.9% | 11.1% | 13.7% | 23.8% | 27.4% | 37.8% |
+| Shrink original: FreeImage box (8-bit) | 44.3% | 44.0% | 13.9% | 49.9% | 41.8% | 37.7% |
+| Shrink original: box | 44.3% | 44.0% | 13.7% | 49.7% | 41.7% | 37.9% |
+| Shrink original: bilinear | 14.7% | 22.4% | 35.1% | 36.4% | 34.8% | 44.9% |
+| Shrink original: bilinear (8-bit) | 14.8% | 22.5% | 35.1% | 36.4% | 35.0% | 45.0% |
+| Shrink original: B-spline | 36.3% | 44.8% | 53.5% | 62.8% | 65.9% | 70.7% |
+| Shrink original: Mitchell | 9.4% | 14.0% | 26.1% | 27.9% | 31.3% | 36.9% |
+| Shrink original: Mitchell (8-bit) | 9.4% | 14.0% | 26.1% | 27.9% | 31.3% | 36.9% |
+| Shrink original: Catmull-Rom | 5.3% | 4.7% | 10.8% | 10.4% | 10.1% | 17.6% |
+| Shrink original: Catmull-Rom (8-bit) | 5.3% | 4.6% | 10.8% | 10.4% | 10.1% | 17.7% |
+| Shrink original: Lanczos3 | 8.0% | 9.6% | 12.2% | 14.3% | 19.0% | 26.0% |
+| Shrink original: Lanczos3 (8-bit) | 8.0% | 9.6% | 12.2% | 14.5% | 19.2% | 27.8% |
+| Shrink original: best-matching FreeImage filter (float, 6 filters) | 0.1% | 0.0% | 0.0% | 0.1% | 0.1% | 0.0% |
+| Shrink original: matched filter, 5 FreeImage filters (8-bit), without area averaging | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% |
+| Shrink original: WinIMerge DOWN_MATCHED (5 FreeImage filters + area averaging) | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% |
 | Shrink original: the true kernel (oracle) | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% |
 
 #### Spurious differences, synth images, small copy saved as png: median colour-distance threshold that leaves ≤1 % of blocks marked (lower = closer)
@@ -111,7 +181,51 @@ The same, comparing at the small size (the original shrunk instead of the copy e
 | Shrink original: Lanczos3 | 41 | 46 | 47 | 55 | 57 | 51 |
 | Shrink original: Lanczos3 (8-bit) | 41 | 43 | 45 | 55 | 57 | 50 |
 | Shrink original: best-matching FreeImage filter (float, 6 filters) | 22 | 23 | 2 | 23 | 23 | 11 |
-| Shrink original: matched filter, WinIMerge rule (8-bit, 5 filters) | 17 | 18 | 2 | 21 | 20 | 4 |
+| Shrink original: matched filter, 5 FreeImage filters (8-bit), without area averaging | 17 | 18 | 2 | 21 | 20 | 4 |
+| Shrink original: WinIMerge DOWN_MATCHED (5 FreeImage filters + area averaging) | 3 | 4 | 2 | 5 | 3 | 4 |
+| Shrink original: the true kernel (oracle) | 0 | 0 | 0 | 0 | 0 | 0 |
+
+#### Spurious differences, real images, small copy saved as png: median colour-distance threshold that leaves ≤1 % of blocks marked (lower = closer)
+
+Median over 10 images × 7 shrinking kernels (420 pairs); enlarged to the original size.
+
+| candidate | 1.25 | 1.5 | 2.0 | 2.5 | 3.0 | 4.0 |
+|---|---|---|---|---|---|---|
+| NN, whole-number factor, centred |  |  | 167 |  | 237 | 246 |
+| NN, whole-number factor, top-left |  |  | 167 |  | 237 | 246 |
+| NN to exact size | 152 | 171 | 167 | 215 | 230 | 246 |
+| NN whole-number, then bilinear to size | 106 | 121 | 167 | 171 | 195 | 246 |
+| Bilinear | 106 | 121 | 144 | 166 | 180 | 201 |
+| B-spline | 119 | 133 | 159 | 178 | 191 | 207 |
+| Mitchell (FreeImage "bicubic") | 100 | 118 | 140 | 164 | 177 | 198 |
+| Catmull-Rom (8-bit) | 91 | 111 | 134 | 159 | 171 | 194 |
+| Catmull-Rom (float) | 92 | 111 | 134 | 159 | 171 | 194 |
+| Lanczos3 (8-bit) | 85 | 104 | 127 | 154 | 167 | 189 |
+| Lanczos3 (float) | 85 | 103 | 127 | 154 | 167 | 190 |
+| Lanczos2 (float) | 91 | 111 | 133 | 159 | 170 | 193 |
+| Lanczos4 (float) | 84 | 103 | 127 | 153 | 166 | 190 |
+| Lanczos3 float + USM r0.75 50% | 77 | 98 | 125 | 151 | 165 | 188 |
+| Lanczos3 float + USM r1.0 50% | 80 | 99 | 125 | 151 | 165 | 187 |
+
+The same, comparing at the small size (the original shrunk instead of the copy enlarged; 420 pairs):
+
+| candidate | 1.25 | 1.5 | 2.0 | 2.5 | 3.0 | 4.0 |
+|---|---|---|---|---|---|---|
+| Shrink original: area (OpenCV) | 28 | 32 | 33 | 36 | 38 | 43 |
+| Shrink original: FreeImage box (8-bit) | 99 | 86 | 33 | 72 | 55 | 43 |
+| Shrink original: box | 99 | 86 | 33 | 72 | 55 | 43 |
+| Shrink original: bilinear | 35 | 40 | 53 | 47 | 47 | 50 |
+| Shrink original: bilinear (8-bit) | 35 | 40 | 53 | 47 | 47 | 50 |
+| Shrink original: B-spline | 66 | 77 | 81 | 85 | 87 | 90 |
+| Shrink original: Mitchell | 31 | 34 | 41 | 42 | 42 | 44 |
+| Shrink original: Mitchell (8-bit) | 31 | 34 | 41 | 42 | 42 | 44 |
+| Shrink original: Catmull-Rom | 22 | 22 | 27 | 27 | 26 | 28 |
+| Shrink original: Catmull-Rom (8-bit) | 22 | 22 | 26 | 27 | 26 | 28 |
+| Shrink original: Lanczos3 | 28 | 27 | 29 | 32 | 34 | 37 |
+| Shrink original: Lanczos3 (8-bit) | 28 | 27 | 29 | 32 | 33 | 36 |
+| Shrink original: best-matching FreeImage filter (float, 6 filters) | 8 | 10 | 2 | 11 | 10 | 7 |
+| Shrink original: matched filter, 5 FreeImage filters (8-bit), without area averaging | 5 | 4 | 2 | 5 | 5 | 2 |
+| Shrink original: WinIMerge DOWN_MATCHED (5 FreeImage filters + area averaging) | 2 | 1 | 0 | 1 | 1 | 1 |
 | Shrink original: the true kernel (oracle) | 0 | 0 | 0 | 0 | 0 | 0 |
 
 #### Spurious differences, synth images, small copy saved as png: median PSNR in dB (higher = closer)
@@ -135,6 +249,28 @@ Median over 7 images × 10 shrinking kernels (420 pairs); enlarged to the origin
 | Lanczos4 (float) | 29.4 | 26.5 | 23.8 | 22.7 | 22.2 | 21.5 |
 | Lanczos3 float + USM r0.75 50% | 30.2 | 27.5 | 24.0 | 22.8 | 22.2 | 21.5 |
 | Lanczos3 float + USM r1.0 50% | 29.5 | 26.9 | 24.0 | 22.8 | 22.3 | 21.5 |
+
+#### Spurious differences, real images, small copy saved as png: median PSNR in dB (higher = closer)
+
+Median over 10 images × 7 shrinking kernels (420 pairs); enlarged to the original size.
+
+| candidate | 1.25 | 1.5 | 2.0 | 2.5 | 3.0 | 4.0 |
+|---|---|---|---|---|---|---|
+| NN, whole-number factor, centred |  |  | 27.9 |  | 27.4 | 23.7 |
+| NN, whole-number factor, top-left |  |  | 27.9 |  | 27.4 | 23.7 |
+| NN to exact size | 29.8 | 28.9 | 27.9 | 25.7 | 24.7 | 23.7 |
+| NN whole-number, then bilinear to size | 32.4 | 30.8 | 27.9 | 27.3 | 26.0 | 23.7 |
+| Bilinear | 32.4 | 30.8 | 28.5 | 27.4 | 26.4 | 24.9 |
+| B-spline | 30.6 | 29.3 | 27.6 | 26.4 | 25.4 | 23.9 |
+| Mitchell (FreeImage "bicubic") | 32.9 | 31.1 | 28.9 | 27.6 | 26.6 | 25.1 |
+| Catmull-Rom (8-bit) | 34.0 | 32.0 | 29.4 | 28.0 | 27.0 | 25.4 |
+| Catmull-Rom (float) | 34.0 | 32.0 | 29.4 | 28.0 | 27.0 | 25.4 |
+| Lanczos3 (8-bit) | 34.9 | 32.6 | 29.8 | 28.2 | 27.1 | 25.7 |
+| Lanczos3 (float) | 34.9 | 32.6 | 29.8 | 28.2 | 27.1 | 25.7 |
+| Lanczos2 (float) | 34.1 | 32.0 | 29.4 | 28.0 | 27.0 | 25.5 |
+| Lanczos4 (float) | 35.1 | 32.8 | 29.9 | 28.3 | 27.1 | 25.7 |
+| Lanczos3 float + USM r0.75 50% | 34.7 | 32.7 | 30.0 | 28.3 | 27.2 | 25.8 |
+| Lanczos3 float + USM r1.0 50% | 34.4 | 32.6 | 29.9 | 28.3 | 27.2 | 25.9 |
 
 #### Spurious differences, synth images, small copy saved as jpg85: median share of 8×8 blocks marked at threshold 16 (lower = cleaner)
 
@@ -175,8 +311,52 @@ The same, comparing at the small size (the original shrunk instead of the copy e
 | Shrink original: Lanczos3 | 35.3% | 40.3% | 50.2% | 54.1% | 58.4% | 61.9% |
 | Shrink original: Lanczos3 (8-bit) | 35.3% | 40.4% | 50.2% | 54.1% | 58.4% | 62.0% |
 | Shrink original: best-matching FreeImage filter (float, 6 filters) | 30.6% | 35.9% | 41.8% | 50.7% | 52.1% | 57.0% |
-| Shrink original: matched filter, WinIMerge rule (8-bit, 5 filters) | 30.8% | 35.5% | 41.8% | 50.9% | 55.5% | 58.2% |
+| Shrink original: matched filter, 5 FreeImage filters (8-bit), without area averaging | 30.8% | 35.5% | 41.8% | 50.9% | 55.5% | 58.2% |
+| Shrink original: WinIMerge DOWN_MATCHED (5 FreeImage filters + area averaging) | 29.4% | 34.7% | 41.8% | 50.8% | 55.5% | 58.2% |
 | Shrink original: the true kernel (oracle) | 29.0% | 35.1% | 47.2% | 52.6% | 53.2% | 46.1% |
+
+#### Spurious differences, real images, small copy saved as jpg85: median share of 8×8 blocks marked at threshold 16 (lower = cleaner)
+
+Median over 10 images × 7 shrinking kernels (420 pairs); enlarged to the original size.
+
+| candidate | 1.25 | 1.5 | 2.0 | 2.5 | 3.0 | 4.0 |
+|---|---|---|---|---|---|---|
+| NN, whole-number factor, centred | 97.4% | 99.3% | 64.9% | 97.5% | 86.9% | 75.2% |
+| NN, whole-number factor, top-left | 98.3% | 99.2% | 64.9% | 98.4% | 86.9% | 75.2% |
+| NN to exact size | 58.4% | 61.9% | 64.9% | 71.3% | 73.2% | 75.2% |
+| NN whole-number, then bilinear to size | 54.0% | 56.0% | 64.9% | 67.9% | 71.6% | 75.2% |
+| Bilinear | 54.0% | 56.0% | 60.6% | 65.1% | 68.2% | 73.0% |
+| B-spline | 54.4% | 56.1% | 61.6% | 65.5% | 68.2% | 71.9% |
+| Mitchell (FreeImage "bicubic") | 53.3% | 55.9% | 60.2% | 64.8% | 67.7% | 72.8% |
+| Catmull-Rom (8-bit) | 53.7% | 56.6% | 60.1% | 65.4% | 68.2% | 73.5% |
+| Catmull-Rom (float) | 53.7% | 56.5% | 59.9% | 65.4% | 68.1% | 73.5% |
+| Lanczos3 (8-bit) | 54.0% | 57.0% | 60.9% | 65.9% | 69.1% | 74.5% |
+| Lanczos3 (float) | 54.0% | 56.9% | 60.9% | 66.0% | 69.1% | 74.5% |
+| Lanczos2 (float) | 53.6% | 56.5% | 60.2% | 65.4% | 68.3% | 73.6% |
+| Lanczos4 (float) | 54.4% | 57.1% | 61.5% | 66.1% | 69.1% | 74.8% |
+| Lanczos3 float + USM r0.75 50% | 55.4% | 58.3% | 61.8% | 66.6% | 69.7% | 74.6% |
+| Lanczos3 float + USM r1.0 50% | 56.0% | 58.6% | 62.4% | 67.1% | 70.3% | 75.0% |
+
+The same, comparing at the small size (the original shrunk instead of the copy enlarged; 420 pairs):
+
+| candidate | 1.25 | 1.5 | 2.0 | 2.5 | 3.0 | 4.0 |
+|---|---|---|---|---|---|---|
+| Shrink original: area (OpenCV) | 43.0% | 51.4% | 61.2% | 65.8% | 70.8% | 77.9% |
+| Shrink original: FreeImage box (8-bit) | 55.8% | 58.6% | 61.3% | 69.2% | 72.4% | 77.9% |
+| Shrink original: box | 55.8% | 58.5% | 61.2% | 69.5% | 72.2% | 78.1% |
+| Shrink original: bilinear | 42.9% | 49.4% | 57.7% | 63.4% | 66.9% | 72.3% |
+| Shrink original: bilinear (8-bit) | 42.9% | 49.5% | 57.7% | 63.4% | 67.1% | 72.4% |
+| Shrink original: B-spline | 45.8% | 52.9% | 60.1% | 65.4% | 67.9% | 73.0% |
+| Shrink original: Mitchell | 43.4% | 49.2% | 57.0% | 63.9% | 66.8% | 72.1% |
+| Shrink original: Mitchell (8-bit) | 43.5% | 49.2% | 56.9% | 63.9% | 66.8% | 71.9% |
+| Shrink original: Catmull-Rom | 46.8% | 52.2% | 59.1% | 65.1% | 68.4% | 74.3% |
+| Shrink original: Catmull-Rom (8-bit) | 46.9% | 52.1% | 58.8% | 65.2% | 68.5% | 74.5% |
+| Shrink original: Lanczos3 | 49.1% | 54.1% | 61.5% | 68.2% | 71.7% | 78.0% |
+| Shrink original: Lanczos3 (8-bit) | 49.1% | 54.1% | 61.6% | 68.0% | 71.5% | 78.1% |
+| Shrink original: best-matching FreeImage filter (float, 6 filters) | 41.2% | 48.9% | 56.2% | 64.0% | 66.8% | 71.4% |
+| Shrink original: matched filter, 5 FreeImage filters (8-bit), without area averaging | 41.1% | 48.8% | 56.1% | 64.0% | 66.6% | 71.5% |
+| Shrink original: WinIMerge DOWN_MATCHED (5 FreeImage filters + area averaging) | 40.8% | 48.8% | 56.1% | 63.8% | 66.3% | 71.5% |
+| Shrink original: the true kernel (oracle) | 40.5% | 49.6% | 56.1% | 64.2% | 66.8% | 72.9% |
 
 #### Spurious differences, synth images, small copy saved as jpg85: median colour-distance threshold that leaves ≤1 % of blocks marked (lower = closer)
 
@@ -217,8 +397,52 @@ The same, comparing at the small size (the original shrunk instead of the copy e
 | Shrink original: Lanczos3 | 67 | 68 | 61 | 78 | 82 | 74 |
 | Shrink original: Lanczos3 (8-bit) | 67 | 68 | 61 | 78 | 82 | 73 |
 | Shrink original: best-matching FreeImage filter (float, 6 filters) | 47 | 50 | 43 | 55 | 57 | 61 |
-| Shrink original: matched filter, WinIMerge rule (8-bit, 5 filters) | 49 | 51 | 42 | 59 | 62 | 60 |
+| Shrink original: matched filter, 5 FreeImage filters (8-bit), without area averaging | 49 | 51 | 42 | 59 | 62 | 60 |
+| Shrink original: WinIMerge DOWN_MATCHED (5 FreeImage filters + area averaging) | 45 | 46 | 42 | 52 | 53 | 60 |
 | Shrink original: the true kernel (oracle) | 36 | 37 | 39 | 39 | 40 | 41 |
+
+#### Spurious differences, real images, small copy saved as jpg85: median colour-distance threshold that leaves ≤1 % of blocks marked (lower = closer)
+
+Median over 10 images × 7 shrinking kernels (420 pairs); enlarged to the original size.
+
+| candidate | 1.25 | 1.5 | 2.0 | 2.5 | 3.0 | 4.0 |
+|---|---|---|---|---|---|---|
+| NN, whole-number factor, centred |  |  | 170 |  | 238 | 246 |
+| NN, whole-number factor, top-left |  |  | 170 |  | 238 | 246 |
+| NN to exact size | 154 | 171 | 170 | 216 | 231 | 246 |
+| NN whole-number, then bilinear to size | 109 | 126 | 170 | 176 | 199 | 246 |
+| Bilinear | 109 | 126 | 150 | 170 | 185 | 202 |
+| B-spline | 122 | 138 | 162 | 180 | 194 | 210 |
+| Mitchell (FreeImage "bicubic") | 103 | 122 | 146 | 167 | 180 | 200 |
+| Catmull-Rom (8-bit) | 96 | 116 | 141 | 162 | 175 | 198 |
+| Catmull-Rom (float) | 96 | 116 | 140 | 162 | 175 | 198 |
+| Lanczos3 (8-bit) | 90 | 111 | 137 | 159 | 173 | 196 |
+| Lanczos3 (float) | 90 | 110 | 137 | 159 | 173 | 195 |
+| Lanczos2 (float) | 96 | 116 | 140 | 161 | 175 | 198 |
+| Lanczos4 (float) | 90 | 110 | 137 | 158 | 174 | 195 |
+| Lanczos3 float + USM r0.75 50% | 85 | 105 | 134 | 156 | 172 | 195 |
+| Lanczos3 float + USM r1.0 50% | 88 | 104 | 133 | 156 | 171 | 194 |
+
+The same, comparing at the small size (the original shrunk instead of the copy enlarged; 420 pairs):
+
+| candidate | 1.25 | 1.5 | 2.0 | 2.5 | 3.0 | 4.0 |
+|---|---|---|---|---|---|---|
+| Shrink original: area (OpenCV) | 47 | 51 | 60 | 61 | 66 | 71 |
+| Shrink original: FreeImage box (8-bit) | 106 | 98 | 60 | 82 | 71 | 71 |
+| Shrink original: box | 106 | 98 | 60 | 82 | 71 | 71 |
+| Shrink original: bilinear | 50 | 56 | 62 | 62 | 63 | 65 |
+| Shrink original: bilinear (8-bit) | 50 | 56 | 62 | 62 | 63 | 66 |
+| Shrink original: B-spline | 77 | 82 | 84 | 88 | 91 | 95 |
+| Shrink original: Mitchell | 48 | 52 | 54 | 58 | 61 | 65 |
+| Shrink original: Mitchell (8-bit) | 48 | 52 | 54 | 58 | 61 | 65 |
+| Shrink original: Catmull-Rom | 49 | 53 | 57 | 62 | 64 | 63 |
+| Shrink original: Catmull-Rom (8-bit) | 49 | 53 | 56 | 62 | 64 | 63 |
+| Shrink original: Lanczos3 | 54 | 57 | 61 | 68 | 69 | 73 |
+| Shrink original: Lanczos3 (8-bit) | 54 | 57 | 61 | 67 | 69 | 73 |
+| Shrink original: best-matching FreeImage filter (float, 6 filters) | 44 | 47 | 50 | 58 | 60 | 62 |
+| Shrink original: matched filter, 5 FreeImage filters (8-bit), without area averaging | 44 | 47 | 51 | 58 | 60 | 62 |
+| Shrink original: WinIMerge DOWN_MATCHED (5 FreeImage filters + area averaging) | 43 | 47 | 50 | 58 | 60 | 62 |
+| Shrink original: the true kernel (oracle) | 45 | 49 | 50 | 56 | 60 | 62 |
 
 #### Spurious differences, synth images, small copy saved as jpg85: median PSNR in dB (higher = closer)
 
@@ -242,129 +466,198 @@ Median over 7 images × 10 shrinking kernels (420 pairs); enlarged to the origin
 | Lanczos3 float + USM r0.75 50% | 29.6 | 27.0 | 23.8 | 22.6 | 22.1 | 21.4 |
 | Lanczos3 float + USM r1.0 50% | 28.9 | 26.5 | 23.8 | 22.6 | 22.1 | 21.4 |
 
+#### Spurious differences, real images, small copy saved as jpg85: median PSNR in dB (higher = closer)
+
+Median over 10 images × 7 shrinking kernels (420 pairs); enlarged to the original size.
+
+| candidate | 1.25 | 1.5 | 2.0 | 2.5 | 3.0 | 4.0 |
+|---|---|---|---|---|---|---|
+| NN, whole-number factor, centred |  |  | 26.8 |  | 27.0 | 23.0 |
+| NN, whole-number factor, top-left |  |  | 26.8 |  | 27.0 | 23.0 |
+| NN to exact size | 28.6 | 27.8 | 26.8 | 24.9 | 24.1 | 23.0 |
+| NN whole-number, then bilinear to size | 30.6 | 29.3 | 26.8 | 26.3 | 25.2 | 23.0 |
+| Bilinear | 30.6 | 29.3 | 27.5 | 26.5 | 25.6 | 24.1 |
+| B-spline | 29.6 | 28.4 | 26.9 | 25.8 | 24.8 | 23.5 |
+| Mitchell (FreeImage "bicubic") | 30.9 | 29.5 | 27.7 | 26.6 | 25.7 | 24.3 |
+| Catmull-Rom (8-bit) | 31.4 | 30.0 | 28.0 | 26.8 | 25.9 | 24.5 |
+| Catmull-Rom (float) | 31.4 | 30.0 | 28.0 | 26.8 | 25.9 | 24.5 |
+| Lanczos3 (8-bit) | 31.6 | 30.2 | 28.1 | 26.9 | 26.0 | 24.6 |
+| Lanczos3 (float) | 31.6 | 30.2 | 28.1 | 26.9 | 26.0 | 24.6 |
+| Lanczos2 (float) | 31.4 | 30.0 | 28.0 | 26.8 | 25.9 | 24.5 |
+| Lanczos4 (float) | 31.7 | 30.3 | 28.2 | 26.9 | 26.0 | 24.7 |
+| Lanczos3 float + USM r0.75 50% | 31.3 | 30.1 | 28.2 | 26.9 | 26.0 | 24.7 |
+| Lanczos3 float + USM r1.0 50% | 30.9 | 29.9 | 28.1 | 26.9 | 26.0 | 24.7 |
+
 #### Mean rank by T_p99 among the enlargers (1 = closest), all factors and codecs
 
-| candidate | synth |
-|---|---|
-| NN to exact size | 11.71 |
-| NN whole-number, then bilinear to size | 9.61 |
-| Bilinear | 8.11 |
-| B-spline | 9.35 |
-| Mitchell (FreeImage "bicubic") | 7.25 |
-| Catmull-Rom (8-bit) | 6.38 |
-| Catmull-Rom (float) | 6.32 |
-| Lanczos3 (8-bit) | 5.24 |
-| Lanczos3 (float) | 5.20 |
-| Lanczos2 (float) | 6.13 |
-| Lanczos4 (float) | 5.00 |
-| Lanczos3 float + USM r0.75 50% | 5.14 |
-| Lanczos3 float + USM r1.0 50% | 5.56 |
+| candidate | real | synth |
+|---|---|---|
+| NN to exact size | 12.70 | 11.71 |
+| NN whole-number, then bilinear to size | 11.23 | 9.61 |
+| Bilinear | 9.44 | 8.11 |
+| B-spline | 10.96 | 9.35 |
+| Mitchell (FreeImage "bicubic") | 8.10 | 7.25 |
+| Catmull-Rom (8-bit) | 6.74 | 6.38 |
+| Catmull-Rom (float) | 6.72 | 6.32 |
+| Lanczos3 (8-bit) | 4.19 | 5.24 |
+| Lanczos3 (float) | 4.15 | 5.20 |
+| Lanczos2 (float) | 5.75 | 6.13 |
+| Lanczos4 (float) | 3.21 | 5.00 |
+| Lanczos3 float + USM r0.75 50% | 3.61 | 5.14 |
+| Lanczos3 float + USM r1.0 50% | 4.19 | 5.56 |
 
-#### Which FreeImage filter best reproduces each shrinker (WinIMerge rule: 8-bit path, 5 filters; count of pairs, all factors and codecs)
+#### Which FreeImage filter best reproduces each shrinker (WinIMerge rule: 5 FreeImage filters on the 8-bit path + area averaging; count of pairs, all factors and codecs)
+
+| shrinker | area | bicubic | bilinear | box | catmullrom | lanczos3 |
+|---|---|---|---|---|---|---|
+| area | 165 | 4 | 31 | 2 | 2 | 0 |
+| cv_linear | 141 | 7 | 14 | 35 | 7 | 0 |
+| lanczos_linear | 4 | 13 | 16 | 2 | 46 | 123 |
+| lanczos_sharpened | 0 | 0 | 0 | 2 | 4 | 78 |
+| mitchell | 0 | 67 | 17 | 0 | 0 | 0 |
+| nearest | 21 | 1 | 7 | 50 | 2 | 3 |
+| pil_bicubic | 0 | 30 | 18 | 0 | 156 | 0 |
+| pil_bilinear | 0 | 0 | 204 | 0 | 0 | 0 |
+| pil_lanczos | 0 | 8 | 11 | 0 | 27 | 158 |
+| vips | 0 | 12 | 11 | 0 | 29 | 152 |
+
+#### Which FreeImage filter best reproduces each shrinker (5 FreeImage filters on the 8-bit path; count of pairs, all factors and codecs)
 
 | shrinker | bicubic | bilinear | box | catmullrom | lanczos3 |
 |---|---|---|---|---|---|
-| area | 12 | 21 | 33 | 18 | 0 |
-| cv_linear | 6 | 13 | 44 | 17 | 4 |
-| lanczos_linear | 5 | 16 | 3 | 23 | 37 |
+| area | 30 | 58 | 74 | 42 | 0 |
+| cv_linear | 24 | 20 | 111 | 45 | 4 |
+| lanczos_linear | 13 | 16 | 3 | 49 | 123 |
 | lanczos_sharpened | 0 | 0 | 2 | 4 | 78 |
 | mitchell | 67 | 17 | 0 | 0 | 0 |
 | nearest | 1 | 9 | 64 | 3 | 7 |
-| pil_bicubic | 1 | 12 | 0 | 71 | 0 |
-| pil_bilinear | 0 | 84 | 0 | 0 | 0 |
-| pil_lanczos | 1 | 11 | 0 | 0 | 72 |
-| vips | 1 | 11 | 0 | 2 | 70 |
+| pil_bicubic | 30 | 18 | 0 | 156 | 0 |
+| pil_bilinear | 0 | 204 | 0 | 0 | 0 |
+| pil_lanczos | 8 | 11 | 0 | 27 | 158 |
+| vips | 12 | 11 | 0 | 29 | 152 |
 
 #### Which FreeImage filter best reproduces each shrinker (float path, 6 filters; count of pairs, all factors and codecs)
 
 | shrinker | bicubic | bilinear | box | bspline | catmullrom | lanczos3 |
 |---|---|---|---|---|---|---|
-| area | 13 | 11 | 33 | 9 | 18 | 0 |
-| cv_linear | 7 | 9 | 44 | 4 | 16 | 4 |
-| lanczos_linear | 6 | 15 | 2 | 1 | 20 | 40 |
+| area | 30 | 47 | 74 | 11 | 42 | 0 |
+| cv_linear | 25 | 14 | 111 | 6 | 44 | 4 |
+| lanczos_linear | 14 | 15 | 2 | 1 | 46 | 126 |
 | lanczos_sharpened | 0 | 0 | 2 | 0 | 5 | 77 |
 | mitchell | 67 | 5 | 0 | 12 | 0 | 0 |
 | nearest | 1 | 8 | 64 | 1 | 3 | 7 |
-| pil_bicubic | 1 | 4 | 0 | 8 | 71 | 0 |
-| pil_bilinear | 0 | 72 | 0 | 12 | 0 | 0 |
-| pil_lanczos | 1 | 11 | 0 | 0 | 0 | 72 |
-| vips | 1 | 11 | 0 | 0 | 2 | 70 |
+| pil_bicubic | 30 | 10 | 0 | 8 | 156 | 0 |
+| pil_bilinear | 0 | 169 | 0 | 35 | 0 | 0 |
+| pil_lanczos | 8 | 11 | 0 | 0 | 28 | 157 |
+| vips | 12 | 11 | 0 | 0 | 29 | 152 |
 
 ## Edit detectability
 
 
-#### Can an edit still be seen? synth images (means over 1 images × 4 edits × factors × kernels × codecs; 56 edited pairs)
+#### Can an edit still be seen? synth images (means over 7 images × 9 edits × factors × kernels × codecs; 1008 edited pairs)
 
 | candidate | edit blocks found at 1 % false-alarm threshold | edits visible at all (≥1 block) | edits visible at 0.1 % threshold | median unchanged blocks louder than the edit |
 |---|---|---|---|---|
-| NN, whole-number factor, centred | 0.287 | 0.732 | 0.357 | 132 |
-| NN to exact size | 0.447 | 1 | 0.679 | 11.5 |
-| NN whole-number, then bilinear to size | 0.5 | 1 | 0.804 | 0 |
-| Bilinear | 0.652 | 1 | 0.839 | 0 |
-| Mitchell (FreeImage "bicubic") | 0.663 | 1 | 0.857 | 0 |
-| Catmull-Rom (float) | 0.673 | 1 | 0.857 | 0 |
-| Lanczos3 (8-bit) | 0.69 | 1 | 0.857 | 0 |
-| Lanczos3 (float) | 0.689 | 1 | 0.857 | 0 |
-| Lanczos4 (float) | 0.692 | 1 | 0.857 | 0 |
-| Lanczos3 float + USM r0.75 50% | 0.69 | 1 | 0.875 | 0 |
-| Lanczos3 float + USM r1.0 50% | 0.692 | 1 | 0.875 | 0 |
-| Shrink original: area (OpenCV) | 0.858 | 0.982 | 0.929 | 0 |
-| Shrink original: FreeImage box (8-bit) | 0.802 | 0.964 | 0.911 | 0 |
-| Shrink original: box | 0.802 | 0.964 | 0.911 | 0 |
-| Shrink original: bilinear | 0.768 | 0.982 | 0.857 | 0 |
-| Shrink original: bilinear (8-bit) | 0.768 | 0.982 | 0.857 | 0 |
-| Shrink original: B-spline | 0.753 | 0.946 | 0.857 | 0 |
-| Shrink original: Mitchell | 0.773 | 0.964 | 0.857 | 0 |
-| Shrink original: Mitchell (8-bit) | 0.773 | 0.964 | 0.857 | 0 |
-| Shrink original: Catmull-Rom | 0.842 | 0.982 | 0.875 | 0 |
-| Shrink original: Catmull-Rom (8-bit) | 0.841 | 0.982 | 0.875 | 0 |
-| Shrink original: Lanczos3 | 0.785 | 0.982 | 0.875 | 0 |
-| Shrink original: Lanczos3 (8-bit) | 0.788 | 0.982 | 0.875 | 0 |
-| Shrink original: best-matching FreeImage filter (float, 6 filters) | 0.849 | 0.946 | 0.911 | 0 |
-| Shrink original: matched filter, WinIMerge rule (8-bit, 5 filters) | 0.852 | 0.946 | 0.911 | 0 |
-| Shrink original: the true kernel (oracle) | 0.88 | 0.982 | 0.929 | 0 |
+| NN, whole-number factor, centred | 0.29 | 0.531 | 0.338 | 198 |
+| NN to exact size | 0.412 | 0.763 | 0.596 | 8 |
+| NN whole-number, then bilinear to size | 0.431 | 0.774 | 0.63 | 1 |
+| Bilinear | 0.395 | 0.718 | 0.597 | 8 |
+| Mitchell (FreeImage "bicubic") | 0.403 | 0.722 | 0.602 | 5.5 |
+| Catmull-Rom (float) | 0.438 | 0.766 | 0.65 | 0 |
+| Lanczos3 (8-bit) | 0.456 | 0.797 | 0.657 | 0 |
+| Lanczos3 (float) | 0.458 | 0.801 | 0.66 | 0 |
+| Lanczos4 (float) | 0.462 | 0.808 | 0.655 | 0 |
+| Lanczos3 float + USM r0.75 50% | 0.472 | 0.817 | 0.674 | 0 |
+| Lanczos3 float + USM r1.0 50% | 0.477 | 0.82 | 0.678 | 0 |
+| Shrink original: area (OpenCV) | 0.804 | 0.952 | 0.917 | 0 |
+| Shrink original: FreeImage box (8-bit) | 0.759 | 0.937 | 0.892 | 0 |
+| Shrink original: box | 0.76 | 0.938 | 0.892 | 0 |
+| Shrink original: bilinear | 0.685 | 0.889 | 0.824 | 0 |
+| Shrink original: bilinear (8-bit) | 0.684 | 0.885 | 0.824 | 0 |
+| Shrink original: B-spline | 0.532 | 0.743 | 0.664 | 0 |
+| Shrink original: Mitchell | 0.702 | 0.897 | 0.84 | 0 |
+| Shrink original: Mitchell (8-bit) | 0.702 | 0.897 | 0.84 | 0 |
+| Shrink original: Catmull-Rom | 0.779 | 0.941 | 0.896 | 0 |
+| Shrink original: Catmull-Rom (8-bit) | 0.778 | 0.939 | 0.893 | 0 |
+| Shrink original: Lanczos3 | 0.791 | 0.955 | 0.906 | 0 |
+| Shrink original: Lanczos3 (8-bit) | 0.803 | 0.957 | 0.908 | 0 |
+| Shrink original: best-matching FreeImage filter (float, 6 filters) | 0.837 | 0.968 | 0.92 | 0 |
+| Shrink original: matched filter, 5 FreeImage filters (8-bit), without area averaging | 0.851 | 0.972 | 0.93 | 0 |
+| Shrink original: WinIMerge DOWN_MATCHED (5 FreeImage filters + area averaging) | 0.873 | 0.984 | 0.941 | 0 |
+| Shrink original: the true kernel (oracle) | 0.876 | 0.987 | 0.95 | 0 |
 
 Share of edited pairs where the edit shows at the 1 % threshold, by edit (synth):
 
-| candidate | line | recolor | text | text_small |
-|---|---|---|---|---|
-| NN, whole-number factor, centred | 69% | 75% | 75% | 75% |
-| NN to exact size | 100% | 100% | 100% | 100% |
-| Bilinear | 100% | 100% | 100% | 100% |
-| Catmull-Rom (float) | 100% | 100% | 100% | 100% |
-| Lanczos3 (float) | 100% | 100% | 100% | 100% |
-| Lanczos3 float + USM r1.0 50% | 100% | 100% | 100% | 100% |
-| Shrink original: area (OpenCV) | 100% | 88% | 100% | 100% |
-| Shrink original: Catmull-Rom (8-bit) | 100% | 88% | 100% | 100% |
-| Shrink original: matched filter, WinIMerge rule (8-bit, 5 filters) | 100% | 62% | 100% | 100% |
-| Shrink original: the true kernel (oracle) | 100% | 88% | 100% | 100% |
+| candidate | bar | dot | line | mosaic | move | recolor | smudge | text | text_small |
+|---|---|---|---|---|---|---|---|---|---|
+| NN, whole-number factor, centred | 75% | 38% | 70% | 50% | 61% | 37% | 24% | 72% | 51% |
+| NN to exact size | 100% | 59% | 96% | 75% | 86% | 56% | 44% | 99% | 71% |
+| Bilinear | 100% | 48% | 95% | 74% | 82% | 39% | 53% | 95% | 61% |
+| Catmull-Rom (float) | 100% | 56% | 95% | 79% | 86% | 46% | 59% | 100% | 68% |
+| Lanczos3 (8-bit) | 100% | 62% | 96% | 79% | 86% | 54% | 67% | 100% | 72% |
+| Lanczos3 float + USM r1.0 50% | 100% | 68% | 96% | 82% | 86% | 59% | 68% | 100% | 79% |
+| Shrink original: area (OpenCV) | 100% | 91% | 100% | 100% | 100% | 73% | 93% | 100% | 100% |
+| Shrink original: Catmull-Rom (8-bit) | 100% | 94% | 100% | 100% | 100% | 66% | 86% | 100% | 100% |
+| Shrink original: matched filter, 5 FreeImage filters (8-bit), without area averaging | 100% | 100% | 100% | 100% | 100% | 80% | 95% | 100% | 100% |
+| Shrink original: WinIMerge DOWN_MATCHED (5 FreeImage filters + area averaging) | 100% | 100% | 100% | 100% | 100% | 89% | 96% | 100% | 100% |
+| Shrink original: the true kernel (oracle) | 100% | 100% | 100% | 100% | 100% | 88% | 100% | 100% | 100% |
 
 The same by factor (synth):
 
 | candidate | 2.0 | 2.5 | 3.0 | 4.0 |
 |---|---|---|---|---|
-| NN, whole-number factor, centred | 100% | 0% | 93% | 100% |
-| NN to exact size | 100% | 100% | 100% | 100% |
-| Bilinear | 100% | 100% | 100% | 100% |
-| Catmull-Rom (float) | 100% | 100% | 100% | 100% |
-| Lanczos3 (float) | 100% | 100% | 100% | 100% |
-| Lanczos3 float + USM r1.0 50% | 100% | 100% | 100% | 100% |
-| Shrink original: area (OpenCV) | 100% | 100% | 100% | 93% |
-| Shrink original: Catmull-Rom (8-bit) | 100% | 100% | 100% | 93% |
-| Shrink original: matched filter, WinIMerge rule (8-bit, 5 filters) | 100% | 100% | 86% | 93% |
-| Shrink original: the true kernel (oracle) | 100% | 100% | 100% | 93% |
+| NN, whole-number factor, centred | 87% | 0% | 58% | 67% |
+| NN to exact size | 87% | 78% | 73% | 67% |
+| Bilinear | 84% | 76% | 70% | 57% |
+| Catmull-Rom (float) | 87% | 79% | 75% | 65% |
+| Lanczos3 (8-bit) | 89% | 83% | 80% | 67% |
+| Lanczos3 float + USM r1.0 50% | 91% | 85% | 82% | 71% |
+| Shrink original: area (OpenCV) | 97% | 95% | 95% | 93% |
+| Shrink original: Catmull-Rom (8-bit) | 95% | 95% | 94% | 91% |
+| Shrink original: matched filter, 5 FreeImage filters (8-bit), without area averaging | 99% | 97% | 96% | 96% |
+| Shrink original: WinIMerge DOWN_MATCHED (5 FreeImage filters + area averaging) | 99% | 99% | 99% | 96% |
+| Shrink original: the true kernel (oracle) | 99% | 99% | 99% | 98% |
 
 The same by codec of the copy (synth):
 
 | candidate | jpg85 | png |
 |---|---|---|
-| NN, whole-number factor, centred | 75% | 71% |
-| NN to exact size | 100% | 100% |
-| Bilinear | 100% | 100% |
-| Catmull-Rom (float) | 100% | 100% |
-| Lanczos3 (float) | 100% | 100% |
-| Lanczos3 float + USM r1.0 50% | 100% | 100% |
-| Shrink original: area (OpenCV) | 96% | 100% |
-| Shrink original: Catmull-Rom (8-bit) | 96% | 100% |
-| Shrink original: matched filter, WinIMerge rule (8-bit, 5 filters) | 93% | 96% |
-| Shrink original: the true kernel (oracle) | 96% | 100% |
+| NN, whole-number factor, centred | 53% | 53% |
+| NN to exact size | 76% | 77% |
+| Bilinear | 72% | 72% |
+| Catmull-Rom (float) | 76% | 77% |
+| Lanczos3 (8-bit) | 80% | 80% |
+| Lanczos3 float + USM r1.0 50% | 82% | 82% |
+| Shrink original: area (OpenCV) | 94% | 96% |
+| Shrink original: Catmull-Rom (8-bit) | 93% | 95% |
+| Shrink original: matched filter, 5 FreeImage filters (8-bit), without area averaging | 96% | 99% |
+| Shrink original: WinIMerge DOWN_MATCHED (5 FreeImage filters + area averaging) | 97% | 100% |
+| Shrink original: the true kernel (oracle) | 97% | 100% |
+
+## Unsharp-mask sweep
+
+
+#### Unsharp mask after Lanczos3/Catmull-Rom (float), medians over images × kernels × factors 1.5/2/3 × png/jpg85
+
+| candidate | blocks marked @T16 | T_p99 | PSNR | edit blocks found | edits visible |
+|---|---|---|---|---|---|
+| crf_usm_r0.75_a0.5 | 0.358 | 248 | 20 | 0.754 | 1 |
+| crf_usm_r1.0_a0.5 | 0.357 | 248 | 20.5 | 0.755 | 1 |
+| Catmull-Rom (float) | 0.356 | 250 | 19.1 | 0.729 | 0.979 |
+| Lanczos3 (float) | 0.356 | 247 | 19.6 | 0.73 | 1 |
+| l3f_usm_r0.5_a0.25 | 0.357 | 245 | 20 | 0.732 | 1 |
+| l3f_usm_r0.5_a0.5 | 0.36 | 244 | 20.3 | 0.732 | 1 |
+| l3f_usm_r0.5_a0.75 | 0.36 | 245 | 20.7 | 0.733 | 1 |
+| l3f_usm_r0.5_a1.0 | 0.362 | 245 | 21 | 0.733 | 1 |
+| l3f_usm_r0.75_a0.25 | 0.359 | 245 | 20.4 | 0.732 | 1 |
+| Lanczos3 float + USM r0.75 50% | 0.363 | 245 | 21.2 | 0.734 | 1 |
+| l3f_usm_r0.75_a0.75 | 0.366 | 247 | 21.8 | 0.73 | 0.99 |
+| l3f_usm_r0.75_a1.0 | 0.372 | 251 | 22.2 | 0.731 | 0.99 |
+| l3f_usm_r1.0_a0.25 | 0.359 | 245 | 20.8 | 0.734 | 1 |
+| Lanczos3 float + USM r1.0 50% | 0.365 | 248 | 21.7 | 0.735 | 1 |
+| l3f_usm_r1.0_a0.75 | 0.371 | 253 | 22.3 | 0.731 | 0.99 |
+| l3f_usm_r1.0_a1.0 | 0.376 | 262 | 22.5 | 0.732 | 0.99 |
+| l3f_usm_r1.5_a0.25 | 0.357 | 247 | 21.2 | 0.735 | 1 |
+| l3f_usm_r1.5_a0.5 | 0.363 | 255 | 22.2 | 0.737 | 1 |
+| l3f_usm_r1.5_a0.75 | 0.367 | 268 | 22.5 | 0.727 | 0.99 |
+| l3f_usm_r1.5_a1.0 | 0.375 | 283 | 22.2 | 0.714 | 0.979 |

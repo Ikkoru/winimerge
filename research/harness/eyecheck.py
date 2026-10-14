@@ -26,7 +26,7 @@ CANDIDATES = [
     # id, label, function(L, S) -> image at large size
     ('nn_int', 'Nearest neighbour, whole-number factor (requested; WinIMerge UP_NEAREST_INTEGER)', lambda L, Sm: S.up_nn_int(Sm, L.shape[1], L.shape[0])[0]),
     ('nn', 'Nearest neighbour to exact size', lambda L, Sm: R.nn_exact(Sm, L.shape[1], L.shape[0])),
-    ('lanczos3', 'Lanczos3, float path (WinIMerge UP_SMOOTH)', lambda L, Sm: fi.rescale(Sm, L.shape[1], L.shape[0], 'lanczos3', float_path=True)),
+    ('lanczos3', 'Lanczos3 (WinIMerge UP_SMOOTH)', lambda L, Sm: fi.rescale(Sm, L.shape[1], L.shape[0], 'lanczos3')),
     ('lanczos3_usm', 'Lanczos3 + unsharp mask r1.0 50%', lambda L, Sm: R.unsharp(fi.rescale(Sm, L.shape[1], L.shape[0], 'lanczos3', float_path=True), 1.0, 0.5)),
     ('catmullrom', 'Catmull-Rom (float path)', lambda L, Sm: fi.rescale(Sm, L.shape[1], L.shape[0], 'catmullrom', float_path=True)),
     ('bilinear', 'Bilinear', lambda L, Sm: fi.rescale(Sm, L.shape[1], L.shape[0], 'bilinear')),
@@ -37,7 +37,7 @@ DOWN = [
     ('down_matched', 'Shrink the original instead (WinIMerge DOWN_MATCHED)', None),
 ]
 
-KERNEL_NAME = {'box': 'box', 'bilinear': 'bilinear', 'bicubic': 'Mitchell', 'catmullrom': 'Catmull-Rom', 'lanczos3': 'Lanczos3'}
+KERNEL_NAME = {'box': 'box', 'bilinear': 'bilinear', 'bicubic': 'Mitchell', 'catmullrom': 'Catmull-Rom', 'lanczos3': 'Lanczos3', 'area': 'area averaging'}
 
 DEFAULT_CASES = [
     dict(image='synth_flatcolor', shrinker='area', factor=2, codec='png', edit='none'),
@@ -113,8 +113,8 @@ def build(out, cases):
         for key, label, kern in DOWN:
             if kern is None:
                 best, err = None, None
-                for kk in S.MATCH8:
-                    D = fi.rescale(L0, w, h, kk)
+                for kk in S.MATCH8 + ['area']:   # WinIMerge: five FreeImage filters, then area averaging
+                    D = fi.rescale(L0, w, h, kk) if kk != 'area' else R.SHRINKERS['area'](L0, w, h)
                     e = np.abs(D.astype(int) - Sm.astype(int)).mean()
                     if err is None or e < err:
                         best, err, bk = D, e, kk
@@ -165,8 +165,8 @@ def build_pairs(out, cases):
         for key, label, kern in DOWN:
             if kern is None:
                 best, err = None, None
-                for kk in S.MATCH8:
-                    D = fi.rescale(L0, w, h, kk)
+                for kk in S.MATCH8 + ['area']:   # WinIMerge: five FreeImage filters, then area averaging
+                    D = fi.rescale(L0, w, h, kk) if kk != 'area' else R.SHRINKERS['area'](L0, w, h)
                     e = np.abs(D.astype(int) - Sm.astype(int)).mean()
                     if err is None or e < err:
                         best, err, bk = D, e, kk

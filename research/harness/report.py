@@ -14,11 +14,11 @@ UP_ORDER = ['nn_int_center', 'nn_int_topleft', 'nn', 'sharp_bilinear', 'fi_bilin
             'l3f_usm_r0.75_a0.5', 'l3f_usm_r1.0_a0.5']
 DOWN_ORDER = ['down_area', 'down_fi_box8', 'down_fi_box', 'down_fi_bilinear', 'down_fi_bilinear8', 'down_fi_bspline',
               'down_fi_bicubic', 'down_fi_bicubic8', 'down_fi_catmullrom', 'down_fi_catmullrom8', 'down_fi_lanczos3',
-              'down_fi_lanczos38', 'down_matched', 'down_matched8', 'down_oracle']
+              'down_fi_lanczos38', 'down_matched', 'down_matched8', 'down_matched8a', 'down_oracle']
 # the three WinIMerge modes as the harness reproduces them (bit-identical to the C++ code)
 MODES = [('nn_int_center', 'UP_NEAREST_INTEGER (NN, whole-number factor)'),
-         ('fi_lanczos3_f', 'UP_SMOOTH (Lanczos3, float)'),
-         ('down_matched8', 'DOWN_MATCHED (shrink, matched filter)')]
+         ('fi_lanczos3', 'UP_SMOOTH (Lanczos3)'),
+         ('down_matched8a', 'DOWN_MATCHED (shrink, matched filter)')]
 TASK = ['set', 'image', 'edit', 'shrinker', 'factor', 'codec']
 LABEL = {
     'nn_int_center': 'NN, whole-number factor, centred', 'nn_int_topleft': 'NN, whole-number factor, top-left',
@@ -35,7 +35,8 @@ LABEL = {
     'down_fi_bilinear8': 'Shrink original: bilinear (8-bit)', 'down_fi_bicubic8': 'Shrink original: Mitchell (8-bit)',
     'down_fi_catmullrom8': 'Shrink original: Catmull-Rom (8-bit)', 'down_fi_lanczos38': 'Shrink original: Lanczos3 (8-bit)',
     'down_matched': 'Shrink original: best-matching FreeImage filter (float, 6 filters)',
-    'down_matched8': 'Shrink original: matched filter, WinIMerge rule (8-bit, 5 filters)',
+    'down_matched8': 'Shrink original: matched filter, 5 FreeImage filters (8-bit), without area averaging',
+    'down_matched8a': 'Shrink original: WinIMerge DOWN_MATCHED (5 FreeImage filters + area averaging)',
     'down_oracle': 'Shrink original: the true kernel (oracle)',
 }
 
@@ -120,7 +121,8 @@ def spurious_tables(d, out):
 
 
 def matched_kernel_table(d, out):
-    for cand, what in [('down_matched8', 'WinIMerge rule: 8-bit path, 5 filters'), ('down_matched', 'float path, 6 filters')]:
+    for cand, what in [('down_matched8a', 'WinIMerge rule: 5 FreeImage filters on the 8-bit path + area averaging'),
+                       ('down_matched8', '5 FreeImage filters on the 8-bit path'), ('down_matched', 'float path, 6 filters')]:
         dm = d[(d.candidate == cand) & (d.edit == 'none')]
         if dm.empty:
             continue
@@ -179,8 +181,8 @@ def edit_tables(d, out):
     d = d[d.edit != 'none']
     if d.empty:
         return
-    short = ['nn_int_center', 'nn', 'fi_bilinear', 'fi_catmullrom_f', 'fi_lanczos3_f', 'l3f_usm_r1.0_a0.5',
-             'down_area', 'down_fi_catmullrom8', 'down_matched8', 'down_oracle']
+    short = ['nn_int_center', 'nn', 'fi_bilinear', 'fi_catmullrom_f', 'fi_lanczos3', 'l3f_usm_r1.0_a0.5',
+             'down_area', 'down_fi_catmullrom8', 'down_matched8', 'down_matched8a', 'down_oracle']
     for st in ['synth', 'real']:
         ds = complete(d[d.set == st], UP_ORDER + DOWN_ORDER)
         if ds.empty:

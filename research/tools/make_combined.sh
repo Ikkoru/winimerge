@@ -26,10 +26,12 @@ for f in files:
     open(f,'wb').write(eol.join(out))
 for f in ['src/WinIMergeLib/ImgDiffBuffer.hpp', 'src/WinIMergeLib/WinIMergeLib.h']:
     R(f, "IMAGE_ALIGNMENT_BOTTOM_RIGHT\n\tenum IMAGE_SCALING_MODE {", "IMAGE_ALIGNMENT_BOTTOM_RIGHT\n\t};\n\tenum IMAGE_SCALING_MODE {")
-R('src/WinIMergeLib/ImgMergeWindow.hpp', "(alignment));\n\tIMAGE_SCALING_MODE GetImageScalingMode() const override", "(alignment));\n\t\tInvalidate();\n\t}\n\n\tIMAGE_SCALING_MODE GetImageScalingMode() const override")
+R('src/WinIMergeLib/ImgMergeWindow.hpp', "(alignment));\n\tIMAGE_SCALING_MODE GetImageScalingMode() const override", "(alignment));\n\t\tUpdateScrollBars();\n\t\tInvalidate();\n\t}\n\n\tIMAGE_SCALING_MODE GetImageScalingMode() const override")
+# a pane whose scale changes (mode change, or an edit that changes its size) is aligned again
+R('src/WinIMergeLib/ImgDiffBuffer.hpp', "\t\t\tscaled.scaleX = (w > 0) ? static_cast<double>(tw) / w : 1.0;\n\t\t\tscaled.scaleY = (h > 0) ? static_cast<double>(th) / h : 1.0;\n",
+  "\t\t\tconst double scaleX = (w > 0) ? static_cast<double>(tw) / w : 1.0;\n\t\t\tconst double scaleY = (h > 0) ? static_cast<double>(th) / h : 1.0;\n\t\t\tif (scaleX != scaled.scaleX || scaleY != scaled.scaleY)\n\t\t\t\tm_alignImagesPending = true;\n\t\t\tscaled.scaleX = scaleX;\n\t\t\tscaled.scaleY = scaleY;\n")
 R('src/WinIMerge/WinIMerge.cpp', "(wmId - ID_VIEW_ALIGNMENT_TOP_LEFT));\n\t\tcase ID_VIEW_SCALING_NONE:", "(wmId - ID_VIEW_ALIGNMENT_TOP_LEFT));\n\t\t\tbreak;\n\t\tcase ID_VIEW_SCALING_NONE:")
 R('src/WinIMerge/WinIMerge.rc', 'ID_VIEW_ALIGNMENT_BOTTOM_RIGHT\n        POPUP "Size Mat&ching"', 'ID_VIEW_ALIGNMENT_BOTTOM_RIGHT\n        END\n        POPUP "Size Mat&ching"')
-R('src/WinIMergeLib/ImgDiffBuffer.hpp', "\t\tm_imageScalingMode = mode;\n\t\tCompareImages();", "\t\tm_imageScalingMode = mode;\n\t\tm_alignImagesPending = true;\n\t\tCompareImages();")
 PY
 ! grep -rn "^<<<<<<<\|^>>>>>>>" src/ || { echo "unresolved conflicts"; exit 1; }
 git add -A src && git -c user.name=Claude -c user.email=noreply@anthropic.com commit -q -m "Merge image alignment and image scaling" && echo "merged: $(git log --oneline -1)"

@@ -33,7 +33,7 @@ import metrics as M
 import resample as R
 import study as S
 
-CANDS = ['nn_int_center', 'nn', 'fi_bilinear', 'fi_mitchell', 'fi_catmullrom_f', 'fi_lanczos3_f', 'l3f_usm_r1.0_a0.5']
+CANDS = ['nn_int_center', 'nn', 'fi_bilinear', 'fi_mitchell', 'fi_catmullrom_f', 'fi_lanczos3', 'l3f_usm_r1.0_a0.5']
 
 
 def load(path):
@@ -74,7 +74,7 @@ def run_pair(args):
             row.update(M.heavy_panel(L, U))
         rows.append(row)
     downs, k = S.down_strategies(L, Sm, 'area')
-    for dname in ['down_area', 'down_fi_box8', 'down_fi_bicubic8', 'down_fi_catmullrom8', 'down_fi_lanczos38', 'down_matched8']:
+    for dname in ['down_area', 'down_fi_box8', 'down_fi_bicubic8', 'down_fi_catmullrom8', 'down_fi_lanczos38', 'down_matched8a']:
         D = downs[dname]
         out, _ = M.cheap_panel(D, Sm)
         row = dict(base, candidate=dname, matched_kernel=k.get(dname, ''), **out)

@@ -19,7 +19,12 @@ class ScaleTestBuffer : public TestBuffer
 {
 public:
 	void CorruptCache(int pane) { m_scaledImage[pane].image.scanLine(0)[0] ^= 0xff; }
-	static Image Shrink(const Image& src, unsigned w, unsigned h, FREE_IMAGE_FILTER f) { Image out; ResizeImage(src, out, w, h, f, false); return out; }
+	static Image Shrink(const Image& src, unsigned w, unsigned h, FREE_IMAGE_FILTER f) { Image out; ResizeImage(src, out, w, h, f); return out; }
+	int MatchedFilter(int pane) const { return m_scaledImage[pane].filter; }
+	std::uint64_t ScaledKey(int pane) const { return m_scaledImage[pane].key; }
+	const Image& Orig(int pane) const { return m_imgOrig32[pane]; }
+	const Image& Shown(int pane) const { return m_scaledImage[pane].image; }
+	static Image ShrinkArea(const Image& src, unsigned w, unsigned h) { Image out; ResizeImageArea(src, out, w, h); return out; }
 	double ScaleX(int pane) { double sx, sy; GetImageScale(pane, sx, sy); return sx; }
 	double ScaleY(int pane) { double sx, sy; GetImageScale(pane, sx, sy); return sy; }
 	unsigned PixelAt(int pane, int x, int y) { RGBQUAD c = GetPixelColor(pane, x, y); return (unsigned)c.rgbBlue | c.rgbGreen << 8 | c.rgbRed << 16 | (unsigned)c.rgbReserved << 24; }
@@ -243,8 +248,8 @@ static void TestMatchedShrink()
 
 static void TestCopyDiffWithShrinkAndSmooth()
 {
-	// shrink mode, copying from the small image into the shrunk large one: every original pixel
-	// a shrunk pixel stands for gets the value (not one pixel in four), and the difference is gone
+	// shrink mode: nothing is copied into the shrunk image (the copied pixels would be resampled with
+	// their neighbours again and the difference would grow instead of disappear)
 	Image large = Solid(200, 160, BLUE);
 	Image small = MakeImage(100, 80, [](int x, int y) { return (x >= 20 && x < 40 && y >= 20 && y < 40) ? RED : BLUE; });
 	ScaleTestBuffer b;
@@ -253,14 +258,12 @@ static void TestCopyDiffWithShrinkAndSmooth()
 	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_DOWN_MATCHED);
 	CHECK_EQ(b.GetDiffCount(), 1);
 	b.CopyDiff(0, 1, 0);
-	CHECK_EQ(b.GetImageWidth(0), 200);
-	CHECK_EQ(b.CountOrig(0, RED), 40 * 40);
-	CHECK_EQ(b.OrigAt(0, 40, 40), RED); CHECK_EQ(b.OrigAt(0, 79, 79), RED);
-	CHECK_EQ(b.OrigAt(0, 39, 39), BLUE); CHECK_EQ(b.OrigAt(0, 80, 80), BLUE);
-	CHECK_EQ(b.GetDiffCount(), 0);
-	b.Undo();
+	b.CopyDiffAll(1, 0);
+	CHECK_EQ(b.CopyDiff3Way(0), 0);
+	CHECK_EQ(b.CountOrig(0, RED), 0);
 	CHECK_EQ(b.GetDiffCount(), 1);
-	// the other way round, the shrunk pixels it shows are copied
+	CHECK(!b.IsUndoable());
+	// the other way round, the shrunk pixels it shows are copied, so the difference is gone
 	b.CopyDiff(0, 0, 1);
 	CHECK_EQ(b.CountOrig(1, RED), 0);
 	CHECK_EQ(b.GetDiffCount(), 0);
@@ -278,6 +281,8 @@ static void TestCopyDiffWithShrinkAndSmooth()
 	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_UP_SMOOTH);
 	CHECK_EQ(b.ScaleX(1), 2.5);
 	CHECK(b.GetDiffCount() > 0);
+	b.CopyDiffAll(0, 1);                            // not into the smoothly enlarged image
+	CHECK(!b.IsUndoable());
 	b.CopyDiffAll(1, 0);
 	CHECK_EQ(b.GetDiffCount(), 0);
 	CHECK_EQ(b.CountOrig(0, WHITE), 0);
@@ -291,6 +296,96 @@ static void TestCopyDiffWithShrinkAndSmooth()
 	b.CopyDiffAll(0, 1);
 	CHECK_EQ(b.GetDiffCount(), 0);
 	CHECK_EQ(b.CountOrig(1, RED) + b.CountOrig(1, BLUE), 100 * 80);
+}
+
+static unsigned Channel(const Image& img, int x, int y, int c) { return img.scanLine(y)[x * 4 + c]; }
+
+static void TestAreaShrink()
+{
+	// whole-number factor: the plain average of each 2x2 block, rounded half up
+	Image src = Patterned(64, 48);
+	Image a = ScaleTestBuffer::ShrinkArea(src, 32, 24);
+	bool exact = true;
+	for (int y = 0; y < 24; ++y)
+		for (int x = 0; x < 32; ++x)
+			for (int c = 0; c < 4; ++c)
+			{
+				const unsigned s = Channel(src, 2 * x, 2 * y, c) + Channel(src, 2 * x + 1, 2 * y, c) + Channel(src, 2 * x, 2 * y + 1, c) + Channel(src, 2 * x + 1, 2 * y + 1, c);
+				if (Channel(a, x, y, c) != (s + 2) / 4)
+					exact = false;
+			}
+	CHECK(exact);
+	// non-integer factor: within one level of a double-precision coverage reference
+	Image big = Smooth(500, 400);
+	const unsigned w = 213, h = 170;
+	Image b = ScaleTestBuffer::ShrinkArea(big, w, h);
+	const double sx = 500.0 / w, sy = 400.0 / h;
+	int maxdiff = 0;
+	for (unsigned y = 0; y < h; y += 7)
+		for (unsigned x = 0; x < w; x += 5)
+			for (int c = 0; c < 3; ++c)
+			{
+				double acc = 0;
+				for (int j = (int)(y * sy); j < (int)std::ceil((y + 1) * sy) && j < 400; ++j)
+					for (int i = (int)(x * sx); i < (int)std::ceil((x + 1) * sx) && i < 500; ++i)
+					{
+						const double cx = std::min((x + 1) * sx, i + 1.0) - std::max(x * sx, (double)i);
+						const double cy = std::min((y + 1) * sy, j + 1.0) - std::max(y * sy, (double)j);
+						if (cx > 0 && cy > 0)
+							acc += cx * cy * Channel(big, i, j, c);
+					}
+				maxdiff = std::max(maxdiff, std::abs((int)Channel(b, x, y, c) - (int)std::floor(acc / (sx * sy) + 0.5)));
+			}
+	CHECK(maxdiff <= 1);
+	// shrink mode reproduces an area-averaged copy exactly (FreeImage's box filter does not at 2.35x)
+	ScaleTestBuffer m;
+	Image imgs[2] = { big, b };
+	m.SetImages(2, imgs);
+	m.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_DOWN_MATCHED);
+	CHECK_EQ(m.GetDiffCount(), 0);
+	Image boxed = ScaleTestBuffer::Shrink(big, w, h, FILTER_BOX);
+	Image imgs2[2] = { big, boxed };
+	m.SetImages(2, imgs2);
+	m.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_NONE);
+	m.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_DOWN_MATCHED);
+	CHECK_EQ(m.GetDiffCount(), 0);                  // the box-filtered copy is still found as box
+	// for the harness: compare with OpenCV's INTER_AREA
+	big.getFipImage()->save("area_src.png");
+	b.getFipImage()->save("area_cpp.png");
+}
+
+static void TestMatchedFilterKeptAfterEdits()
+{
+	// the filter is matched once per image pair and size; after an edit the larger image is only
+	// shrunk again with it, and an edit of the smaller image does not resample the larger one
+	Image large = Smooth(500, 400);
+	ScaleTestBuffer b;
+	Image imgs[2] = { large, ScaleTestBuffer::Shrink(large, 213, 170, FILTER_LANCZOS3) };
+	b.SetImages(2, imgs);
+	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_DOWN_MATCHED);
+	CHECK_EQ(b.MatchedFilter(0), (int)FILTER_LANCZOS3);
+	CHECK_EQ(b.GetDiffCount(), 0);
+	const std::uint64_t key = b.ScaledKey(0);
+	b.DeleteRectangle(1, 10, 10, 60, 60);           // edit the small image
+	CHECK_EQ(b.ScaledKey(0), key);                  // the large one is not resampled
+	CHECK_EQ(b.GetDiffCount(), 1);
+	b.DeleteRectangle(0, 0, 0, 400, 300);           // edit the large image heavily
+	CHECK_EQ(b.MatchedFilter(0), (int)FILTER_LANCZOS3);
+	Image expect = ScaleTestBuffer::Shrink(b.Orig(0), 213, 170, FILTER_LANCZOS3);
+	bool same = b.Shown(0).width() == 213 && b.Shown(0).height() == 170;
+	for (unsigned y = 0; same && y < 170; ++y)
+		same = memcmp(b.Shown(0).scanLine(y), expect.scanLine(y), 213 * 4) == 0;
+	CHECK(same);
+	b.Undo();
+	b.Undo();
+	CHECK_EQ(b.GetDiffCount(), 0);
+	// another pair is matched again
+	Image imgs2[2] = { large, ScaleTestBuffer::Shrink(large, 213, 170, FILTER_BILINEAR) };
+	b.SetImages(2, imgs2);
+	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_NONE);
+	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_DOWN_MATCHED);
+	CHECK_EQ(b.MatchedFilter(0), (int)FILTER_BILINEAR);
+	CHECK_EQ(b.GetDiffCount(), 0);
 }
 
 static void TestSaveScaledForPython()
@@ -324,6 +419,8 @@ int main()
 	TestRotationWithScaling();
 	TestMatchedShrink();
 	TestCopyDiffWithShrinkAndSmooth();
+	TestAreaShrink();
+	TestMatchedFilterKeptAfterEdits();
 	TestSaveScaledForPython();
 	FreeImage_DeInitialise();
 	return Summary("test_scaling");

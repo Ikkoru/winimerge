@@ -126,12 +126,20 @@ def down_strategies(L, S, true_shrinker):
         if best8_err is None or err < best8_err:
             best8, best8_err, best8_k = D, err, k
     out['down_matched8'] = best8
-    return out, {'down_matched': best_k, 'down_matched8': best8_k}
+    # with WinIMerge's exact area-averaging candidate as well (ResizeImageArea; OpenCV's INTER_AREA stands
+    # in for it here: they agree to within 1 level, in 0.2 % of the values)
+    best8a, best8a_k = best8, best8_k
+    area = out['down_area']
+    err = np.abs(area.astype(np.int16) - S.astype(np.int16)).mean()
+    if err < best8_err:
+        best8a, best8a_k = area, 'area'
+    out['down_matched8a'] = best8a
+    return out, {'down_matched': best_k, 'down_matched8': best8_k, 'down_matched8a': best8a_k}
 
 
 MATCH8 = ['box', 'bilinear', 'bicubic', 'catmullrom', 'lanczos3']
 DOWN_NAMES = ['down_area', 'down_oracle'] + ['down_fi_' + k for k in FI_DOWN] + ['down_fi_box8'] + \
-             ['down_fi_' + k + '8' for k in ('bilinear', 'bicubic', 'catmullrom', 'lanczos3')] + ['down_matched', 'down_matched8']
+             ['down_fi_' + k + '8' for k in ('bilinear', 'bicubic', 'catmullrom', 'lanczos3')] + ['down_matched', 'down_matched8', 'down_matched8a']
 
 # ------------------------------------------------------------------ codecs
 

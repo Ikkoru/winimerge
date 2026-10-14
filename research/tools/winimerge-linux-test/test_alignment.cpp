@@ -151,6 +151,42 @@ static void TestCopyDiffDoesNotMoveImages()
 	// Note: copying the right-margin difference as well does not work on master either:
 	// CopyDiffInternal() grows the image to the right but ConvertToRealPos() still checks
 	// against the old preprocessed width, so the new columns stay empty (pre-existing issue).
+
+	// Undo puts B back where it was (it is 60 wide again), Redo where the copy left it.
+	CHECK(b.Undo());
+	CHECK_EQ(b.GetImageWidth(1), 60);
+	CHECK_EQ(b.OffX(0), 0); CHECK_EQ(b.OffX(1), 20);
+	CHECK_EQ(b.GetDiffCount(), 2);
+	CHECK_EQ(b.GetColorDistance(0, 1, 50, 30), 0.0);
+	CHECK(b.Redo());
+	CHECK_EQ(b.GetImageWidth(1), 80);
+	CHECK_EQ(b.OffX(0), 0); CHECK_EQ(b.OffX(1), 0);
+	CHECK_EQ(b.GetDiffCount(), 1);
+	CHECK_EQ(b.GetColorDistance(0, 1, 50, 30), 0.0);
+	// Re-aligning places the grown image by its new size: top-left, then centred (80 in 100)
+	b.SetImageAlignment(CImgDiffBuffer::IMAGE_ALIGNMENT_TOP_LEFT);
+	CHECK_EQ(b.OffX(0), 0); CHECK_EQ(b.OffX(1), 0); CHECK_EQ(b.CanvasW(), 100);
+	b.SetImageAlignment(CImgDiffBuffer::IMAGE_ALIGNMENT_CENTER);
+	CHECK_EQ(b.OffX(0), 0); CHECK_EQ(b.OffX(1), 10); CHECK_EQ(b.CanvasW(), 100);
+	// Undo after re-aligning: B is 60 wide again; the next re-alignment centres it again
+	CHECK(b.Undo());
+	CHECK_EQ(b.GetImageWidth(1), 60);
+	b.SetImageAlignment(CImgDiffBuffer::IMAGE_ALIGNMENT_TOP_LEFT);
+	b.SetImageAlignment(CImgDiffBuffer::IMAGE_ALIGNMENT_CENTER);
+	CHECK_EQ(b.OffX(0), 0); CHECK_EQ(b.OffX(1), 20);
+	CHECK_EQ(b.GetDiffCount(), 2);
+}
+
+static void TestInvalidAlignmentIgnored()
+{
+	TestBuffer b;
+	Image imgs[2] = { Solid(100, 80, RED), Solid(60, 40, RED) };
+	b.SetImages(2, imgs);
+	b.SetImageAlignment(CImgDiffBuffer::IMAGE_ALIGNMENT_CENTER);
+	b.SetImageAlignment(static_cast<CImgDiffBuffer::IMAGE_ALIGNMENT>(9));
+	b.SetImageAlignment(static_cast<CImgDiffBuffer::IMAGE_ALIGNMENT>(-1));
+	CHECK_EQ(b.GetImageAlignment(), CImgDiffBuffer::IMAGE_ALIGNMENT_CENTER);
+	CHECK_EQ(b.OffX(1), 20); CHECK_EQ(b.OffY(1), 20);
 }
 
 static void TestInsertionDeletionDetection()
@@ -213,6 +249,7 @@ int main()
 	TestCenteredContentMatches();
 	TestRotationRealigns();
 	TestCopyDiffDoesNotMoveImages();
+	TestInvalidAlignmentIgnored();
 	TestInsertionDeletionDetection();
 	TestNoImages();
 #endif

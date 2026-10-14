@@ -33,6 +33,12 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
   at hard edges; the intermediate clips the overshoot, the second pass then spreads the
   clipped value. Non-negative kernels (bilinear, B-spline) only suffer rounding. Measured.
   Fix inside WinIMerge: convert to `FIT_RGBAF` (`FreeImage_ConvertToRGBAF`), rescale, round once.
+- **…but for comparing images the clipping does not matter, and the float path is expensive.**
+  Lanczos3 enlargement on the 8-bit and the float path gave the same median thresholds (T_p99 differs
+  by 0.02 on average, at most ±9, over 840 pairs) and the same edit visibility (79.7 % vs 80.1 %),
+  while the float path took 2.4× as long (6 → 24 MP: 1.84 s vs 0.77 s) and 0.56 GB more memory, and
+  can fail to allocate in a 32-bit build. So WinIMerge's UP_SMOOTH uses the 8-bit path. Measured
+  (harness + an independent review's timing of the C++ code).
 - **FreeImage's box filter at a whole-number enlargement is exactly nearest neighbour**
   (each output pixel gets weight 1 from one source pixel). At non-integer factors, output pixels
   whose centre falls exactly on a source-pixel boundary average two pixels (the box test is
@@ -87,22 +93,31 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
 - Headless Chrome taints a canvas with images loaded from `file://`, so `getImageData` fails on a
   local page; embedding images as data URIs avoids it (used for the eye-check page).
 
-## 5. Comparing a copy with its original: first results (details in REPORT.md)
+## 5. Comparing a copy with its original (details and tables in REPORT.md §4)
 
-- **Enlarging the small copy can never remove most spurious differences on detailed content.** On
-  synthetic line art, manga screentone, painterly and UI images, every enlarger (nearest, bilinear,
-  Mitchell, Catmull-Rom, Lanczos2/3/4, ± unsharp mask) leaves 31–43 % of 8×8 blocks marked at
-  WinMerge's colour-distance threshold 16 (PNG copies, factors 1.25–4). The lost detail is not in
-  the copy.
-- **Comparing at the smaller size instead (shrink the original to the copy's size) removes most of
-  them**: with a fixed Catmull-Rom shrink 0.6–1.8 % of blocks remain marked at threshold 16, and the
-  threshold needed to leave ≤1 % of blocks marked drops from ~100–180 (enlargers) to 14–19.
-  With JPEG q85 copies the compression noise dominates at the small size too, but the threshold
-  still halves. Preliminary (synthetic images, partial run).
-- **Real-pair spot check** (lion photo, copy made with Pillow bicubic at 1/2, PNG): every enlarger
-  marks 98 % of blocks at threshold 16; shrinking the original with FreeImage Catmull-Rom marks
-  0.0 % (PSNR 56 dB), because Pillow's BICUBIC is Catmull-Rom (Keys a = −0.5) with the same
-  antialiasing as FreeImage's minification.
+- **Enlarging the small copy can never remove most spurious differences on detailed content.** On the
+  synthetic set (840 unedited pairs per candidate), every enlarger (nearest, bilinear, Mitchell,
+  Catmull-Rom, Lanczos2/3/4, ± unsharp mask) leaves 34–48 % of 8×8 blocks marked at WinMerge's
+  colour-distance threshold 16, and 5–35 % even at 64, the highest value in WinIMerge's menu (medians
+  per enlarger, factor and codec). The lost
+  detail is not in the copy. Measured.
+- **Comparing at the smaller size (shrink the original to the copy's size) with the filter that best
+  reproduces the copy removes them**: the threshold needed to leave ≤ 1 % of blocks marked is 2–5 for
+  PNG copies and 42–60 for JPEG q85 copies, against 94–326 for the enlargers (WinIMerge's rule with
+  its six candidates; 2–21 without the area-averaging candidate). Measured.
+- **It also finds edits far more reliably**: with the threshold set where 1 % of unedited blocks are
+  marked, 98 % of edits (text, lines, faint recolours, smudges, moved regions, a 3-px dot) stay visible,
+  against 80 % with Lanczos3 enlargement, 76 % with NN to the exact size and 53 % with whole-number NN
+  (1008 edited synthetic pairs). The hardest edit is a faint recolour (+18/−6/−18 RGB): 89 % vs 54 %. Knowing the true resampler
+  would only add one point (99 %).
+  Measured.
+- **An unsharp mask after Lanczos3 helps a little and hurts a little**: 2–4 % lower threshold and 82 %
+  instead of 80 % of edits visible, but more blocks marked at low thresholds with JPEG copies (it
+  sharpens the JPEG noise). Measured (σ 0.75 and 1.0 px at 50 %; full grid in the `usm` run).
+- **Real-pair spot check** (lion photo, copy made with Pillow bicubic at 1/2, PNG): every enlarger marks
+  98 % of blocks at threshold 16; shrinking the original with FreeImage Catmull-Rom marks 0.0 % (PSNR
+  56 dB), because Pillow's BICUBIC is Catmull-Rom (Keys a = −0.5) with the same antialiasing as
+  FreeImage's minification.
 
 ## 6. Viewing conditions (the user's setup)
 
@@ -136,18 +151,29 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
   2.5 and 3 they differ a lot (median T_p99 35–148 on synthetic PNG copies): FreeImage samples the box
   kernel at source-pixel centres, so each source pixel gets weight 0 or 1, while area averaging gives
   partly covered pixels fractional weights. None of FreeImage's filters reproduces area averaging at
-  non-integer factors; an exact area resampler (≈40 lines of C++) would be a possible follow-up for
-  WinIMerge. Measured.
+  non-integer factors, so WinIMerge's DOWN_MATCHED got its own area resampler (`ResizeImageArea`, a
+  sixth candidate, ≈50 lines): separable, fractional coverage weights, float accumulation, rounded
+  once. It agrees with OpenCV's `INTER_AREA` to within 1 level (0.2 % of the values differ, by
+  rounding) and equals the exact block average at whole-number factors. Measured.
 - **JPEG compression biases filter matching towards softer filters.** A Pillow-BICUBIC copy saved as
   JPEG q90 (terminal screenshot, 2.5×) was best matched (lowest mean absolute difference) by FreeImage's
   Mitchell filter, not Catmull-Rom, because the JPEG quantisation removes the high frequencies that
   distinguish the two. The softer pick also gave the lower T_p99 (102 vs 116), so for comparison
   purposes the "wrong" pick is the better one. Measured (one pair; the study tables have the full set).
-- **Selecting the filter by mean absolute difference is a good proxy for WinMerge's block outcome**
-  when the copy is lossless (it finds the exact filter whenever one of the five is the true one), but
-  it is not the same objective: WinMerge marks a block when any pixel exceeds the threshold, so a
-  filter with a slightly higher mean error but no outliers can mark fewer blocks. Measured on synthetic
-  pairs (see REPORT.md, "matched filter").
+- **Selecting the filter by mean absolute difference is a near-optimal proxy for WinMerge's block
+  outcome.** It finds the true filter whenever one of the five is it (126/126 Pillow-made PNG pairs),
+  and judged by the outcome itself (the threshold that leaves ≤1 % of blocks marked) it is within 1
+  level of the best of the five filters in 85 % of PNG pairs and 78 % of JPEG q85 pairs, with the same
+  median (10.4 vs 10.4 PNG; 50.6 vs 50.2 JPEG). Against a fixed Catmull-Rom shrink it wins 67 % of
+  pairs, ties 18 %, loses 15 %. Measured, 840 synthetic pairs.
+- **Whole-number NN and Lanczos3 enlargement mark about the same share of 8×8 blocks** at every
+  threshold WinMerge's menu offers (NN slightly fewer at low thresholds: it keeps flat areas exactly
+  flat, while a smooth filter spreads each edge's error over more blocks), **but NN's differences are
+  stronger** (threshold for ≤1 % blocks: 238 vs 207 at 2×, 321 vs 242 at 3×). For pixel art NN wins
+  clearly (24 vs 82). Neither comes close to comparing at the smaller size. Measured.
+- **JPEG noise does not get diluted at the small size.** With JPEG q85 copies, comparing at the small
+  size marks as many blocks at thresholds 8–16 as enlarging does, but at threshold 64 it drops to
+  ≤0.9 % while the enlargers stay at 7–35 %. Measured.
 
 ## 8. WinIMerge implementation notes (for whoever continues the PRs)
 

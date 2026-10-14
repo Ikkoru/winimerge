@@ -26,6 +26,18 @@ int main()
 	CHECK_EQ(b.OffX(1), 17); CHECK_EQ(b.OffY(1), 0);
 	b.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_NONE);
 	CHECK_EQ(b.OffX(1), 100); CHECK_EQ(b.OffY(1), 55);
+
+	// an edit that changes how much a pane is scaled aligns it again (the shown size changes)
+	TestBuffer c;
+	Image imgs2[2] = { Solid(300, 300, 0xffff0000), Solid(110, 110, 0xffff0000) };
+	c.SetImages(2, imgs2);
+	c.SetImageAlignment(CImgDiffBuffer::IMAGE_ALIGNMENT_CENTER);
+	c.SetImageScalingMode(CImgDiffBuffer::IMAGE_SCALING_UP_NEAREST_INTEGER);
+	CHECK_EQ(c.PreW(1), 220); CHECK_EQ(c.OffX(1), 40); CHECK_EQ(c.OffY(1), 40);
+	c.Resize(1, 100, 100);                                       // now k = 3: 300x300
+	CHECK_EQ(c.PreW(1), 300); CHECK_EQ(c.OffX(1), 0); CHECK_EQ(c.OffY(1), 0);
+	CHECK_EQ(c.CanvasW(), 300);
+	CHECK_EQ(c.GetDiffCount(), 0);
 	FreeImage_DeInitialise();
 	return Summary("test_combined");
 }

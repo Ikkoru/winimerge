@@ -19,8 +19,8 @@ import report
 SURFACE, INK, INK2, GRID = '#fcfcfb', '#0b0b0b', '#52514e', '#e4e3df'
 SLOTS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948']
 MODES = [('nn_int_center', 'Enlarge, whole-number NN'),
-         ('fi_lanczos3_f', 'Enlarge, Lanczos3'),
-         ('down_matched8', 'Shrink, matched filter')]
+         ('fi_lanczos3', 'Enlarge, Lanczos3'),
+         ('down_matched8a', 'Shrink, matched filter')]
 COLOR = {c: SLOTS[i] for i, (c, _) in enumerate(MODES)}
 FACTORS = [1.25, 1.5, 2.0, 2.5, 3.0, 4.0]
 
@@ -57,6 +57,9 @@ def modes_chart(sp, out, metric='T_p99', ylabel='threshold needed (T_p99)', fnam
                         linestyle='-' if c != 'nn_int_center' else 'none')
                 if c == 'nn_int_center':   # whole-number factors only: dots joined by a thin dashed line
                     ax.plot(np.array(FACTORS)[ok], y.values[ok], color=COLOR[c], linewidth=1, linestyle=':')
+            if metric == 'T_p99':   # the highest threshold WinIMerge's menu offers
+                ax.axhline(64, color=INK2, linewidth=1, linestyle=(0, (4, 3)), zorder=1)
+                ax.text(4.12, 64, 'menu max 64', fontsize=8, color=INK2, ha='right', va='bottom')
             ax.set_xticks(FACTORS)
             ax.set_xticklabels(['1.25', '1.5', '2', '2.5', '3', '4'])
             ax.set_xlim(1.1, 4.15)

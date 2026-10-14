@@ -2,7 +2,16 @@
 
 *Session of 2026-10-14. Harness, data and page in this folder; findings log in `DISCOVERIES.md`.*
 
-<!-- RESULTS-SUMMARY -->
+**In one paragraph.** To compare a picture with a resized copy of it, shrink the original to the
+copy's size with the filter that reproduces the copy best; do not enlarge the copy. That makes an
+unedited pair look clean (Pillow-made copies match exactly) and keeps 98 % of real edits visible,
+where enlarging leaves about a third of the 8×8 blocks marked at threshold 16 and finds 53–82 % of edits. Whole-number
+nearest neighbour is honest about the copy's pixels but is no better a comparison than Lanczos3,
+and an unsharp mask on top of Lanczos3 is not worth it. All three modes are implemented for
+WinIMerge (draft PR https://github.com/Ikkoru/winimerge/pull/2, alignment in
+https://github.com/Ikkoru/winimerge/pull/1) with WinMerge menus (https://github.com/Ikkoru/winmerge/pull/1
+and /pull/2). An eye-check page for flipping between the candidates:
+https://claude.ai/artifact/6VCaQkq5egCxeAi9tqepCp (also `eyecheck/index.html`, works offline).
 
 ## 1. The question
 
@@ -22,7 +31,25 @@ tools that predict what a person sees when flipping.
 
 ## 2. Short answer
 
-<!-- SHORT-ANSWER -->
+- **Compare at the smaller size.** Shrinking the original to the copy's size with the resampling
+  filter that best reproduces the copy (WinIMerge `IMAGE_SCALING_DOWN_MATCHED`, "Shrink to Smallest
+  (Matched Filter)") is the only way to make an unedited pair look clean, and it keeps real changes
+  visible: on the synthetic set the threshold needed to leave ≤ 1 % of blocks marked is 2–5 for PNG
+  copies and 42–60 for JPEG q85 copies (enlarging: 94–326), and 98 % of edits stay visible (Lanczos3
+  enlargement 80 %, whole-number NN 53 %). Copies made with Pillow's resize or OpenCV's area
+  averaging are reproduced exactly.
+- **You were right that a smooth enlargement does not make the comparison truthful, but nearest
+  neighbour does not either.** Any enlargement leaves about a third of the 8×8 blocks marked at threshold 16
+  on detailed images, because the copy does not contain the detail. Whole-number NN marks about as many blocks as Lanczos3,
+  with stronger differences, finds fewer edits, and cannot be used below 2× or without a border at
+  factors like 2.5×. It is the right view for pixel art (where it beats Lanczos3) and for looking at the
+  copy's own pixels, so it is in the PR as requested.
+- **Lanczos3 + unsharp mask: not worth implementing.** Lanczos3 on FreeImage's float path is the best
+  common enlarger; an unsharp mask (σ 0.5–1.5 px, 25–100 %) improves it by a few percent and sharpens
+  JPEG noise with it. The enlargement mode in the PR is plain Lanczos3.
+- **Implemented** as separate PRs in your forks: image alignment (nine anchors, including centre) and
+  size matching (the three modes), each a library commit plus a small UI commit, with matching WinMerge
+  menu PRs. The setting lives behind one API call, so the maintainer can put it wherever he wants.
 
 ## 3. What was tested
 
@@ -86,7 +113,8 @@ Comparing at the smaller size instead (shrinking the original to the copy's size
 |---|---|
 | `down_area` | OpenCV area averaging |
 | `down_fi_<k>` / `down_fi_<k>8` | FreeImage filter k (box, bilinear, B-spline, Mitchell, Catmull-Rom, Lanczos3), float / 8-bit path |
-| `down_matched8` | **WinIMerge's `IMAGE_SCALING_DOWN_MATCHED`**: FreeImage's box, bilinear, Mitchell, Catmull-Rom and Lanczos3 on the 8-bit path; the one with the lowest mean absolute difference to the copy, chosen per pair |
+| `down_matched8a` | **WinIMerge's `IMAGE_SCALING_DOWN_MATCHED`**: FreeImage's box, bilinear, Mitchell, Catmull-Rom and Lanczos3 on the 8-bit path, plus exact area averaging; the one with the lowest mean absolute difference to the copy, chosen per pair |
+| `down_matched8` | the same without the area-averaging candidate (the first version of the PR) |
 | `down_matched` | the same choice among six filters (B-spline too) on the float path (an earlier variant; kept for comparison) |
 | `down_oracle` | the shrinker that really made the copy (an upper bound) |
 
@@ -118,9 +146,191 @@ For every pair, against the large original (or, for `down_*`, the copy against t
   antialiased shrinker and a FreeImage enlargement (pixel-centre convention everywhere), except
   Pillow NEAREST at even factors (0.5 px shift) and NN enlargement at non-integer factors.
 - The WinIMerge implementation (C++) produces bit-identical output to the harness for all three
-  scaling modes (Linux unit tests with the real `ImgDiffBuffer.hpp`).
+  scaling modes (Linux unit tests with the real `ImgDiffBuffer.hpp`). The one exception is the
+  area-averaging candidate, for which the harness uses OpenCV's `INTER_AREA`: the C++ resampler agrees
+  with it to within 1 level (0.2 % of the values differ).
 
-<!-- RESULTS -->
+## 4. Results
+
+All numbers below are medians unless stated otherwise. `results/tables.md` has every table (generated by
+`harness/report.py`, each table computed on the same pairs for all its rows); the CSVs are in `results/`.
+
+### 4.1 Unedited pairs: how much does each WinIMerge mode leave marked?
+
+![Threshold needed by mode and factor](charts/modes_tp99.png)
+
+Synthetic set, 7 images × 10 ways of making the copy = 70 pairs per cell; the three modes exactly as
+WinIMerge implements them (whole-number NN; Lanczos3 on FreeImage's 8-bit path; the matched shrink
+with its six candidates). **T_p99** is the colour-distance threshold that leaves at most 1 % of the
+8×8 blocks marked (for scale: WinIMerge's threshold menu offers 0–64; the distance runs to 510):
+
+| copy saved as | mode | 1.25× | 1.5× | 2× | 2.5× | 3× | 4× |
+|---|---|---|---|---|---|---|---|
+| PNG | enlarge, whole-number NN | – | – | 238 | – | 321 | 314 |
+| PNG | enlarge, Lanczos3 | 94 | 139 | 207 | 261 | 242 | 253 |
+| PNG | **shrink, matched filter** | **3** | **4** | **2** | **5** | **3** | **4** |
+| JPEG q85 | enlarge, whole-number NN | – | – | 248 | – | 326 | 317 |
+| JPEG q85 | enlarge, Lanczos3 | 98 | 142 | 216 | 265 | 252 | 257 |
+| JPEG q85 | **shrink, matched filter** | **45** | **46** | **42** | **52** | **53** | **60** |
+
+"–": whole-number NN does nothing below 2× and leaves a border at 2.5× (k = 2), which WinMerge marks.
+
+Share of blocks still marked at the thresholds WinIMerge's menu offers (PNG copies / JPEG q85 copies):
+
+| mode | factor | T = 8 | T = 16 | T = 32 | T = 64 |
+|---|---|---|---|---|---|
+| enlarge, whole-number NN | 2× | 37 % / 49 % | 35 % / 38 % | 33 % / 33 % | 16 % / 20 % |
+| enlarge, Lanczos3 | 2× | 40 % / 53 % | 37 % / 42 % | 35 % / 35 % | 17 % / 23 % |
+| shrink, matched filter | 2× | 0 % / 58 % | 0 % / 42 % | 0 % / 5 % | 0 % / 0.1 % |
+| enlarge, whole-number NN | 2.5× | 92 % / 93 % | 82 % / 83 % | 78 % / 78 % | 71 % / 71 % |
+| enlarge, Lanczos3 | 2.5× | 47 % / 55 % | 38 % / 45 % | 35 % / 36 % | 33 % / 34 % |
+| shrink, matched filter | 2.5× | 0 % / 61 % | 0 % / 51 % | 0 % / 8.5 % | 0 % / 0.3 % |
+
+What this says:
+
+- **Shrinking is the only mode in which an unedited pair can look clean.** With PNG copies even a
+  threshold of 8 leaves no block marked (median); with JPEG q85 copies the compression noise needs 64
+  (≤ 0.4 % of blocks marked at every factor). The enlargers leave 8–35 % of the blocks marked even at
+  64 (about a third from 2.5× up): the detail lost in the copy cannot be put back.
+- **At whole-number factors, NN and Lanczos3 mark about the same share of blocks**; NN slightly fewer
+  at low thresholds (it keeps flat areas exactly flat, while a smooth filter spreads each edge's error
+  over more blocks), but its differences are stronger (T_p99 238 vs 207 at 2×, 321 vs 242 at 3×).
+- **JPEG noise moves the problem**: at the small size a JPEG copy's noise is not diluted by enlarging,
+  so at T = 8–16 the shrink mode marks as many blocks as the enlargers. It needs a higher threshold
+  (64) but then gets clean; the enlargers never do.
+
+By image (PNG copies, all factors): the matched shrink needs a threshold of 2–10 for every image (the
+manga page with screentone is the hardest, at 10), the enlargers 79–342. **Pixel art is the one case
+where whole-number NN beats Lanczos3** (24 vs 82); the matched shrink is better still (2).
+
+### 4.2 How well does the matched filter reproduce the copy?
+
+Which candidate the WinIMerge rule picks (synthetic, PNG copies, 42 pairs per way of making the copy):
+
+| copy made with | picked | median T_p99 of the shrunk original vs the copy |
+|---|---|---|
+| Pillow BICUBIC | Catmull-Rom 42/42 | 0 (exact) |
+| Pillow BILINEAR | bilinear 42/42 | 0 (exact) |
+| Pillow LANCZOS | Lanczos3 42/42 | 0 (exact) |
+| OpenCV `INTER_AREA` | area 40, box 2 | 0 (exact) |
+| Mitchell (float reference) | Mitchell 42/42 | 1.7 (rounding) |
+| libvips `resize` | Lanczos3 42/42 | 14 |
+| Pillow LANCZOS + unsharp mask | Lanczos3 40, box 2 | 63 |
+| OpenCV `INTER_LINEAR` (no antialiasing) | area 26, box 13, other 3 | 63 |
+| Lanczos3 in linear light | Lanczos3 25, Catmull-Rom 12, other 5 | 76 |
+| Pillow NEAREST | box 30, area 10, Lanczos3 2 | 196 |
+
+- Choosing per pair beats any fixed filter: against a fixed Catmull-Rom shrink (8-bit) the matched
+  shrink needs a lower threshold in 75 % of pairs, the same in 14 % and a higher one in 11 % (median
+  T_p99 2.2 vs 42.6 for PNG copies, 48 vs 62 for JPEG q85). The true resampler (an upper bound no tool
+  can know) gets 0 for PNG and 38 for JPEG q85.
+- Picking by mean absolute difference is close to the best possible pick: judged by the outcome itself
+  (each candidate's own T_p99 on the pair), it is within 1 level of the best candidate in 88 % of PNG
+  pairs and 80 % of JPEG pairs, with the same median for PNG (2.2) and 48 vs 46 for JPEG. A fancier
+  selection rule would gain little.
+- The area-averaging candidate matters: without it (the PR's first version, five FreeImage filters)
+  the medians were 10.4 (PNG) and 50.6 (JPEG), because FreeImage's box filter reproduces area averaging
+  only at whole-number factors (`DISCOVERIES.md` §7).
+- The 8-bit path matters: Pillow rounds to 8 bits between its two passes, as FreeImage's 8-bit path
+  does, so the 8-bit FreeImage shrink reproduces Pillow copies exactly where the float path is off by
+  a few levels (`DISCOVERIES.md` §3, §7).
+- Copies that cannot be reproduced exactly are those whose resampler is in none of the candidates:
+  linear-light resizing, sharpening after resizing, no antialiasing (nearest, OpenCV linear). They
+  still compare far better than any enlargement.
+
+### 4.3 Enlargers compared, and the unsharp mask
+
+Over all factors and both codecs (synthetic), median T_p99 and mean rank among the enlargers
+(1 = needs the lowest threshold on that pair):
+
+| enlarger | T_p99 PNG | T_p99 JPEG q85 | mean rank | blocks @T16 PNG |
+|---|---|---|---|---|
+| Lanczos4 (float) | 191 | 198 | 4.4 | 38.3 % |
+| Lanczos3 + USM σ0.75 50 % | 190 | 194 | 4.5 | 37.9 % |
+| **Lanczos3 (float)** | **195** | **199** | **4.6** | **37.6 %** |
+| Lanczos3 + USM σ1.0 50 % | 188 | 196 | 4.9 | 38.2 % |
+| Lanczos2 (float) | 206 | 209 | 5.5 | 37.7 % |
+| Catmull-Rom (float) | 208 | 210 | 5.6 | 37.5 % |
+| Mitchell | 211 | 213 | 6.3 | 38.0 % |
+| bilinear | 215 | 219 | 7.2 | 38.0 % |
+| NN whole-number, then bilinear to size | 236 | 240 | 8.4 | 36.4 % |
+| NN to the exact size | 275 | 278 | 10.0 | 36.0 % |
+
+- The Lanczos family is best by the threshold needed; Lanczos3 is FreeImage's built-in and within
+  2 % of Lanczos4. The float path and the 8-bit path give the same medians here (the clipping matters
+  at individual hard edges, `DISCOVERIES.md` §1).
+- **Unsharp mask after Lanczos3 lowers the needed threshold by 2–4 %** (PNG and JPEG copies alike)
+  **but marks more blocks at T = 16 with JPEG copies** (43.5–44.1 % instead of 41.9 %), because it
+  sharpens the JPEG noise and the ringing along with the edges.
+  The full grid (σ 0.5–1.5 px × 25–100 %) is in section 4.5 once that run completes. Not worth a mode.
+- Nearest neighbour to the exact size is the worst by threshold, though it marks the fewest blocks at
+  T = 16 for the reason given in 4.1.
+
+### 4.4 Edits: can a real change still be seen?
+
+![Edit visibility by mode](charts/edits_visible.png)
+
+1008 edited pairs (synthetic: 7 images × 9 edits × 2 shrinkers (area, Pillow Lanczos) × factors 2, 2.5,
+3, 4 × PNG and JPEG q85). For each pair the threshold is set where 1 % of the *unedited* blocks of its
+unedited twin are marked (a strict but fair setting: the user tunes the threshold until the noise
+is gone), and the edit counts as visible when at least one of its blocks is still marked.
+
+| mode | edit visible | … at the 0.1 % threshold | share of the edit's blocks marked | unchanged blocks louder than the edit (median) |
+|---|---|---|---|---|
+| enlarge, whole-number NN | 53 % | 34 % | 29 % | 198 |
+| enlarge, NN to exact size | 76 % | 60 % | 41 % | 8 |
+| enlarge, bilinear | 72 % | 60 % | 40 % | 8 |
+| enlarge, Catmull-Rom (float) | 77 % | 65 % | 44 % | 0 |
+| **enlarge, Lanczos3 (WinIMerge UP_SMOOTH)** | **80 %** | **66 %** | **46 %** | **0** |
+| enlarge, Lanczos3 + USM σ1.0 50 % | 82 % | 68 % | 48 % | 0 |
+| shrink, fixed Catmull-Rom (8-bit) | 94 % | 89 % | 78 % | 0 |
+| shrink, five FreeImage filters matched (first version) | 97 % | 93 % | 85 % | 0 |
+| **shrink, matched filter (WinIMerge DOWN_MATCHED)** | **98 %** | **94 %** | **87 %** | **0** |
+| shrink, the true filter (upper bound) | 99 % | 95 % | 88 % | 0 |
+
+The matched shrink is within one point of the upper bound (knowing the true resampler). By edit
+(share visible): the hardest edits are the faint recolour (+18/−6/−18 RGB over 90 px: matched shrink
+89 %, Lanczos3 54 %, whole-number NN 37 %), the smudge (96 % / 67 % / 24 %) and the 3-px dot, which is
+about one pixel of the copy at 3× (100 % / 62 % / 38 %). Text, bars, lines, mosaics and moved regions
+are found by every smooth mode almost always. By factor, the matched shrink stays at 96–99 %, Lanczos3
+falls from 89 % (2×) to 67 % (4×), and whole-number NN is at 0 % at 2.5× (the uncovered border is
+always marked, so no threshold leaves only the edit) and 58–87 % elsewhere. PNG and JPEG q85 copies
+differ little (matched shrink 100 % vs 97 %).
+
+The unsharp mask makes edits slightly easier to see among the enlargers (82 % vs 80 %, mostly the
+small dot and the small text), but comparing at the smaller size is far ahead of any enlarger.
+
+<!-- RESULTS-EDITS -->
+
+### 4.5 Real images
+
+10 real originals (illustrations, a woodblock print, a painting, photos, pixel-art tiles, a terminal
+screenshot; `testset/sources/MANIFEST.md`), copies made with 7 resizers (Pillow bilinear/bicubic/Lanczos,
+libvips, OpenCV area and linear, Lanczos in linear light) at the same six factors, PNG and JPEG q85:
+840 pairs per mode. Median T_p99 (70 pairs per cell):
+
+| copy saved as | mode | 1.25× | 1.5× | 2× | 2.5× | 3× | 4× |
+|---|---|---|---|---|---|---|---|
+| PNG | enlarge, whole-number NN | – | – | 167 | – | 237 | 246 |
+| PNG | enlarge, Lanczos3 | 85 | 104 | 127 | 154 | 167 | 189 |
+| PNG | **shrink, matched filter** | **2** | **1** | **0** | **1** | **1** | **1** |
+| JPEG q85 | enlarge, whole-number NN | – | – | 170 | – | 238 | 246 |
+| JPEG q85 | enlarge, Lanczos3 | 90 | 111 | 137 | 159 | 173 | 196 |
+| JPEG q85 | **shrink, matched filter** | **43** | **47** | **50** | **58** | **60** | **62** |
+
+- Same picture as the synthetic set, more clearly: with PNG copies the matched shrink leaves **no**
+  block marked at threshold 16 at any factor (median), while Lanczos3 leaves 37–65 % and whole-number NN
+  55–99 %. At threshold 64 the matched shrink leaves ≤ 0.8 % even with JPEG copies; Lanczos3 3–25 %.
+- Per image (PNG copies): the matched shrink needs 0–1 for every image; Lanczos3 53 (the painterly
+  Pepper&Carrot cover) to 244 (the pixel-art tiles); NN 127–327. With JPEG q85 copies the matched shrink
+  needs 40–60 for illustrations, paintings and photos, but 93 for the pixel-art tiles and 116 for the
+  terminal screenshot: JPEG at the small size is hard on text and hard pixel edges.
+- Per resizer (PNG copies): Pillow's three and OpenCV's area copies are reproduced exactly (0–1),
+  libvips closely (6), OpenCV `INTER_LINEAR` (49) and linear-light Lanczos (71) cannot be. The picks
+  were right every time for the reproducible ones (60/60 each).
+
+<!-- RESULTS-MORE -->
+
 
 
 ## 5. Is anything other than nearest neighbour a flawed comparison?
@@ -148,9 +358,10 @@ images about a third of all 8×8 blocks stay marked at threshold 16 whatever enl
 detail is not in the copy, so no filter can bring it back, and an enlarged comparison can never be
 clean.
 
-**Lanczos3 + unsharp mask.** Measured over radius 0.5–1.5 px and amount 25–100 % (threshold 0): see
-section 4. Sharpening moves the enlarged copy towards the original's edge contrast but also amplifies
-ringing and JPEG artefacts; it does not make edits easier to find, so it is not worth a mode.
+**Lanczos3 + unsharp mask.** Sharpening moves the enlarged copy towards the original's edge contrast:
+the threshold needed drops by 2–4 % and slightly more edits stay visible (82 % instead of 80 %). But it
+also sharpens ringing and JPEG noise (more blocks marked at low thresholds with JPEG copies), and it
+stays far behind comparing at the smaller size (98 %). Not worth a mode of its own (section 4.3–4.4).
 
 **The honest comparison is at the smaller size.** Shrink the original the way the copy was made.
 Then both images went through the same resampling, and what remains is what really differs: edits
@@ -186,7 +397,7 @@ For comparing duplicates by eye (your use):
 display Windows stretches it with smoothing and one image pixel covers 2×2 device pixels; fine
 differences are then attenuated. ꟻLIP was run at 96 pixels per degree (BenQ RD280U at 85 cm, 1:1
 pixels) and 48 (2× stretch or zoom); the HP 23xw (≈53–59) and the Packard Bell Maestro 226DX (≈55–62)
-fall between. The ranking of the candidates was the same at both (section 4).
+fall between. How the candidates compare at the two densities is in section 4.6.
 
 ## 8. The WinIMerge implementation in brief
 
@@ -195,10 +406,20 @@ fall between. The ranking of the candidates was the same at both (section 4).
   without other changes; the originals are untouched and saving, undo and edits act on them.
 - Scaled images are cached (key: hash of the source and of the reference image, target size, mode),
   because `CompareImages()` runs again on every option change.
+- All resampling uses FreeImage's 8-bit path (Lanczos3 on the float path measured no better for
+  comparison and cost 2.4× the time; `DISCOVERIES.md` §1). The matched shrink tries five FreeImage
+  filters and an exact area-averaging resampler, picks by mean absolute difference, and keeps the pick
+  for the image pair and size, so an edit costs one resample instead of six.
 - `ConvertToRealPos()` maps a canvas pixel to the original pixel it came from; selection edges map so
   that a selection holds the original pixels whose centres lie inside it; `CopyDiff()` copies the pixels
-  a scaled pane shows into every original pixel of the destination they stand for.
-- The C++ output is bit-identical to this harness for all three modes (unit test + `harness/fi.py`).
+  a scaled pane shows into every original pixel of the destination they stand for, and does not copy
+  into a pane shown through a smoothing filter (the difference would grow instead of disappear).
+- The C++ output is bit-identical to this harness for all three modes (unit test + `harness/fi.py`);
+  the area resampler is within 1 level of OpenCV's `INTER_AREA`, which the harness uses for it.
+- An independent review with a randomized AddressSanitizer stress test found no new crash in either
+  branch; its findings (performance of re-matching, copies into smoothed panes, alignment after a
+  growing copy, undo placement) were fixed, and two pre-existing out-of-bounds bugs it confirmed are
+  fixed in a separate PR.
 
 ## 9. What was not tested
 
