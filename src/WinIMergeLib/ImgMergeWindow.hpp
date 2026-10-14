@@ -809,7 +809,8 @@ public:
 		int maxwidth  = (std::max)(m_buffer.GetImageWidth(pane), static_cast<int>(image.getWidth()));
 		int maxheight = (std::max)(m_buffer.GetImageHeight(pane), static_cast<int>(image.getHeight()));
 		m_buffer.Resize(pane, maxwidth, maxheight);
-		imgWindow.SetOverlappedImage(image);
+		// on the image's top-left corner, which is not the canvas origin when the image is aligned
+		imgWindow.SetOverlappedImage(image, GetImageOffset(pane));
 		imgWindow.Invalidate();
 		return true;
 	}

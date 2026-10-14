@@ -387,10 +387,10 @@ public:
 		return m_fipOverlappedImage;
 	}
 
-	void SetOverlappedImage(const fipWinImage& image)
+	void SetOverlappedImage(const fipWinImage& image, const POINT& ptImage = {})
 	{
 		m_fipOverlappedImage = image;
-		m_ptOverlappedImage = {};
+		m_ptOverlappedImage = ptImage;
 		m_ptOverlappedImageCursor = {};
 	}
 

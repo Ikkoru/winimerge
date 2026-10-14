@@ -21,8 +21,8 @@
 
 struct UndoRecord
 {
-	UndoRecord(int pane, Image *oldbitmap, Image *newbitmap, const int modcountnew[3]) : 
-		pane(pane), oldbitmap(oldbitmap), newbitmap(newbitmap)
+	UndoRecord(int pane, Image *oldbitmap, Image *newbitmap, const int modcountnew[3], int dx, int dy) : 
+		pane(pane), oldbitmap(oldbitmap), newbitmap(newbitmap), dx(dx), dy(dy)
 	{
 		for (int i = 0; i < 3; ++i)
 			modcount[i] = modcountnew[i];
@@ -30,6 +30,7 @@ struct UndoRecord
 	int pane;
 	int modcount[3];
 	Image *oldbitmap, *newbitmap;
+	int dx, dy; // how far the edit moved the image on the canvas (a copy that enlarged it to the left or top)
 };
 
 struct UndoRecords
@@ -44,7 +45,7 @@ struct UndoRecords
 		clear();
 	}
 
-	void push_back(int pane, Image *oldbitmap, Image *newbitmap)
+	void push_back(int pane, Image *oldbitmap, Image *newbitmap, int dx = 0, int dy = 0)
 	{
 		++m_currentUndoBufIndex;
 		while (m_currentUndoBufIndex < static_cast<int>(m_undoBuf.size()))
@@ -55,7 +56,7 @@ struct UndoRecords
 			m_undoBuf.pop_back();
 		}
 		++m_modcount[pane];
-		m_undoBuf.push_back(UndoRecord(pane, oldbitmap, newbitmap, m_modcount));
+		m_undoBuf.push_back(UndoRecord(pane, oldbitmap, newbitmap, m_modcount, dx, dy));
 	}
 
 	const UndoRecord& undo()
@@ -227,6 +228,7 @@ public:
 			return;
 
 		Image *oldbitmap = new Image(m_imgOrig32[dstPane]);
+		const Point<unsigned> oldOffset = m_offset[dstPane];
 
 		{
 			TemporaryTransformation tmp(*this);
@@ -234,7 +236,7 @@ public:
 		}
 
 		Image *newbitmap = new Image(m_imgOrig32[dstPane]);
-		m_undoRecords.push_back(dstPane, oldbitmap, newbitmap);
+		PushUndoRecord(dstPane, oldbitmap, newbitmap, oldOffset);
 		CompareImages();
 	}
 
@@ -250,6 +252,7 @@ public:
 			return;
 
 		Image *oldbitmap = new Image(m_imgOrig32[dstPane]);
+		const Point<unsigned> oldOffset = m_offset[dstPane];
 
 		{
 			TemporaryTransformation tmp(*this);
@@ -258,7 +261,7 @@ public:
 		}
 
 		Image *newbitmap = new Image(m_imgOrig32[dstPane]);
-		m_undoRecords.push_back(dstPane, oldbitmap, newbitmap);
+		PushUndoRecord(dstPane, oldbitmap, newbitmap, oldOffset);
 		CompareImages();
 	}
 
@@ -270,6 +273,7 @@ public:
 			return 0;
 
 		Image *oldbitmap = new Image(m_imgOrig32[dstPane]);
+		const Point<unsigned> oldOffset = m_offset[dstPane];
 		int nMerged = 0;
 		{
 			TemporaryTransformation tmp(*this);
@@ -310,7 +314,7 @@ public:
 		}
 
 		Image *newbitmap = new Image(m_imgOrig32[dstPane]);
-		m_undoRecords.push_back(dstPane, oldbitmap, newbitmap);
+		PushUndoRecord(dstPane, oldbitmap, newbitmap, oldOffset);
 		CompareImages();
 
 		return nMerged;
@@ -360,6 +364,7 @@ public:
 			return false;
 		const UndoRecord& rec = m_undoRecords.undo();
 		m_imgOrig32[rec.pane] = *rec.oldbitmap;
+		MoveImage(rec.pane, -rec.dx, -rec.dy);
 		CompareImages();
 		return true;
 	}
@@ -370,6 +375,7 @@ public:
 			return false;
 		const UndoRecord& rec = m_undoRecords.redo();
 		m_imgOrig32[rec.pane] = *rec.newbitmap;
+		MoveImage(rec.pane, rec.dx, rec.dy);
 		CompareImages();
 		return true;
 	}
@@ -561,6 +567,39 @@ protected:
 		for (int i = top; i < bottom; ++i)
 			memcpy(m_imgOrig32[pane].scanLine(i) + left * 4, 
 				image.scanLine(i - y) + (left - x) * 4, (right - left) * 4);
+	}
+
+	void PushUndoRecord(int pane, Image *oldbitmap, Image *newbitmap, const Point<unsigned>& oldOffset)
+	{
+		m_undoRecords.push_back(pane, oldbitmap, newbitmap,
+			static_cast<int>(m_offset[pane].x) - static_cast<int>(oldOffset.x),
+			static_cast<int>(m_offset[pane].y) - static_cast<int>(oldOffset.y));
+	}
+
+	/**
+	 * @brief Moves the image of a pane by (dx, dy) on the canvas (undoing or redoing a copy that
+	 * enlarged it to the left or top) and keeps the smallest offset at 0.
+	 */
+	void MoveImage(int pane, int dx, int dy)
+	{
+		if (dx == 0 && dy == 0)
+			return;
+		Point<int> offset[3];
+		int minx = INT_MAX, miny = INT_MAX;
+		for (int i = 0; i < m_nImages; ++i)
+		{
+			offset[i].x = static_cast<int>(m_offset[i].x) + (i == pane ? dx : 0);
+			offset[i].y = static_cast<int>(m_offset[i].y) + (i == pane ? dy : 0);
+			minx = (std::min)(minx, offset[i].x);
+			miny = (std::min)(miny, offset[i].y);
+		}
+		for (int i = 0; i < m_nImages; ++i)
+		{
+			m_offset[i].x = offset[i].x - minx;
+			m_offset[i].y = offset[i].y - miny;
+		}
+		m_alignmentOffset[pane].x += dx;
+		m_alignmentOffset[pane].y += dy;
 	}
 
 	void CopyDiffInternal(int diffIndex, int srcPane, int dstPane)
