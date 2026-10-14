@@ -1,6 +1,6 @@
 """Build the eye-check page: flip between a large original and each candidate made from its small copy.
 
-    python3 eyecheck.py --out /home/user/research/eyecheck [--cases cases.json]
+    python3 eyecheck.py --out ../eyecheck [--cases cases.json]
 
 Writes OUT/index.html (self-contained page, no network), OUT/img/*.png (crops) and OUT/cases.json.
 Each case = one large original, one way the small copy was made (shrinker, factor, codec, optional
@@ -21,6 +21,7 @@ import edits as E
 import fi
 import resample as R
 import study as S
+from paths import RESULTS, ROOT, TESTSET
 
 CANDIDATES = [
     # id, label, function(L, S) -> image at large size
@@ -52,7 +53,7 @@ DEFAULT_CASES = [
     dict(image='real_kitty_screenshot', shrinker='pil_lanczos', factor=2, codec='png', edit='dot'),
 ]
 
-IMG_DIRS = ['/home/user/research/testset/large', '/home/user/research/testset/large_real']
+IMG_DIRS = [os.path.join(TESTSET, 'large'), os.path.join(TESTSET, 'large_real')]
 CROP = 256
 
 
@@ -354,7 +355,7 @@ fillCands(); info(); save(); requestAnimationFrame(draw);
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
-    ap.add_argument('--out', default='/home/user/research/eyecheck')
+    ap.add_argument('--out', default=os.path.join(ROOT, 'eyecheck'))
     ap.add_argument('--cases', default='')
     a = ap.parse_args()
     cases = json.load(open(a.cases)) if a.cases else DEFAULT_CASES

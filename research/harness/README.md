@@ -48,14 +48,19 @@ mkdir -p testset/large && ln -s ../synth/*.png testset/large/
 | `eyecheck.py` | the flip page (`eyecheck/index.html`, self-contained) |
 | `compare_pairs.py` | the same measurements on your own image pairs |
 | `make_real_crops.py` | recreates the real-image crops from the sources |
-| `run_chain3.sh` | runs every experiment in order (resumable) |
+| `heavy_analysis.py` | perceptual metrics (heavy run): medians per candidate and how well each metric agrees with WinMerge's outcome |
+| `chroma_test.py` | JPEG 4:2:0 chroma upsampling (libjpeg's smooth default vs replicated) |
+| `roundtrip_test.py` | the brief's suggestion 4 (matched shrink, then enlarge both panes) vs comparing at the small size, with edit detection on ꟻLIP maps too |
+| `im_spotcheck.py` | copies made by ImageMagick (default, Catmull-Rom, WordPress's thumbnail recipe, linear light): does the matched shrink reproduce them? |
+| `run_chain3.sh`, `run_chain4.sh` | every `study.py` experiment, in order (resumable); chain 3 first, then chain 4 |
 
 ## Running
 
 ```sh
 cd harness
 python3 study.py run spurious --images ../testset/large --tag synth --jobs 4   # one experiment
-./run_chain3.sh                                                                # everything (hours)
+./run_chain3.sh && ./run_chain4.sh                                             # everything (many hours)
+python3 roundtrip_test.py; python3 im_spotcheck.py; python3 chroma_test.py     # the side experiments
 python3 report.py && python3 charts.py && python3 eyecheck.py --out ../eyecheck
 python3 compare_pairs.py /path/to/my/pairs --heavy --eyecheck /path/to/out    # your own pairs
 ```

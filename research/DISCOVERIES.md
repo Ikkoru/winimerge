@@ -77,6 +77,20 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
   LBB), Pillow bicubic a = −0.5 (= Catmull-Rom), OpenCV bilinear (its cubic is a = −0.75), FFmpeg
   bicubic B = 0, C = 0.6, Chrome bilinear + mipmaps.
 
+- **ImageMagick 6.9 (Q16) shrinks are reproduced by FreeImage's 8-bit filters to about one level**
+  (measured, `harness/im_spotcheck.py`): the default `-resize` (Lanczos when shrinking) by Lanczos3
+  (median T_p99 5.2 over 21 synthetic pairs), `-filter Catrom` by Catmull-Rom (3.5). What remains is
+  ImageMagick's 16-bit intermediate against the 8-bit rounding between passes; it shows on the finest
+  texture (screentone: 15–27).
+- **WordPress's Imagick thumbnails are plain bilinear shrinks** (read in WordPress's
+  `class-wp-image-editor-imagick.php`, `thumbnail_image()`, on 2026-10-14; measured): `FILTER_TRIANGLE`
+  with `filter:support` 2.0, which changes nothing measurable (FreeImage's bilinear reproduces the PNG
+  copies to within rounding, median T_p99 1.7; so the triangle's weights must be zero beyond 1, and the
+  wider support only adds zero-weight taps: inferred). JPEG thumbnails also get
+  `unsharpMaskImage(0.25, 0.25, 8, 0.065)` (σ 0.25 px, so very little) and quality 82 (the default,
+  `get_default_quality()`; 86 for WebP). Beyond 3× per axis (area ratio < 0.111) WordPress first
+  point-samples to 5× the target size (`sampleImage`), which aliases: not covered by the spot check.
+
 ## 4. Tools and environment notes
 
 - **jpeg-quantsmooth (jpegQS)** builds from `github.com/ilyakurdyukov/jpeg-quantsmooth` with plain
@@ -213,3 +227,53 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
   Measured (`tools/winimerge-linux-test/test_timing.cpp`, under load).
 - **Image borders do not distort the numbers**: dropping the outermost ring of 8×8 blocks changed the
   threshold needed by at most 0.5 (matched shrink) and 1.7 (Lanczos3). Measured, 27 pairs.
+
+## 10. Perceptual metrics: where the models of the eye and WinMerge's marks part ways
+
+- **ꟻLIP rates nearest neighbour as the closest enlargement at 2×** (measured, 84 synthetic pairs,
+  `results/heavy_synth.csv`): NN to the exact size beats Lanczos3 on ꟻLIP's mean error at 96 pixels per
+  degree in 89 % of the pairs at 2×, 64 % at 3×, 43 % at 2.5× (median error about 10 % lower at 2× and
+  3×); in every pair of line art, flat colour, manga and UI text, but only a quarter to a third of the
+  painterly and pixel-art pairs. Butteraugli is split (71 % at 2×), SSIMULACRA2 prefers Lanczos3, and
+  WinMerge's threshold prefers Lanczos3 in 95 % of the pairs. Reason (inferred): at 96 ppd a 2× NN step
+  is 1.25 arcmin, near the acuity limit, while a smooth filter lowers every edge's contrast; WinMerge's
+  per-pixel colour distance counts every staircase pixel in full.
+- **At 48 ppd the staircases become visible**: NN beats Lanczos3 in 75 % of the pairs at 2×, 57 % at 3×,
+  21 % at 2.5× (measured). Viewing distance and zoom decide which enlargement looks closer.
+- **Among enlargers, the perceptual metrics do not predict WinMerge's outcome** (measured): mean
+  within-pair Spearman correlation with T_p99 is −0.06 for ꟻLIP's mean, 0.08 for Butteraugli's
+  3-norm, 0.47 for SSIMULACRA2 and worst-tile SSIM. Over all candidates (the matched shrink included)
+  they agree well (0.71–0.85): the big differences are seen by everything, the fine ranking is not.
+- **Butteraugli's max-norm ranks the unsharp mask last** of all enlargers (its halos are the worst
+  spots), while SSIMULACRA2 ranks it first: one more reason not to ship a sharpening option.
+- **Enlarging both panes after the matched shrink smooths their difference** (measured, `harness/
+  roundtrip_test.py`): with JPEG q85 copies the threshold needed falls from 40 to 32 (Lanczos3) or 28
+  (bilinear) and the faint recolour edit is found in every pair (91 % at the small size); with PNG copies
+  nothing changes (exact either way). JPEG noise is finer-grained than most edits, so a low-pass on the
+  difference removes more noise than signal.
+- **ꟻLIP's error map works as an edit detector** (measured): taking each 8×8 block's maximum of the
+  ꟻLIP map and the threshold where 1 % of the unedited twin's blocks exceed it, the edit stands out in
+  100 % of pairs at the small size and 94–95 % with an enlarger (WinMerge's colour distance: 96–100 % and
+  74–78 %). Same ranking of the modes, slightly more forgiving.
+
+## 11. JPEG restoration and codecs
+
+- **jpegQS (QuantSmooth) before comparing makes WinMerge's comparison slightly harder, not easier**
+  (measured, `results/jpegqs_synth.csv`, 4 synthetic images, Pillow Lanczos/area copies at 2–3×): with
+  the matched shrink the threshold needed rises in 88–100 % of the pairs (median +8 to +12 levels; q85:
+  39 → 50–52, q60: 78 → 90–91), with `-q 3` and `-q 6` alike, while the share of blocks over low
+  thresholds (8–16) drops by up to 4 points. It trades the faint, widespread quantisation noise for fewer
+  but larger departures where its smoothing guesses the lost detail differently from the original.
+  Edits are found as often as without it. For enlargements it does not help either (Lanczos3 needs up to
+  9 more). jpegQS improves how a JPEG looks (SSIMULACRA2, the brief's item 9), not how closely it matches
+  its source pixel by pixel: open the downloaded JPEG for diffing, or raise the threshold by about 10.
+- **The threshold a clean comparison needs follows the copy's compression** (measured,
+  `results/codec_synth.csv`, matched shrink, 28 pairs per codec): PNG 0, JPEG q95 31, WebP q90 32, JPEG
+  q85 4:4:4 35, WebP q75 40, JPEG q85 41, q75 57, q60 79 (medians of T_p99). WinMerge's menu stops at 64,
+  which cleans everything down to q75 (≤ 1 % of blocks in 93–100 % of pairs) but leaves 5 % at q60.
+- **4:2:0 chroma subsampling makes the worst blocks worse even at q95** (90th percentile 51 vs 38 for
+  q85 at 4:4:4): saturated colour edges carry the largest errors. (Measured; the decoder's chroma
+  upsampling choice, by contrast, hardly matters: §9.)
+- **WinMerge's threshold option accepts more than the menu offers** (read in the source): the menu has
+  0, 2, 4, 8, 16, 32, 64, but the option `Settings/ImageColorDistanceThreshold` is stored × 1000 with a
+  range up to 442 × 1000 (442 = the largest RGB distance between two opaque colours). Not tried.

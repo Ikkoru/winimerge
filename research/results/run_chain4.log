@@ -3,3 +3,59 @@ usm: 0 tasks to run on 7 images (420 already done) -> /home/user/research/result
 === heavy (synth) 07:37:07
 heavy: 84 tasks to run on 7 images (0 already done) -> /home/user/research/results/heavy_synth.csv
   20/84 tasks, 13.9 min elapsed, ~44.5 min left
+  40/84 tasks, 37.7 min elapsed, ~41.5 min left
+  60/84 tasks, 62.2 min elapsed, ~24.9 min left
+  80/84 tasks, 78.3 min elapsed, ~3.9 min left
+  84/84 tasks, 79.4 min elapsed, ~0.0 min left
+=== jpegqs --only synth_flatcolor,synth_lineart,synth_manga,synth_painterly (synth) 08:56:34
+jpegqs: 432 tasks to run on 4 images (0 already done) -> /home/user/research/results/jpegqs_synth.csv
+  20/432 tasks, 0.3 min elapsed, ~5.8 min left
+  40/432 tasks, 0.6 min elapsed, ~5.5 min left
+  60/432 tasks, 0.9 min elapsed, ~5.9 min left
+  80/432 tasks, 1.3 min elapsed, ~5.9 min left
+  100/432 tasks, 1.7 min elapsed, ~5.7 min left
+  120/432 tasks, 2.0 min elapsed, ~5.3 min left
+  140/432 tasks, 2.3 min elapsed, ~4.7 min left
+  160/432 tasks, 2.6 min elapsed, ~4.4 min left
+  180/432 tasks, 3.0 min elapsed, ~4.2 min left
+  200/432 tasks, 3.3 min elapsed, ~3.9 min left
+  220/432 tasks, 3.7 min elapsed, ~3.6 min left
+  240/432 tasks, 4.0 min elapsed, ~3.2 min left
+  260/432 tasks, 4.2 min elapsed, ~2.8 min left
+  280/432 tasks, 4.6 min elapsed, ~2.5 min left
+  300/432 tasks, 5.0 min elapsed, ~2.2 min left
+  320/432 tasks, 5.4 min elapsed, ~1.9 min left
+  340/432 tasks, 5.6 min elapsed, ~1.5 min left
+  360/432 tasks, 5.9 min elapsed, ~1.2 min left
+  380/432 tasks, 6.3 min elapsed, ~0.9 min left
+  400/432 tasks, 6.7 min elapsed, ~0.5 min left
+  420/432 tasks, 7.0 min elapsed, ~0.2 min left
+  432/432 tasks, 7.3 min elapsed, ~0.0 min left
+=== codec (synth) 09:03:50
+codec: 224 tasks to run on 7 images (0 already done) -> /home/user/research/results/codec_synth.csv
+  20/224 tasks, 0.7 min elapsed, ~7.5 min left
+  40/224 tasks, 1.4 min elapsed, ~6.4 min left
+  60/224 tasks, 2.1 min elapsed, ~5.6 min left
+  80/224 tasks, 2.8 min elapsed, ~5.0 min left
+  100/224 tasks, 3.4 min elapsed, ~4.3 min left
+  120/224 tasks, 4.1 min elapsed, ~3.6 min left
+  140/224 tasks, 4.8 min elapsed, ~2.9 min left
+  160/224 tasks, 5.5 min elapsed, ~2.2 min left
+  180/224 tasks, 6.2 min elapsed, ~1.5 min left
+  200/224 tasks, 6.8 min elapsed, ~0.8 min left
+  220/224 tasks, 7.2 min elapsed, ~0.1 min left
+  224/224 tasks, 7.3 min elapsed, ~0.0 min left
+=== edits --factors 2,2.5,3 (real) 09:11:09
+edits: 1080 tasks to run on 10 images (0 already done) -> /home/user/research/results/edits_real.csv
+  20/1080 tasks, 0.1 min elapsed, ~5.0 min left
+  40/1080 tasks, 0.2 min elapsed, ~4.5 min left
+  60/1080 tasks, 0.3 min elapsed, ~4.4 min left
+  80/1080 tasks, 0.3 min elapsed, ~4.2 min left
+  100/1080 tasks, 0.4 min elapsed, ~4.0 min left
+  120/1080 tasks, 0.5 min elapsed, ~3.8 min left
+  140/1080 tasks, 0.5 min elapsed, ~3.6 min left
+  160/1080 tasks, 0.6 min elapsed, ~3.5 min left
+  180/1080 tasks, 0.7 min elapsed, ~3.4 min left
+  200/1080 tasks, 0.7 min elapsed, ~3.2 min left
+  220/1080 tasks, 1.0 min elapsed, ~3.8 min left
+  240/1080 tasks, 1.7 min elapsed, ~6.0 min left

@@ -21,6 +21,7 @@ import fi
 import metrics as M
 import resample as R
 import study as S
+from paths import RESULTS, ROOT, TESTSET
 
 IMAGES = ['synth_flatcolor', 'synth_lineart', 'synth_manga', 'synth_painterly', 'synth_text_ui', 'synth_pixelart', 'synth_zoneplate']
 
@@ -32,7 +33,7 @@ def djpeg(path, smooth):
 
 def task(args):
     name, shr, f = args
-    L = np.asarray(Image.open(f'/home/user/research/testset/large/{name}.png').convert('RGB'))
+    L = np.asarray(Image.open(os.path.join(TESTSET, 'large', f'{name}.png')).convert('RGB'))
     H, W = L.shape[:2]
     w, h = R.small_size(W, H, f)
     Sm = R.SHRINKERS[shr](L, w, h)
@@ -61,7 +62,7 @@ def main():
         rows = [r for rr in pool.map(task, tasks) for r in rr]
     import pandas as pd
     df = pd.DataFrame(rows)
-    df.to_csv('/home/user/research/results/chroma_synth.csv', index=False)
+    df.to_csv(os.path.join(RESULTS, 'chroma_synth.csv'), index=False)
     print(df.groupby(['candidate', 'upsampling'])[['T_p99', 'share_T16', 'share_T64', 'psnr']].median().round(3))
     piv = df.pivot_table(index=['image', 'shrinker', 'factor', 'candidate'], columns='upsampling', values='T_p99')
     print('pairs where fancy upsampling needs a lower threshold:',

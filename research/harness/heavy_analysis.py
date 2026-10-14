@@ -1,6 +1,6 @@
 """Perceptual metrics (heavy run): which candidate looks closest, and do the metrics agree?
 
-    python3 heavy_analysis.py [--results /home/user/research/results]
+    python3 heavy_analysis.py [--results ../results]
 
 Prints medians per candidate (ꟻLIP at 96 and 48 pixels per degree, Butteraugli max and 3-norm,
 SSIMULACRA2, worst-tile SSIM, T_p99) and the mean Spearman rank correlation, within each pair, between
@@ -12,6 +12,7 @@ import os
 
 import numpy as np
 import pandas as pd
+from paths import RESULTS, ROOT, TESTSET
 
 METRICS = [('T_p99', 'T_p99', False), ('flip_mean_ppd96', 'ꟻLIP mean @96', False), ('flip_p99_ppd96', 'ꟻLIP p99 @96', False),
            ('flip_mean_ppd48', 'ꟻLIP mean @48', False), ('ba_max', 'Butteraugli max', False), ('ba_p3', 'Butteraugli 3-norm', False),
@@ -22,7 +23,7 @@ ORDER = ['nn_int_center', 'nn', 'sharp_bilinear', 'fi_bilinear', 'fi_mitchell', 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--results', default='/home/user/research/results')
+    ap.add_argument('--results', default=RESULTS)
     a = ap.parse_args()
     frames = []
     for f in sorted(glob.glob(os.path.join(a.results, 'heavy_*.csv'))):
