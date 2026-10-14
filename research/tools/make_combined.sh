@@ -34,7 +34,15 @@ R('src/WinIMerge/WinIMerge.cpp', "(wmId - ID_VIEW_ALIGNMENT_TOP_LEFT));\n\t\tcas
 R('src/WinIMerge/WinIMerge.rc', 'ID_VIEW_ALIGNMENT_BOTTOM_RIGHT\n        POPUP "Size Mat&ching"', 'ID_VIEW_ALIGNMENT_BOTTOM_RIGHT\n        END\n        POPUP "Size Mat&ching"')
 PY
 ! grep -rn "^<<<<<<<\|^>>>>>>>" src/ || { echo "unresolved conflicts"; exit 1; }
-git add -A src && git -c user.name=Claude -c user.email=noreply@anthropic.com commit -q -m "Merge image alignment and image scaling" && echo "merged: $(git log --oneline -1)"
+git add -A src && git -c user.name=Claude -c user.email=noreply@anthropic.com commit -q -m "Merge image alignment and image scaling (for testing both together)
+
+Resolves the add/add conflicts (both branches append to the same enum,
+interface and View menu) and adds the one integration change: a pane
+whose scale changes is aligned again (ScaleImages sets
+m_alignImagesPending).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_011DaoEzRioXAZckz9AW1kyX" && echo "merged: $(git log --oneline -1)"
 /home/user/research/tools/mingw-syntax-check.sh $WT | tail -1
 cd /home/user/research/tools/winimerge-linux-test
 for t in test_alignment.cpp test_scaling.cpp test_combined.cpp; do OUTDIR=/tmp/claude-0/-home-user/c93e777e-edee-5658-827e-7ebd2f76571d/scratchpad/scaletest ./build.sh $WT $t 2>&1 | tail -1; done

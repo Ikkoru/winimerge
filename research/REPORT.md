@@ -145,6 +145,9 @@ For every pair, against the large original (or, for `down_*`, the copy against t
 - Centroids of Gaussian blobs at sub-pixel positions stay within 0.04 px through every
   antialiased shrinker and a FreeImage enlargement (pixel-centre convention everywhere), except
   Pillow NEAREST at even factors (0.5 px shift) and NN enlargement at non-integer factors.
+- Image borders are included in every number. Leaving out the outermost ring of 8×8 blocks changed
+  T_p99 by at most 0.5 (matched shrink) and 1.7 (Lanczos3) and the share of blocks marked by less than
+  half a point (27 pairs), so the libraries' different edge handling does not matter here.
 - The WinIMerge implementation (C++) produces bit-identical output to the harness for all three
   scaling modes (Linux unit tests with the real `ImgDiffBuffer.hpp`). The one exception is the
   area-averaging candidate, for which the harness uses OpenCV's `INTER_AREA`: the C++ resampler agrees
@@ -224,6 +227,10 @@ Which candidate the WinIMerge rule picks (synthetic, PNG copies, 42 pairs per wa
   shrink needs a lower threshold in 75 % of pairs, the same in 14 % and a higher one in 11 % (median
   T_p99 2.2 vs 42.6 for PNG copies, 48 vs 62 for JPEG q85). The true resampler (an upper bound no tool
   can know) gets 0 for PNG and 38 for JPEG q85.
+- How often the pick is the resampler that really made the copy (where one of the candidates is it):
+  99 % (synthetic) and 100 % (real) for PNG copies, but only 73 % and 56 % for JPEG q85 copies, where the
+  compression removes the fine detail that tells the filters apart and a softer filter often wins.
+  The outcome hardly suffers (next point).
 - Picking by mean absolute difference is close to the best possible pick: judged by the outcome itself
   (each candidate's own T_p99 on the pair), it is within 1 level of the best candidate in 88 % of PNG
   pairs and 80 % of JPEG pairs, with the same median for PNG (2.2) and 48 vs 46 for JPEG. A fancier
@@ -329,6 +336,23 @@ libvips, OpenCV area and linear, Lanczos in linear light) at the same six factor
   libvips closely (6), OpenCV `INTER_LINEAR` (49) and linear-light Lanczos (71) cannot be. The picks
   were right every time for the reproducible ones (60/60 each).
 
+### 4.6 JPEG chroma upsampling
+
+Does it matter how the decoder upsamples a 4:2:0 JPEG's colour? 42 synthetic pairs (7 images ×
+Pillow Lanczos and area × factors 2, 2.5, 3), copy saved as JPEG q85 4:2:0, decoded by libjpeg-turbo's
+`djpeg` with its default smooth ("fancy") chroma upsampling and with `-nosmooth` (replicated chroma;
+`harness/chroma_test.py`):
+
+| mode | upsampling | median T_p99 | blocks @T16 | blocks @T64 |
+|---|---|---|---|---|
+| shrink, matched filter | smooth (default) | 40 | 44 % | 0 % |
+| shrink, matched filter | replicated | 42 | 49 % | 0 % |
+| enlarge, Lanczos3 | smooth (default) | 249 | 45 % | 33 % |
+| enlarge, Lanczos3 | replicated | 249 | 48 % | 33 % |
+
+The decoder's default is slightly better (2 levels, 3–5 points of blocks at threshold 16) and the
+difference is far smaller than the JPEG noise itself. FreeImage's JPEG plug-in uses libjpeg's default.
+
 <!-- RESULTS-MORE -->
 
 
@@ -368,6 +392,13 @@ Then both images went through the same resampling, and what remains is what real
 and compression noise. That is WinIMerge's `IMAGE_SCALING_DOWN_MATCHED`. The cost is that
 differences smaller than one pixel of the copy cannot be seen, but the copy cannot show them anyway.
 
+The brief also suggested a variant: after the matched shrink, enlarge *both* images with the same
+filter and compare at the large size, so both carry the same blur. That shows the same differences as
+comparing at the small size, spread over k² times as many pixels, at the cost of a second resample of
+both images and of comparing at the large size (about 15× slower per comparison at 4×, section 8). Zooming
+in on the small comparison (WinMerge's zoom uses nearest neighbour) shows the same thing without
+inventing in-between values, so only the compare-at-the-smaller-size version was implemented.
+
 ## 6. Recommendations
 
 For the WinIMerge/WinMerge feature (implemented in the PR branches, see `notes/upstream-drafts.md`):
@@ -385,11 +416,23 @@ For the WinIMerge/WinMerge feature (implemented in the PR branches, see `notes/u
 For comparing duplicates by eye (your use):
 
 - Use *Shrink to Smallest*; it is the only mode where a clean pair looks clean.
-- Set the colour-distance threshold (WinMerge: Image > Ignore Color Difference) according to how the
-  copy was saved: see the threshold table in section 4. With a lossless copy a low threshold works;
-  with JPEG copies the compression noise sets the floor.
+- Set the colour-distance threshold (WinMerge: Image > Ignore Color Difference) by how the copy was
+  saved. With a lossless copy (PNG, or your jpegQS-restored PNGs: see section 4.8 once that run is in),
+  8–16 leaves nothing marked unless something changed (the matched shrink needs 0–5 for copies from
+  Pillow, OpenCV area averaging and libvips). With JPEG q85 copies the compression noise needs 64, the
+  highest menu value (≤ 1 % of blocks marked; real edits stayed visible in 97 % of JPEG pairs at the
+  equivalent threshold). Section 4.7 gives the values for other JPEG and WebP qualities.
 - Make sure WinMerge is not bitmap-stretched by Windows (section 7), and zoom in (200 % or more) on the
   small comparison: at the copy's resolution one pixel is small on a 4K screen.
+
+For your video comparisons (the brief: the lower-resolution side enlarged with FFmpeg's Lanczos, then a
+difference blend) the same reasoning applies: enlarging leaves the lost detail as a difference along
+every edge in every frame. Scaling the *larger* video down to the smaller one's size and blending there
+shows only what really differs (and JPEG-like compression noise). With FFmpeg, for example
+`-filter_complex "[0:v]scale=W:H:flags=lanczos[a];[a][1:v]blend=all_mode=difference"` where W×H is the
+smaller video's size; try `flags=bicubic` (FFmpeg's default scaler, B = 0, C = 0.6), `bilinear` or
+`area` as well, and keep the one whose difference is darkest on an unedited stretch, which is what
+WinIMerge's matched shrink does automatically. Not measured for video in this study.
 
 ## 7. Viewing conditions
 
@@ -416,6 +459,13 @@ fall between. How the candidates compare at the two densities is in section 4.6.
   into a pane shown through a smoothing filter (the difference would grow instead of disappear).
 - The C++ output is bit-identical to this harness for all three modes (unit test + `harness/fi.py`);
   the area resampler is within 1 level of OpenCV's `INTER_AREA`, which the harness uses for it.
+- Cost, at the brief's example size (a 1000×1500 copy of a 4000×6000 original; Linux, one thread,
+  `-O2`, measured while the experiments kept all four cores busy, so on the slow side;
+  `tools/winimerge-linux-test/test_timing.cpp`): comparing the unscaled pair takes 0.9 s. Switching on
+  the matched shrink takes 2.2 s once (six resamples of the original); afterwards an option change takes
+  0.07 s and an edit of the original 0.7 s (one resample), because everything is compared at the small
+  size. The enlarging modes take 1.6–1.8 s to switch on and about 1.1 s for every later comparison
+  (comparing 24 megapixels), with the enlargement cached.
 - An independent review with a randomized AddressSanitizer stress test found no new crash in either
   branch; its findings (performance of re-matching, copies into smoothed panes, alignment after a
   growing copy, undo placement) were fixed, and two pre-existing out-of-bounds bugs it confirmed are

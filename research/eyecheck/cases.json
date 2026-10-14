@@ -40,7 +40,7 @@
    },
    "down_labels": {
     "down_box": "Shrink the original instead (FreeImage box)",
-    "down_matched": "Shrink the original instead (WinIMerge DOWN_MATCHED): box"
+    "down_matched": "Shrink the original instead (WinIMerge DOWN_MATCHED): area averaging"
    }
   },
   {
@@ -255,7 +255,7 @@
    },
    "down_labels": {
     "down_box": "Shrink the original instead (FreeImage box)",
-    "down_matched": "Shrink the original instead (WinIMerge DOWN_MATCHED): Catmull-Rom"
+    "down_matched": "Shrink the original instead (WinIMerge DOWN_MATCHED): area averaging"
    }
   },
   {
@@ -434,7 +434,7 @@
  "labels": {
   "nn_int": "Nearest neighbour, whole-number factor (requested; WinIMerge UP_NEAREST_INTEGER)",
   "nn": "Nearest neighbour to exact size",
-  "lanczos3": "Lanczos3, float path (WinIMerge UP_SMOOTH)",
+  "lanczos3": "Lanczos3 (WinIMerge UP_SMOOTH)",
   "lanczos3_usm": "Lanczos3 + unsharp mask r1.0 50%",
   "catmullrom": "Catmull-Rom (float path)",
   "bilinear": "Bilinear",

@@ -13,6 +13,8 @@ Nothing was posted upstream (WinMerge/winimerge, WinMerge/winmerge); everything 
 | Ikkoru/winimerge | `claude/trusting-brown-3d75mh` | This research folder (`research/`), no code changes | – |
 | Ikkoru/winmerge | `claude/trusting-brown-3d75mh-align` | Image > Image Alignment menu + `Settings/ImageAlignment` | https://github.com/Ikkoru/winmerge/pull/1 |
 | Ikkoru/winmerge | `claude/trusting-brown-3d75mh-scale` | Image > Size Matching menu + `Settings/ImageScalingMode` | https://github.com/Ikkoru/winmerge/pull/2 |
+| Ikkoru/winimerge | `claude/trusting-brown-3d75mh-combined` | **Testing only**: alignment + scaling merged, with the integration change | – |
+| Ikkoru/winmerge | `claude/trusting-brown-3d75mh-combined` | **Testing only**: both WinMerge menus merged; matches a DLL built from the WinIMerge combined branch | – |
 
 All branches are based on upstream `master` (WinIMerge `da639cd`, WinMerge `ea828d5`). The fork PRs are
 review copies against the forks' own `master` (identical to upstream). Texts for the upstream PRs and an
@@ -59,8 +61,9 @@ run `Build\x64\Release\WinIMerge\WinIMerge.exe`. Manual checklist:
 
 WinMerge: run `DownloadDeps.cmd`, then replace the downloaded `Build\x64\Release\WinIMerge\WinIMergeLib.dll`
 with the one built from the WinIMerge branch (WinIMerge's build writes it to the same relative path,
-`Build\x64\Release\WinIMerge\WinIMergeLib.dll`; with both branches, build the combined branch from
-`tools/make_combined.sh`). Build WinMerge (`WinMerge.sln`, Release x64), then check Image > Image Alignment /
+`Build\x64\Release\WinIMerge\WinIMergeLib.dll`). To try both features at once, build the two
+`claude/trusting-brown-3d75mh-combined` branches together (their interface methods are in the same
+order; a DLL and a WinMerge built from different branch pairs would call the wrong methods). Build WinMerge (`WinMerge.sln`, Release x64), then check Image > Image Alignment /
 Size Matching, that the choice is remembered after restarting, and that the menus show the radio mark.
 
 ## Upstream order (see notes/upstream-drafts.md for the texts)

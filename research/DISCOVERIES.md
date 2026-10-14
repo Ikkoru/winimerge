@@ -191,3 +191,21 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
 - **Menu naming**: both WinIMerge's View menu and WinMerge's Image menu already have a
   "Vector Image Scaling" submenu (the render scale of SVG/EMF images), so the new option is labelled
   "Size Matching" in the menus while the API keeps `SetImageScalingMode()`.
+
+## 9. JPEG decoding and timing
+
+- **JPEG chroma upsampling hardly matters for the comparison.** Decoding 4:2:0 JPEG q85 copies with
+  libjpeg-turbo's default smooth ("fancy") chroma upsampling instead of `djpeg -nosmooth` (replicated
+  chroma) lowered the matched shrink's threshold from 42 to 40 and the share of blocks marked at 16 from
+  49 % to 44 %; Lanczos3 enlargement was unchanged (249). The default is slightly better; JPEG noise
+  dominates either way. Measured, 42 synthetic pairs (`harness/chroma_test.py`).
+- **With JPEG copies the matched filter is often not the one that made the copy, and that is fine.**
+  The pick is the true resampler in 99–100 % of PNG pairs but only 56–73 % of JPEG q85 pairs (JPEG
+  removes the detail that tells the filters apart, so a softer filter often fits better); the outcome
+  stays within one level of the best pick in 80 % of JPEG pairs. Measured.
+- **Comparing at the small size is also much faster.** At 1000×1500 vs 4000×6000 (WinIMerge's C++ on
+  Linux, one thread): a comparison at the large size takes ~1 s, at the small size 0.07 s; switching the
+  matched shrink on costs 2.2 s once (six resamples of the original), an edit of the original 0.7 s.
+  Measured (`tools/winimerge-linux-test/test_timing.cpp`, under load).
+- **Image borders do not distort the numbers**: dropping the outermost ring of 8×8 blocks changed the
+  threshold needed by at most 0.5 (matched shrink) and 1.7 (Lanczos3). Measured, 27 pairs.
