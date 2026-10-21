@@ -197,9 +197,12 @@ def comp_cases(store):
                                     + (' (both restored with jpegQS)' if tag else '')))
         # ground truth at the copy's size: Butteraugli 3-norm of each side against the true small image
         def err(X):
-            return M.butteraugli(C.inner(T, f), C.inner(X, f))['ba_p3']
+            b = M.butteraugli(C.inner(T, f), C.inner(X, f))
+            return b['ba_p3'], b['ba_max']
+        el, es, elq, esq = err(shrink(Hx)), err(Lx), err(shrink(Hq)), err(Lq)
         truth = dict(image=name, factor=f, large=hist, small=lname,
-                     err_large=err(shrink(Hx)), err_small=err(Lx), err_large_qs=err(shrink(Hq)), err_small_qs=err(Lq),
+                     err_large=el[0], err_small=es[0], err_large_qs=elq[0], err_small_qs=esq[0],
+                     max_large=el[1], max_small=es[1], max_large_qs=elq[1], max_small_qs=esq[1],
                      err_large_full=M.butteraugli(C.inner(Mst), C.inner(Hx))['ba_p3'])
         out.append(dict(id=f'c{i + 1}', views=views, truth=truth))
     return out
@@ -474,8 +477,8 @@ function markBtns(container, title, key, field, opts) {
   container.appendChild(row); }
 function intro() {
   const t = { blind: `Each trial is a reference and a copy compared one way, with or without one tiny edit somewhere in the crop. The method, the scale and whether there is an edit are hidden. Flip, decide, and if you see an edit click on it (a magenta cross marks your click). Each method gets the same mix of edits, on different pictures, so finding one edit tells you nothing about the next trial. Results appear when you ask for them.`,
-    comp: `The large file and the small copy come from the same master; both may be lossy, with known save histories. Which one carries more compression damage at the copy's size (the size where a small copy has to earn its keep)? Judge in the matched-shrink view, zoomed, and in your centred whole-number NN view, as saved and after jpegQS. The NN view shows each file's damage at its own resolution, which can point the other way. The truth (each side's damage measured at the copy's size) appears when you ask for it.`,
-    filt: `Lossless (PNG) copies, so only resampling differs. Each view shows the reference and the same small copy prepared one way; Catmull-Rom sits next to Lanczos3. Views that would show identical pixels are merged into one entry.` };
+    comp: `The large file and the small copy come from the same master; both may be lossy, with known save histories. Which one carries more compression damage at the copy's size (the size where a small copy has to earn its keep)? Judge in the matched-shrink view, zoomed, and in your centred whole-number NN view, as saved and after jpegQS. Your answer is kept per view, so answer the as-saved and the restored views separately: the restored answer is the one for deciding what to keep (you would keep the copies restored), the as-saved one says how the files arrived. The NN view shows each file's damage at its own resolution, which can point the other way. The truth (each side's damage at the copy's size, as saved and restored) appears when you ask for it. ← → step through the views and keep the side you are looking at.`,
+    filt: `Lossless (PNG) copies, so only resampling differs. Each view shows the reference and the same small copy prepared one way; Catmull-Rom sits next to Lanczos3. Views that would show identical pixels are merged into one entry. Switching views (buttons or ← →) keeps the side you are looking at, so you can show "from the small copy" and step through the methods.` };
   $('intro').textContent = t[st.sec]; }
 function render() {
   ['blind', 'comp', 'filt'].forEach(s => $('tab-' + s).setAttribute('aria-pressed', String(s === st.sec)));
@@ -497,7 +500,7 @@ function render() {
     const sel = document.createElement('select'); sel.id = 'compSel'; sel.setAttribute('aria-label', 'Case');
     DATA.comp.forEach((c, i) => { const o = document.createElement('option'); o.value = i; o.textContent = `Case ${i + 1}`; if (i === st.ci) o.selected = true; sel.appendChild(o); });
     sel.onchange = () => { st.ci = +sel.value; st.cv = 0; render(); }; nav.appendChild(sel);
-    const c = DATA.comp[st.ci]; btns(views, c.views.map((v, i) => [i, v.label]), st.cv, k => { st.cv = k; st.showB = false; });
+    const c = DATA.comp[st.ci]; btns(views, c.views.map((v, i) => [i, v.label]), st.cv, k => { st.cv = k; });
     const v = c.views[st.cv];
     markBtns(mk, 'More damage in', c.id + '|' + v.key, 'worse', [['large', 'the large file'], ['same', 'about the same'], ['small', 'the small copy']]);
     const res = document.createElement('button'); res.textContent = 'Show the measured answer'; res.onclick = showCompResults; mk.appendChild(res);
@@ -505,7 +508,7 @@ function render() {
     const sel = document.createElement('select'); sel.id = 'filtSel'; sel.setAttribute('aria-label', 'Case');
     DATA.filt.forEach((c, i) => { const o = document.createElement('option'); o.value = i; o.textContent = c.desc; if (i === st.fi) o.selected = true; sel.appendChild(o); });
     sel.onchange = () => { st.fi = +sel.value; st.fv = 0; render(); }; nav.appendChild(sel);
-    const c = DATA.filt[st.fi]; btns(views, c.views.map((v, i) => [i, v.label]), st.fv, k => { st.fv = k; st.showB = false; });
+    const c = DATA.filt[st.fi]; btns(views, c.views.map((v, i) => [i, v.label]), st.fv, k => { st.fv = k; });
     markBtns(mk, 'Spurious differences', c.id + '|' + c.views[st.fv].key, 'spur', [['none', 'none'], ['tiny', 'tiny'], ['clear', 'clear'], ['strong', 'strong']]);
   }
   btns($('modes'), MODES, st.mode, k => { st.mode = k; st.showB = false; noteUse(k); });
@@ -532,10 +535,11 @@ function showCompResults() { const c = DATA.comp[st.ci], tr = TRUTH.comp[c.id];
   $('results').innerHTML = `<h2>Case ${st.ci + 1}: measured</h2><div class="scroll"><table>
    <tr><th></th><th>Large file</th><th>Small copy</th><th>Verdict at the copy's size</th></tr>
    <tr><td>How saved</td><td class="mono">${tr.large}</td><td class="mono">${tr.small}</td><td>${tr.image}, factor ${tr.factor}</td></tr>
-   <tr><td>Damage at the copy's size, as saved</td><td>${tr.err_large.toFixed(2)}</td><td>${tr.err_small.toFixed(2)}</td><td>${side(tr.err_large, tr.err_small)}</td></tr>
-   <tr><td>After jpegQS</td><td>${tr.err_large_qs.toFixed(2)}</td><td>${tr.err_small_qs.toFixed(2)}</td><td>${side(tr.err_large_qs, tr.err_small_qs)}</td></tr>
-   <tr><td>Large file's damage at its own size</td><td>${tr.err_large_full.toFixed(2)}</td><td></td><td></td></tr></table></div>
-   <p class="note">Damage is Butteraugli's 3-norm against the master (shrunk to the copy's size with Pillow's Lanczos); 0 is identical, around 1 is the visibility threshold, higher is worse.</p>`; }
+   <tr><td>Damage at the copy's size, as saved: overall · worst spot</td><td>${tr.err_large.toFixed(2)} · ${tr.max_large.toFixed(2)}</td><td>${tr.err_small.toFixed(2)} · ${tr.max_small.toFixed(2)}</td><td>${side(tr.max_large, tr.max_small)}</td></tr>
+   <tr><td>After jpegQS: overall · worst spot</td><td>${tr.err_large_qs.toFixed(2)} · ${tr.max_large_qs.toFixed(2)}</td><td>${tr.err_small_qs.toFixed(2)} · ${tr.max_small_qs.toFixed(2)}</td><td>${side(tr.max_large_qs, tr.max_small_qs)}</td></tr>
+   <tr><td>Large file's damage at its own size (overall)</td><td>${tr.err_large_full.toFixed(2)}</td><td></td><td></td></tr></table></div>
+   <p class="note">Damage is Butteraugli against the master (shrunk to the copy's size with Pillow's Lanczos): "overall" is its 3-norm, "worst spot" its max-norm, where about 1 is just noticeable; 0 is identical. The verdict uses the worst spot, as REPORT 10.3 does.</p>
+   <p class="note">Your answers: ${c.views.map(v => `${v.label}: <b>${(marks[c.id + '|' + v.key] || {}).worse || '–'}</b>`).join('; ')}.</p>`; }
 const TRUTH = { trials: {}, comp: {} };
 DATA.trials.forEach(t => { TRUTH.trials[t.id] = t.truth; delete t.truth; });
 DATA.comp.forEach(c => { TRUTH.comp[c.id] = c.truth; delete c.truth; });
@@ -548,7 +552,12 @@ document.addEventListener('keydown', e => {
   if (e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
   if (e.code === 'Space') { e.preventDefault(); if (st.mode === 'manual' || st.mode === 'xfade') { st.showB = !st.showB; draw(); } }
   if (e.key === 'ArrowRight' && st.sec === 'blind' && st.ti < DATA.trials.length - 1) { st.ti++; st.showB = false; render(); }
-  if (e.key === 'ArrowLeft' && st.sec === 'blind' && st.ti > 0) { st.ti--; st.showB = false; render(); } });
+  if (e.key === 'ArrowLeft' && st.sec === 'blind' && st.ti > 0) { st.ti--; st.showB = false; render(); }
+  if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && st.sec !== 'blind') {
+    const step = e.key === 'ArrowRight' ? 1 : -1;
+    if (st.sec === 'comp') { const n = DATA.comp[st.ci].views.length; st.cv = (st.cv + step + n) % n; }
+    else { const n = DATA.filt[st.fi].views.length; st.fv = (st.fv + step + n) % n; }
+    e.preventDefault(); render(); } });
 $('copy').onclick = () => { const v = $('out').value; const done = () => { $('copied').textContent = 'Copied.'; };
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(v).then(done, () => { $('out').select(); $('copied').textContent = 'Select-all is on; press Ctrl+C.'; });
   else { $('out').select(); $('copied').textContent = 'Select-all is on; press Ctrl+C.'; } };

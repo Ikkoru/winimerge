@@ -362,6 +362,10 @@
    "err_small": 0.0,
    "err_large_qs": 0.379248,
    "err_small_qs": 0.0,
+   "max_large": 1.0764738321,
+   "max_small": 0.0,
+   "max_large_qs": 1.0467660427,
+   "max_small_qs": 0.0,
    "err_large_full": 0.803664
   },
   {
@@ -374,6 +378,10 @@
    "err_small": 0.0,
    "err_large_qs": 0.513157,
    "err_small_qs": 0.0,
+   "max_large": 0.9314887524,
+   "max_small": 0.0,
+   "max_large_qs": 1.0858645439,
+   "max_small_qs": 0.0,
    "err_large_full": 1.430424
   },
   {
@@ -386,6 +394,10 @@
    "err_small": 0.0,
    "err_large_qs": 0.471607,
    "err_small_qs": 0.0,
+   "max_large": 1.6359775066,
+   "max_small": 0.0,
+   "max_large_qs": 1.3659756184,
+   "max_small_qs": 0.0,
    "err_large_full": 1.501866
   },
   {
@@ -398,6 +410,10 @@
    "err_small": 0.997965,
    "err_large_qs": 0.251299,
    "err_small_qs": 0.754499,
+   "max_large": 1.1061053276,
+   "max_small": 2.5581889153,
+   "max_large_qs": 0.7150655985,
+   "max_small_qs": 2.2009785175,
    "err_large_full": 0.826935
   },
   {
@@ -410,6 +426,10 @@
    "err_small": 0.296836,
    "err_large_qs": 0.184363,
    "err_small_qs": 0.234178,
+   "max_large": 1.0491861105,
+   "max_small": 0.9164872169,
+   "max_large_qs": 0.5653054714,
+   "max_small_qs": 0.7065095901,
    "err_large_full": 0.973733
   },
   {
@@ -422,6 +442,10 @@
    "err_small": 1.03061,
    "err_large_qs": 0.301376,
    "err_small_qs": 0.993225,
+   "max_large": 0.7338382602,
+   "max_small": 2.2233529091,
+   "max_large_qs": 0.657494545,
+   "max_small_qs": 2.0484166145,
    "err_large_full": 1.199874
   },
   {
@@ -434,6 +458,10 @@
    "err_small": 1.034178,
    "err_large_qs": 0.194798,
    "err_small_qs": 0.909546,
+   "max_large": 0.5901520848,
+   "max_small": 2.5977008343,
+   "max_large_qs": 0.5166521668,
+   "max_small_qs": 2.6464588642,
    "err_large_full": 0.549627
   },
   {
@@ -446,6 +474,10 @@
    "err_small": 1.138376,
    "err_large_qs": 0.355936,
    "err_small_qs": 0.995804,
+   "max_large": 1.1380393505,
+   "max_small": 3.3179285526,
+   "max_large_qs": 0.9881849289,
+   "max_small_qs": 2.8339145184,
    "err_large_full": 0.85053
   }
  ]

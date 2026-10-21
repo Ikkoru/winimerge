@@ -908,12 +908,14 @@ By the size of the dot, in pixels of the copy (marked · eye; for the shrink the
   where 1 is black against white) although nothing else flickers; zoomed k× it reaches 0.11–0.23 against a
   background of 0.02. In the enlarged views the same dot is drawn at full strength in the large pane
   (0.25–0.33) but 1 % of the picture flickers more than that (0.42–0.45: every fine detail the copy lost),
-  so the eye singles it out in only 16–19 % of pairs. Your c09 experience in one line.
+  so by strength alone it stands out in only 16–19 % of pairs. Your c09 experience in one line. (By
+  shape it does much better on plain areas: see "Would a dot added to the large file…" below.)
 - **Your c02 dot** is the centre of a small bullseye in the original line art, under half a copy pixel at
   1/2.5. The copy never had it, and the shrunk original loses it the same way, so the shrink view shows
   it in neither pane: what the copy cannot hold cannot differ. Had that dot been *added* to the large file
   after the copy was made, the shrink would still mark it (100 % with a lossless copy), as a faint smudge
-  you would find by its mark rather than by flipping.
+  you would find by its mark rather than by flipping. Whether it would have been more obvious at full
+  resolution is answered below the list.
 - **A JPEG small copy is where the methods diverge.** Edits of a copy pixel or more: shrink 83–100 %,
   Lanczos3 53–88 %. Under half a copy pixel the copy's own compression noise at the small size (an
   unedited pair needs a threshold of 47) swallows the edit in the shrink view (2–34 %), while Lanczos3
@@ -927,6 +929,42 @@ By the size of the dot, in pixels of the copy (marked · eye; for the shrink the
 - **Catmull-Rom against Lanczos3**: the same edits (marked 57 % against 60 %, eye 66 % against 65 %);
   the edit stands out more with Lanczos3 in 67 % of the pairs, with Catmull-Rom in 6 %. The unsharp mask
   adds 2–3 points by marks and sharpens the noise with them; still not worth a mode.
+
+**Would a dot added to the large file be more obvious at full resolution?** (your follow-up on c02.) On a
+plain area it is far more obvious than my eye numbers said, though not more than in the zoomed shrink
+view. The eye numbers above count an edit as seen only when it flickers more than all but 1 %
+of the picture, whatever the shape of the rest; but a dot that appears or vanishes does not look like
+softened edges or JPEG noise. `harness/spot_check.py` scores every difference by how *spot-like* it is
+(its flicker in ꟻLIP's map minus the strongest flicker on a ring around it) and asks whether the dot beats
+all but 1 % of the picture by that score. Dots of half a copy pixel or less, only in the large file:
+
+| view | plain spot: stands out as a dot · other places as spot-like (median) | busy spot |
+|---|---|---|
+| *small PNG:* shrink, zoomed k× | 100 % · 0 | 100 % · 0 |
+| enlarge, Lanczos3 / NN to exact size | 90 / 94 % · 2–3 | 21 / 21 % · ~22,000–23,000 |
+| *small JPEG q85:* shrink, zoomed k× | 77 % · 11 | 29 % · ~2,700 |
+| enlarge, Lanczos3 / NN | 75 / 77 % · 12–16 | 17 / 19 % · ~24,000–26,000 |
+| *large q90 + small PNG:* shrink, zoomed k× | 100 % · 0 | 73 % · 36 |
+| enlarge, Lanczos3 / NN | 90 / 85 % · 6 | 17 / 19 % · ~23,000–24,000 |
+
+- **On a plain area you are right about full resolution.** There the dot is one of very few spot-like
+  flickers and stands out as a dot in 90–94 % of pairs, where the strength-only measure counted some
+  3,000–3,800 blocks of softened edges ahead of it and gave it 21–23 %: those numbers undersold full
+  resolution. It does not beat the zoomed shrink view, though: zoomed k× the shrink shows the same dot as
+  strongly (ꟻLIP 0.22 in both views; 0.02–0.06 only at 1:1), and with a lossless copy nothing else
+  changes there (100 %); with a JPEG copy the two views are even (75–77 %).
+- **On a busy area (hatching, screentone, texture, text) full resolution does not help**: the ring around the
+  dot flickers as well, and some 20,000 blocks look as spot-like (17–21 % found). Only the shrink separates
+  it, mostly by its marks: 100 % with a lossless copy, 73 % with a q90 large file, 29 % with a JPEG copy.
+- **The other spot-like places at full resolution are fine details the copy lost**, which is what your c02
+  dot was. Their median count on a plain area is 0–2 in the two paintings, the photo and the screenshot,
+  5–14 in line art and flat colour, 50 in the manga page and 238 in the UI text. So in line art, manga and
+  text the full-resolution view shows many c02-like vanishing dots, and an added one is just one of them;
+  the shrink view tells which one is real.
+
+So for detail that only the large file has: on plain areas full resolution and the zoomed shrink both show
+it, on busy areas only the shrink does (by its mark), and in line art, manga and text the shrink also keeps
+it apart from the lost details that vanish the same way at full resolution.
 
 **The round trip (your question 2).** In section 4.12 the round trip looked a few points better with JPEG
 copies, and here it is again 2–4 points ahead of the shrink. The reason is WinMerge's block grid, not the
@@ -1206,6 +1244,7 @@ python3 harness/report.py && python3 harness/charts.py                    # tabl
 python3 harness/eyecheck.py --out eyecheck                                # the flip page
 python3 harness/roundtrip_test.py; python3 harness/im_spotcheck.py         # side experiments (4.12, 4.2)
 python3 harness/tiny_edits.py; python3 harness/blocksize_check.py           # follow-up, section 10.1
+python3 harness/spot_check.py                                               # the c02 follow-up (10.1)
 python3 harness/compression_test.py keep; python3 harness/jpeg_history.py --test   # section 10.3
 python3 harness/followup_report.py && python3 harness/eyecheck2.py          # follow-up tables, page 2
 python3 harness/keep_check.py LARGE SMALL --jpegqs                          # keep both? (your files)

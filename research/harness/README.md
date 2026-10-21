@@ -58,6 +58,7 @@ mkdir -p testset/large && ln -s ../synth/*.png testset/large/
 | `compression_test.py` | follow-up: `recover` (one-time vs re-saved JPEGs before/after jpegQS) and `keep` (is a smaller copy worth keeping next to a lossy large file?) |
 | `eyecheck2.py` | eye-check page, round 2 (blind trials, compression cases, filters on PNG copies) |
 | `blocksize_check.py` | follow-up: the round trip against the shrink with the same block area (WinMerge's Diff Block Size) |
+| `spot_check.py` | follow-up: does a tiny dot stand out *as a dot* (against a ring around it) at full resolution and in the zoomed shrink? |
 | `cr_vs_l3.py` | follow-up: Catmull-Rom against Lanczos3 as the enlarger, by the models of the eye (PNG copies) |
 | `jpeg_history.py` | was a JPEG saved more than once? (ghost and shifted-grid checks); `--test` measures it on known histories; also usable on your files |
 | `keep_check.py` | **for your pairs**: is the smaller copy worth keeping next to the larger one? (lossless or JPEG, earlier saves, the larger file's damage at the smaller size; `--jpegqs` compares restored copies too) |
@@ -72,7 +73,7 @@ python3 study.py run spurious --images ../testset/large --tag synth --jobs 4   #
 python3 roundtrip_test.py; python3 im_spotcheck.py; python3 chroma_test.py     # the side experiments
 python3 tiny_edits.py; python3 pixelart_test.py                            # follow-up round
 python3 compression_test.py recover; python3 compression_test.py keep
-python3 blocksize_check.py; python3 cr_vs_l3.py; python3 jpeg_history.py --test
+python3 blocksize_check.py; python3 spot_check.py; python3 cr_vs_l3.py; python3 jpeg_history.py --test
 python3 followup_report.py && python3 eyecheck2.py                          # tables and page 2
 python3 keep_check.py LARGE.jpg SMALL.png --jpegqs                         # keep both? (your own files)
 python3 jpeg_history.py FILE.jpg                                           # saved more than once?

@@ -196,6 +196,48 @@ Catmull-Rom against Lanczos3, same pairs: the edit stands out more with Catmull-
 | round trip (bilinear), block size 8 | 78 % | 80 % | 52 % | 96 % | 94 % | 91 % |
 | round trip (bilinear), block size 8k | 75 % | 76 % | 48 % | 94 % | 91 % | 87 % |
 
+## Does a tiny dot stand out *as a dot*? (`harness/spot_check.py`)
+
+8 pictures × factors 2, 4 × 3 saves × 16 dots × 2 directions. "Spot": the dot's flicker in ꟻLIP's map minus the strongest flicker on a ring around it beats all but 1 % of the unedited comparison's blocks; "strength only": the dot's flicker alone does (the eye measure of the tiny-edit tables). Rank: median number of other blocks at least as spot-like.
+
+
+### small PNG: dot only in the large file (like c02), on a flat or a busy spot
+
+| view | flat spot: all dots | flat spot: ≤ ½ px | flat rank, ≤ ½ px | flat strength only: all dots | busy spot: all dots | busy spot: ≤ ½ px | busy rank, ≤ ½ px | busy strength only: all dots |
+|---|---|---|---|---|---|---|---|---|
+| shrink, zoomed k× | 100 % | 100 % | 0 | 100 % | 100 % | 100 % | 0 | 100 % |
+| enlarge, Lanczos3 | 96 % | 90 % | 3 | 66 % | 51 % | 21 % | 23494 | 50 % |
+| enlarge, NN to exact size | 98 % | 94 % | 2 | 66 % | 52 % | 21 % | 21927 | 52 % |
+
+### small JPEG q85: dot only in the large file (like c02), on a flat or a busy spot
+
+| view | flat spot: all dots | flat spot: ≤ ½ px | flat rank, ≤ ½ px | flat strength only: all dots | busy spot: all dots | busy spot: ≤ ½ px | busy rank, ≤ ½ px | busy strength only: all dots |
+|---|---|---|---|---|---|---|---|---|
+| shrink, zoomed k× | 91 % | 77 % | 11 | 76 % | 69 % | 29 % | 2654 | 62 % |
+| enlarge, Lanczos3 | 91 % | 75 % | 12 | 59 % | 50 % | 17 % | 25902 | 48 % |
+| enlarge, NN to exact size | 91 % | 77 % | 16 | 59 % | 52 % | 19 % | 23776 | 45 % |
+
+### large JPEG q90 + small PNG: dot only in the large file (like c02), on a flat or a busy spot
+
+| view | flat spot: all dots | flat spot: ≤ ½ px | flat rank, ≤ ½ px | flat strength only: all dots | busy spot: all dots | busy spot: ≤ ½ px | busy rank, ≤ ½ px | busy strength only: all dots |
+|---|---|---|---|---|---|---|---|---|
+| shrink, zoomed k× | 100 % | 100 % | 0 | 97 % | 88 % | 73 % | 36 | 82 % |
+| enlarge, Lanczos3 | 96 % | 90 % | 6 | 65 % | 49 % | 17 % | 24096 | 50 % |
+| enlarge, NN to exact size | 95 % | 85 % | 6 | 66 % | 52 % | 19 % | 22642 | 52 % |
+
+### Small PNG, Lanczos3 at full resolution, dots ≤ ½ px only in the large file: median number of other places as spot-like, per picture
+
+| picture | busy | flat |
+|---|---|---|
+| real_kitty_screenshot | 25562 | 0 |
+| real_krita_anime_banner | 11422 | 0 |
+| real_lion_appel | 0 | 0 |
+| real_peppercarrot_cover | 21975 | 2 |
+| synth_flatcolor | 3705 | 14 |
+| synth_lineart | 24677 | 5 |
+| synth_manga | 26669 | 50 |
+| synth_text_ui | 28012 | 238 |
+
 ## Catmull-Rom against Lanczos3 as the enlarger, lossless copies (`harness/cr_vs_l3.py`)
 
 14 pictures × factors 2.0, 2.5, 3.0, 4.0; PNG copies made with Pillow Lanczos, enlarged back with FreeImage (8-bit, as WinIMerge). Lower is closer to the original except SSIMULACRA2. "CR closer" = share of pairs where Catmull-Rom is closer than Lanczos3 by that measure.

@@ -405,3 +405,15 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
 - **jpegQS can make Butteraugli's max-norm worse while improving its 3-norm** (measured): the
   Pepper&Carrot cover q70 at ½ size 1.78 → 2.62 (3-norm 0.74 → 0.74); a q95 small copy 1.31 → 1.50. It
   guesses smooth content where the original had fine texture; the worst spot gets worse.
+- **By shape, a tiny dot on a plain area stands out at full resolution; by strength alone it did not**
+  (measured, `harness/spot_check.py`, 8 pictures × ½ and ¼ size × 3 saves × 16 dots × 2 directions;
+  "spot-like" = the dot's flicker in ꟻLIP's map minus the strongest flicker on a ring around it). Dots of
+  half a copy pixel or less, only in the large file, lossless copy: at full resolution (Lanczos3 or NN) they
+  stand out as a dot in 90–94 % on plain spots (2–3 other places as spot-like, mostly fine details the copy
+  lost), against 21–23 % by strength alone (3,000–3,800 blocks of softened edges flicker as strongly); on
+  busy spots 21 % (~22,000 places as spot-like). The zoomed shrink shows the same dot as strongly (ꟻLIP
+  0.22 either way) and with nothing else changing (100 %); with a JPEG copy the views are even on plain
+  spots (75–77 %) and the shrink leads on busy ones (29 % against 17–19 %). Lost details that look like
+  vanishing dots at full resolution: 0–2 per picture in the paintings, photo and screenshot, 5–14 in line
+  art and flat colour, 50 in manga, 238 in UI text. Raised by the user: a dot is not the same kind of
+  difference as compression noise or blur.

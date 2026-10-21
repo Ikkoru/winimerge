@@ -80,6 +80,18 @@ Size Matching, that the choice is remembered after restarting, and that the menu
 
 - ~~Round trip~~ (REPORT §4.12): dropped after the follow-up (§10.1). Its gain was WinMerge's block
   size; the matched shrink with Diff Block Size 8/k does as well.
+- **Alignment that follows the view centre** (your idea, estimated, not implemented): for whole-number
+  NN at a factor like 2.5× (the copy shown at 80 %), place each smaller image so that the content under
+  the middle of the window lines up in every pane, re-aligning 0.5 s after scrolling, wheel, zoom or a
+  resize stops. The offset is t × (W − w), with t the window centre's position across the largest image
+  (0 at the left edge, 1 at the right): the existing Left/Center/Right anchors are t = 0, ½, 1, so it is a
+  continuous version of `AlignImages()`. Needs a 10th alignment choice, a one-shot timer (WinIMerge
+  already uses timers for blinking) restarted from `ChildWnd_OnHVScroll()` and zoom/resize, and a
+  re-comparison when it fires: ~0.1 s for 2-megapixel pictures, 1–2 s for 24 megapixels (single thread,
+  measured with `test_timing.cpp` under load), nothing while scrolling. About 100 lines in the library
+  plus a menu item per app; the offset math can be unit-tested on Linux, the feel needs Windows. Open
+  questions: jump after the pause or slide while scrolling (marks recomputed at the pause); pause it
+  during next/previous-difference navigation; also offer it with Size Matching None.
 - **A point-sampling candidate for the matched shrink** (REPORT §10.2): thumbnails made with nearest
   neighbour (Pillow NEAREST) are reproduced by no current candidate; point sampling at the common phases
   would make pixel-art thumbnails exact.
