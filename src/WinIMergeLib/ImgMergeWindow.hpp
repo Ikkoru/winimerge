@@ -364,13 +364,17 @@ public:
 
 	void SetCurrentPage(int pane, int page) override
 	{
+		CommitOverlappedImages();
 		m_buffer.SetCurrentPage(pane, page);
+		UpdateScrollBars();
 		Invalidate();
 	}
 
 	void SetCurrentPageAll(int page) override
 	{
+		CommitOverlappedImages();
 		m_buffer.SetCurrentPageAll(page);
+		UpdateScrollBars();
 		Invalidate();
 	}
 
@@ -662,19 +666,25 @@ public:
 
 	void CopyDiff(int diffIndex, int srcPane, int dstPane) override
 	{
+		CommitOverlappedImages();
 		m_buffer.CopyDiff(diffIndex, srcPane, dstPane);
+		UpdateScrollBars();
 		Invalidate();
 	}
 
 	void CopyDiffAll(int srcPane, int dstPane) override
 	{
+		CommitOverlappedImages();
 		m_buffer.CopyDiffAll(srcPane, dstPane);
+		UpdateScrollBars();
 		Invalidate();
 	}
 
 	int CopyDiff3Way(int dstPane) override
 	{
+		CommitOverlappedImages();
 		int result = m_buffer.CopyDiff3Way(dstPane);
+		UpdateScrollBars();
 		Invalidate();
 		return result;
 	}
@@ -771,6 +781,7 @@ public:
 		int pane = GetActivePane();
 		if (pane < 0 || !m_imgWindow[pane].IsRectanlgeSelectionVisible())
 			return false;
+		CommitOverlappedImages();
 		Image image;
 		RECT rc = ConvertToRealRect(pane, m_imgWindow[pane].GetRectangleSelection(), false);
 		m_buffer.CopySubImage(pane, rc.left, rc.top, rc.right, rc.bottom, image);
@@ -790,6 +801,12 @@ public:
 			return false;
 		RECT rc = ConvertToRealRect(pane, m_imgWindow[pane].GetRectangleSelection(), false);
 		Cancel();
+		rc.left = (std::max)(rc.left, 0L);
+		rc.top = (std::max)(rc.top, 0L);
+		rc.right = (std::min)(rc.right, static_cast<long>(m_buffer.GetImageWidth(pane)));
+		rc.bottom = (std::min)(rc.bottom, static_cast<long>(m_buffer.GetImageHeight(pane)));
+		if (rc.right <= rc.left || rc.bottom <= rc.top)
+			return false;
 		bool result = m_buffer.DeleteRectangle(pane, rc.left, rc.top, rc.right, rc.bottom);
 		if (result)
 			Invalidate();
@@ -806,9 +823,6 @@ public:
 		fipImageEx image;
 		image.pasteFromClipboard();
 		image.convertTo32Bits();
-		int maxwidth  = (std::max)(m_buffer.GetImageWidth(pane), static_cast<int>(image.getWidth()));
-		int maxheight = (std::max)(m_buffer.GetImageHeight(pane), static_cast<int>(image.getHeight()));
-		m_buffer.Resize(pane, maxwidth, maxheight);
 		imgWindow.SetOverlappedImage(image);
 		imgWindow.Invalidate();
 		return true;
@@ -847,6 +861,7 @@ public:
 			m_imgWindow[pane].DeleteRectangleSelection();
 			m_imgWindow[pane].DeleteOverlappedImage();
 		}
+		UpdateScrollBars();
 		Invalidate();
 		return true;
 	}
@@ -1717,6 +1732,12 @@ private:
 		m_buffer.PasteImage(pane, rcOverlapeedImage.left, rcOverlapeedImage.top, image);
 		UpdateScrollBars();
 		Invalidate();
+	}
+
+	void CommitOverlappedImages()
+	{
+		for (int pane = 0; pane < m_nImages; ++pane)
+			PasteAndDeleteOverlappedImage(pane);
 	}
 
 	void PasteAndDeleteOverlappedImage(int pane)
