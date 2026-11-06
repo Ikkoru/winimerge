@@ -6,14 +6,17 @@ review copies. To submit upstream, open a PR from the fork branch to `WinMerge/<
 
 ## Recommended order
 
-0. WinIMerge: the bug-fix PR (`claude/trusting-brown-3d75mh-fix-bounds`): two clamps, fixes a crash on master.
+0. WinIMerge: the bug-fix PR (`claude/trusting-brown-3d75mh-fix-bounds`): after upstream #41 only the rotated,
+   non-square Delete is still open (heap overflow); the fork PR #3 text was updated for that on 2026-11-06.
 1. WinIMerge: alignment PR (small, self-contained) — branch `Ikkoru/winimerge:claude/trusting-brown-3d75mh-align`.
 2. WinIMerge: scaling PR — branch `Ikkoru/winimerge:claude/trusting-brown-3d75mh-scale`. Independent of 1;
    whichever lands second needs a trivial rebase (both append to the interface and the View menu), plus one
    change so the alignment follows a pane whose scale changes: in `ScaleImages()`, set
    `m_alignImagesPending = true` when a pane's `scaleX`/`scaleY` differs from the previous value
    (tested together: `research/tools/winimerge-linux-test/test_combined.cpp`, 30 checks).
-3. WinMerge: the two small integration PRs (options + Image menu), after the maintainer has released a
+2b. WinIMerge: Follow View, after 1 and 2 (it extends the alignment enum and only acts on scaled panes): the
+   commit `15cadcb` on top of `claude/trusting-brown-3d75mh-follow` (draft text in section 2c).
+3. WinMerge: the two small integration PRs (and later Follow View, `02af0c2`) (options + Image menu), after the maintainer has released a
    WinIMerge build with the new methods (WinMerge downloads WinIMergeLib.dll from releases; calling a method the
    loaded DLL lacks would crash). In the user's earlier contribution (winimerge#39 + winmerge#3593) the maintainer
    handled the release and the submodule bump themselves.
@@ -121,6 +124,18 @@ and the research link if the branch moves):
 
 (Body: identical to the fork PR https://github.com/Ikkoru/winimerge/pull/3. Independent of the two
 feature PRs; worth submitting first, since alignment and scaling make the crash easier to hit.)
+
+## 2c. WinIMerge PR: Follow View (after alignment and scaling are merged)
+
+**Title:** Add an image alignment that follows the view for scaled images
+
+> When a smaller image is enlarged by a whole number (e.g. a 2.5× copy shown at 2×, so at 80 % of the larger image), no fixed anchor lines it up everywhere: Center matches the middle, Top Left the corner. This adds a 10th choice, **Follow View (Scaled Images)**: half a second after scrolling, zooming or resizing stops, each scaled image that is smaller than the canvas is placed so that the content under the centre of the window lines up in every pane. The offset is t × (largest size − its size), with t the window centre's position across the canvas, so Left/Center/Right are t = 0, ½, 1; unscaled panes stay centred. It jumps into place rather than sliding (each move rebuilds the canvas-sized images, ~0.5 s at 24 megapixels), and Next/Previous Difference does not trigger it.
+>
+> - `CImgDiffBuffer`: `IMAGE_ALIGNMENT_FOLLOW_VIEW`, `SetAlignmentFollowPoint(x, y)` (canvas position; re-compares only when an offset changes), `IsFollowingView()`; `AlignImages()` uses one `CalcAlignmentOffset()` for all choices.
+> - `CImgMergeWindow`: a one-shot 500 ms timer restarted from scrolling, the wheel, `SetZoom()` and `OnSize()`; stopped by `ScrollToDiff()`.
+> - WinIMerge.exe: View > Image Alignment > Follow View (Scaled Images).
+>
+> Tested on Linux with the buffer built against FreeImage (44 checks: corners, centre, an arbitrary point, position mapping, nudges kept on top, nothing happens without a scaled smaller pane, invalid values) and a random operation sequence test under AddressSanitizer (no new crash sites). Not yet built with MSVC or tried on Windows.
 
 ## 3. WinMerge PR: alignment
 

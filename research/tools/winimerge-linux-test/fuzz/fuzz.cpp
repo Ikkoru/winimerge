@@ -130,7 +130,20 @@ static void RunIteration(unsigned seed0, int it)
 #endif
 			break;
 		case 1:
-#ifdef HAS_ALIGN
+#if defined(HAS_FOLLOW)
+			if ((d & 3) == 0)
+			{
+				// what the window does 0.5 s after scrolling: re-align at the view centre (canvas position)
+				const int px = c % (b.CanvasW() + 21) - 10, py = e % (b.CanvasH() + 21) - 10;
+				Log("SetAlignmentFollowPoint(%d, %d)", px, py);
+				b.SetAlignmentFollowPoint(px, py);
+			}
+			else
+			{
+				Log("SetImageAlignment(%d)", a % 10);
+				b.SetImageAlignment(static_cast<CImgDiffBuffer::IMAGE_ALIGNMENT>(a % 10));
+			}
+#elif defined(HAS_ALIGN)
 			Log("SetImageAlignment(%d)", a % 9);
 			b.SetImageAlignment(static_cast<CImgDiffBuffer::IMAGE_ALIGNMENT>(a % 9));
 #endif

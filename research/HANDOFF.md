@@ -1,6 +1,7 @@
 # Hand-off: where everything is and what to do next
 
-Written at the end of the 2026-10-14 session for whoever continues (you or a local Claude session).
+Written at the end of the 2026-10-14 session for whoever continues (you or a local Claude session);
+updated 2026-11-06 (upstream merged into every branch, Follow View added on the `-follow` branches).
 Nothing was posted upstream (WinMerge/winimerge, WinMerge/winmerge); everything lives in the Ikkoru forks.
 
 ## Branches and pull requests
@@ -9,15 +10,21 @@ Nothing was posted upstream (WinMerge/winimerge, WinMerge/winmerge); everything 
 |---|---|---|---|
 | Ikkoru/winimerge | `claude/trusting-brown-3d75mh-align` | Image alignment (9 anchors, e.g. centre): library commit, WinIMerge.exe menu commit, undo/redo/paste placement commit | https://github.com/Ikkoru/winimerge/pull/1 |
 | Ikkoru/winimerge | `claude/trusting-brown-3d75mh-scale` | Size matching (whole-number NN / Lanczos3 / shrink with matched filter): library commit, menu commit, area-averaging commit | https://github.com/Ikkoru/winimerge/pull/2 |
-| Ikkoru/winimerge | `claude/trusting-brown-3d75mh-fix-bounds` | Bug fix on master: Delete/Paste outside the image (crash) | https://github.com/Ikkoru/winimerge/pull/3 |
+| Ikkoru/winimerge | `claude/trusting-brown-3d75mh-fix-bounds` | Bug fix: Delete in a 90°/270° rotated, non-square image (heap overflow; still on upstream `master` after #41, which fixed the plain cases) | https://github.com/Ikkoru/winimerge/pull/3 |
 | Ikkoru/winimerge | `claude/trusting-brown-3d75mh` | This research folder (`research/`), no code changes | – |
 | Ikkoru/winmerge | `claude/trusting-brown-3d75mh-align` | Image > Image Alignment menu + `Settings/ImageAlignment` | https://github.com/Ikkoru/winmerge/pull/1 |
 | Ikkoru/winmerge | `claude/trusting-brown-3d75mh-scale` | Image > Size Matching menu + `Settings/ImageScalingMode` | https://github.com/Ikkoru/winmerge/pull/2 |
-| Ikkoru/winimerge | `claude/trusting-brown-3d75mh-combined` | **Testing only**: alignment + scaling merged, with the integration change | – |
-| Ikkoru/winmerge | `claude/trusting-brown-3d75mh-combined` | **Testing only**: both WinMerge menus merged; matches a DLL built from the WinIMerge combined branch | – |
+| Ikkoru/winimerge | `claude/trusting-brown-3d75mh-follow` | Alignment + scaling merged (with the integration change and upstream), plus **Follow View (Scaled Images)**: a 10th alignment that lines up the content under the window's centre in every scaled pane, 0.5 s after scrolling, zoom or a resize stops | – (not opened yet) |
+| Ikkoru/winmerge | `claude/trusting-brown-3d75mh-follow` | Both WinMerge menus merged, plus Image > Image Alignment > Follow View (Scaled Images); pairs with a DLL built from the WinIMerge `-follow` branch | – (not opened yet) |
+| both | `claude/trusting-brown-3d75mh-combined` | Superseded by `-follow` (the same merge, made before upstream was merged in); kept for reference | – |
 
-All branches are based on upstream `master` (WinIMerge `da639cd`, WinMerge `ea828d5`). The fork PRs are
-review copies against the forks' own `master` (identical to upstream). Texts for the upstream PRs and an
+The branches started from upstream `master` (WinIMerge `da639cd`, WinMerge `ea828d5`). On 2026-11-06
+upstream's newer `master` (WinIMerge `10e78f7`: FreeImage as a submodule, #41 paste/delete past the image,
+#42 copy into the extended area; WinMerge `179a02a`, 108 commits from 2.16.59 on, translations, splitter
+memory) was merged into every branch (merge commits, no rebase; conflicts in `PasteImage`,
+`CopyDiffInternal` and `DeleteRectangle`, resolved and re-tested). The forks' own `master` is still at the
+old commits, so the fork PRs' diffs also show upstream's changes until "Sync fork" is pressed on each
+fork's GitHub page (nothing was pushed to `master`). The fork PRs are review copies. Texts for the upstream PRs and an
 optional comment for WinMerge issue #1916 are in `notes/upstream-drafts.md`.
 
 The two WinIMerge branches are independent. Merged together they need the conflict resolution in
@@ -29,20 +36,25 @@ The two WinIMerge branches are independent. Merged together they need the confli
 
 - Verified on Linux: the diff/merge buffer (`ImgDiffBuffer.hpp`, `ImgMergeBuffer.hpp`) compiled with g++
   against FreeImage and unit-tested (`tools/winimerge-linux-test`: alignment 155 checks, scaling 158,
-  combined 30, bounds fix 10, all also under AddressSanitizer); WinIMergeLib.cpp, WinIMerge.cpp and both
+  combined 30, bounds fix 10 + 3 (rotated image), copy into the extended area 6, follow view 44, all also
+  under AddressSanitizer; re-run after merging upstream); WinIMergeLib.cpp, WinIMerge.cpp and both
   .rc files compile with MinGW i686 (`tools/mingw-syntax-check.sh`, syntax only).
 - An independent review (a separate agent) ran ~2,500 random edit sequences under AddressSanitizer on
   both branches: no new crash sites; with the options at their defaults, results are bit-identical to
   master. Its real findings were fixed (see the PR descriptions); its fuzzer is kept in
   `tools/winimerge-linux-test/fuzz/` (README there). A re-run on the
   final commits (400 sequences each on align, scale and master, same seed) hit only crash sites that master
-  has too (the pre-existing bugs below).
+  has too (the pre-existing bugs below). Re-run on the merged trees, and on `-follow` with Follow View
+  operations added (`fuzz/run.sh <tree> follow`, 400 sequences, seed 7): the same three sites only (the
+  per-pixel and row-insertion `memcpy` in `CopyDiffInternal`, and the three-way horizontal
+  insertion/deletion `Make3WayLineDiff`, which the classifier reports as `PreprocessImages`).
 - **Not verified**: an MSVC build, running WinIMerge.exe or WinMerge on Windows, and the WinMerge (MFC)
   changes at all beyond reading them.
 
 ## Before submitting upstream: build and try it on Windows
 
-WinIMerge: open `WinIMerge.sln` in Visual Studio 2022 (or run `BuildBin.cmd x64`), build Release x64,
+WinIMerge: since upstream made FreeImage a submodule, run `git submodule update --init` once after
+checking out a branch. Open `WinIMerge.sln` in Visual Studio 2022 (or run `BuildBin.cmd x64`), build Release x64,
 run `Build\x64\Release\WinIMerge\WinIMerge.exe`. Manual checklist:
 
 1. Open a picture and a smaller copy of it (File > Open, or `WinIMerge.exe big.png small.png`).
@@ -61,17 +73,26 @@ run `Build\x64\Release\WinIMerge\WinIMerge.exe`. Manual checklist:
    (it grows to the left), then Undo and Redo: the image must stay where it was / where the copy left it.
    Paste an image from the clipboard into the centred image: it should appear on its top-left corner.
 7. Three-way compare with three sizes.
+8. `-follow` branch: Enlarge by Whole Number with a 2.5× copy (shown at 2×, so 80 % of the large size),
+   View > Image Alignment > Follow View. Scroll to a corner and stop: after half a second the smaller image
+   jumps so that the content in the middle of the window matches; the marks follow. Zoom and resize the
+   window: the same. Next/Previous Difference must not re-align afterwards (the timer is stopped there).
+   With None or a whole ratio (nothing smaller than the canvas) it behaves like Center. Shift+arrow nudges
+   stay on top.
 
 WinMerge: run `DownloadDeps.cmd`, then replace the downloaded `Build\x64\Release\WinIMerge\WinIMergeLib.dll`
 with the one built from the WinIMerge branch (WinIMerge's build writes it to the same relative path,
 `Build\x64\Release\WinIMerge\WinIMergeLib.dll`). To try both features at once, build the two
-`claude/trusting-brown-3d75mh-combined` branches together (their interface methods are in the same
+`claude/trusting-brown-3d75mh-follow` branches together (their interface methods are in the same
 order; a DLL and a WinMerge built from different branch pairs would call the wrong methods). Build WinMerge (`WinMerge.sln`, Release x64), then check Image > Image Alignment /
 Size Matching, that the choice is remembered after restarting, and that the menus show the radio mark.
 
 ## Upstream order (see notes/upstream-drafts.md for the texts)
 
+0. WinIMerge bug fix (rotated Delete, still open upstream after #41; text updated in fork PR #3).
 1. WinIMerge alignment PR and scaling PR (either order; the second needs the trivial rebase above).
+1b. Follow View, after both are in (it needs scaling to have anything to follow and extends the alignment
+   enum): the single commit on top of `-follow` (`15cadcb`), and in WinMerge `02af0c2`.
 2. After the maintainer publishes a WinIMerge release with the new methods: the two WinMerge PRs
    (they call methods a pre-release DLL does not have, which would crash).
 3. New menu strings go through the translation files (the maintainer usually regenerates them).
@@ -80,7 +101,11 @@ Size Matching, that the choice is remembered after restarting, and that the menu
 
 - ~~Round trip~~ (REPORT §4.12): dropped after the follow-up (§10.1). Its gain was WinMerge's block
   size; the matched shrink with Diff Block Size 8/k does as well.
-- **Alignment that follows the view centre** (your idea, estimated, not implemented): for whole-number
+- **Alignment that follows the view centre**: implemented on the `-follow` branches (2026-11-06) as
+  estimated below, with your three answers: it jumps into place (a slide would rebuild the canvas-sized
+  composite every frame, ~0.5 s each at 24 megapixels), it is paused during next/previous-difference
+  navigation, and it is offered only for scaled panes (Size Matching None keeps the panes centred). The
+  estimate as written before: for whole-number
   NN at a factor like 2.5× (the copy shown at 80 %), place each smaller image so that the content under
   the middle of the window lines up in every pane, re-aligning 0.5 s after scrolling, wheel, zoom or a
   resize stops. The offset is t × (W − w), with t the window centre's position across the largest image
@@ -107,9 +132,11 @@ Size Matching, that the choice is remembered after restarting, and that the menu
 
 1. Copying a difference that lies right of or below a smaller image enlarges it, but the new columns/rows
    stay empty on the first click (`CopyDiffInternal()` checks positions against the old preprocessed size).
+   Fixed upstream by #42; the scale branch carries the same check for scaled panes (`test_copy_extend.cpp`).
 2. Undo after a copy that enlarged an image to the left/top restored the bitmap but not `m_offset`
    (fixed in the alignment PR's third commit).
-3. Delete/Paste outside the image (crash): fixed in the bug-fix PR #3.
+3. Delete/Paste outside the image (crash): upstream #41 fixed the plain cases; Delete in a 90°/270°
+   rotated non-square image still overflows upstream (the clamp runs before the rotation), fixed in PR #3.
 4. Crashes found by the random test, not fixed: rotation 90°/270° + insertion/deletion detection +
    CopyDiff (`ConvertToRealPos()` uses the rotation-aware `GetImageWidth()/GetImageHeight()` on the
    already rotated image); row insertion with ghost lines copying `dst.width()*4` bytes from a narrower

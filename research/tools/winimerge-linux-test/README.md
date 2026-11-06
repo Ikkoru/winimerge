@@ -20,7 +20,10 @@ OUTDIR=/some/dir ./build.sh ...                          # where tests that writ
 | `test_alignment_undo3.cpp` | the align branch | three panes, growing copies to both sides, Undo/Redo in different orders, CopyDiff3Way (28 checks) |
 | `test_scaling.cpp` | `claude/trusting-brown-3d75mh-scale` | sizes and factor rules, snapping, caching, DOWN_MATCHED finding each filter (area averaging included), the filter kept after edits, copying between scaled panes, selection mapping, undo, rotation, insertion/deletion detection; also writes the scaled panes for the harness's bit-identity check when `large.png`/`small.png` are in `OUTDIR` (158 checks) |
 | `test_combined.cpp` | a tree with both features (`tools/make_combined.sh`, or the `-combined` branch) | alignment following scale changes (30 checks) |
-| `test_bounds.cpp` | `claude/trusting-brown-3d75mh-fix-bounds` (crashes on master) | Delete and Paste rectangles that reach past the image (10 checks; run with AddressSanitizer) |
+| `test_bounds.cpp` | `claude/trusting-brown-3d75mh-fix-bounds` (crashed on the old master; passes on upstream since #41) | Delete and Paste rectangles that reach past the image; a paste right of the image extends it (10 checks; run with AddressSanitizer) |
+| `test_bounds_rotated.cpp` | the fix-bounds branch (overflows on upstream master) | Delete in a 60×20 image rotated 90°, past the shown right edge and in the lower part (3 checks) |
+| `test_copy_extend.cpp` | upstream master since #42, or any branch | copying a difference into a smaller image fills the columns/rows it adds (6 checks) |
+| `test_follow.cpp` | `claude/trusting-brown-3d75mh-follow` | Follow View: offsets at the corners, centre and an arbitrary point, position mapping, nudges on top, not following without a scaled smaller pane, invalid values (44 checks) |
 | `test_timing.cpp` | the scale branch | timing of the modes at 1000×1500 vs 4000×6000 (build with `EXTRA_CXXFLAGS=-O2`) |
 
 ## Random stress test (`fuzz/`)
@@ -36,6 +39,7 @@ fuzz/run.sh /path/to/master-checkout none 400 7     # baseline
 fuzz/run.sh /path/to/align-checkout  align 400 7
 fuzz/run.sh /path/to/scale-checkout  scale 400 7
 fuzz/run.sh /path/to/combined-tree   both  400 7
+fuzz/run.sh /path/to/follow-checkout follow 400 7   # both + Follow View operations
 ```
 
 It ends with one line per crash site (function, `file:line`, last operation). On the final branch tips

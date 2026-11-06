@@ -27,19 +27,16 @@ int main()
 	// a selection reaching past the right and bottom edges
 	CHECK(b.DeleteRectangle(1, 30, 30, 80, 80));
 	CHECK_EQ(b.Count(1, BLUE), 60 * 60 - 20 * 10 - 30 * 30);
-	// a selection entirely outside erases nothing
-	CHECK(b.DeleteRectangle(1, 70, 70, 90, 90));
+	// a selection entirely outside erases nothing (and, as upstream decided in #41, reports it)
+	CHECK(!b.DeleteRectangle(1, 70, 70, 90, 90));
 	CHECK_EQ(b.Count(1, BLUE), 60 * 60 - 20 * 10 - 30 * 30);
-	// pasting right of or below the image changes nothing; pasting across the top-left corner is cut
+	// pasting across the top-left corner is cut; pasting right of the image extends it (upstream #41)
 	Image red = Solid(20, 20, RED);
-	b.PasteImage(1, 70, 10, red);
-	b.PasteImage(1, 10, 70, red);
-	b.PasteImage(1, 60, 60, red);
-	CHECK_EQ(b.Count(1, RED), 0);
 	b.PasteImage(1, -5, -5, red);
 	CHECK_EQ(b.Count(1, RED), 15 * 15);
-	b.PasteImage(1, 50, 50, red);
-	CHECK_EQ(b.Count(1, RED), 15 * 15 + 10 * 10);
+	b.PasteImage(1, 70, 10, red);
+	CHECK_EQ(b.GetImageWidth(1), 90);
+	CHECK_EQ(b.Count(1, RED), 15 * 15 + 20 * 20);
 	FreeImage_DeInitialise();
 	return Summary("test_bounds");
 }

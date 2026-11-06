@@ -183,7 +183,7 @@ static void TestInvalidAlignmentIgnored()
 	Image imgs[2] = { Solid(100, 80, RED), Solid(60, 40, RED) };
 	b.SetImages(2, imgs);
 	b.SetImageAlignment(CImgDiffBuffer::IMAGE_ALIGNMENT_CENTER);
-	b.SetImageAlignment(static_cast<CImgDiffBuffer::IMAGE_ALIGNMENT>(9));
+	b.SetImageAlignment(static_cast<CImgDiffBuffer::IMAGE_ALIGNMENT>(10));   // (9 is FOLLOW_VIEW where that exists)
 	b.SetImageAlignment(static_cast<CImgDiffBuffer::IMAGE_ALIGNMENT>(-1));
 	CHECK_EQ(b.GetImageAlignment(), CImgDiffBuffer::IMAGE_ALIGNMENT_CENTER);
 	CHECK_EQ(b.OffX(1), 20); CHECK_EQ(b.OffY(1), 20);

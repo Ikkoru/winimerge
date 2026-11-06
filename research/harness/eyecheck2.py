@@ -68,6 +68,17 @@ def place_nn_int(Sm, W, H):
     return U
 
 
+def place_nn_at(Sm, W, H, tx, ty):
+    """Whole-number NN placed so that the point at fractions (tx, ty) of the picture lines up in both
+    panes: offset = t x (W - w), the 'follow the view centre' alignment."""
+    U = R.nn_int(Sm, R.int_factor((Sm.shape[1], Sm.shape[0]), (W, H)))
+    h, w = U.shape[:2]
+    ox, oy = int(round(tx * (W - w))), int(round(ty * (H - h)))
+    out = np.zeros((H, W, 3), np.uint8)
+    out[oy:oy + h, ox:ox + w] = U
+    return out
+
+
 # ------------------------------------------------------------------ blind tiny-edit trials
 
 BLIND_METHODS = ['small', 'rt_l3', 'up_l3', 'up_cr', 'up_nn_int']
@@ -181,16 +192,21 @@ def comp_cases(store):
             Lx, Lq = C.decode(lb), C.jpegqs(lb, 6)
         k = int(math.floor(f))
         x0, y0 = (W - CROP) // 2 // 12 * 12, (H - CROP) // 2 // 12 * 12
+        moved = cv2.cvtColor(np.ascontiguousarray(Mst[y0:y0 + CROP, x0:x0 + CROP]), cv2.COLOR_RGB2GRAY).std() < 4
+        if moved:   # a blank centre (the Krita banner is white there): show the most detailed window instead
+            x0, y0 = busy_window(Mst)
         views = []
         for tag, Hv, Lv in (('', Hx, Lx), ('_qs', Hq, Lq)):
-            NN = place_nn_int(Lv, W, H)
+            # whole-number NN placed so that the window's centre lines up (centred when the window is)
+            NN = place_nn_at(Lv, W, H, (x0 + CROP / 2) / W, (y0 + CROP / 2) / H) if moved else place_nn_int(Lv, W, H)
             views.append(dict(key='nn_center' + tag, a=store.put(Hv[y0:y0 + CROP, x0:x0 + CROP]),
                               b=store.put(NN[y0:y0 + CROP, x0:x0 + CROP]), scale=1,
-                              label='Whole-number NN ×%d, centred' % k + (' (both restored with jpegQS)' if tag else '')))
+                              label=('Whole-number NN ×%d, aligned at this spot' if moved else 'Whole-number NN ×%d, centred') % k
+                                    + (' (both restored with jpegQS)' if tag else '')))
             downs, kk = S.down_strategies(Hv, Lv, 'pil_lanczos')
             D = downs['down_matched8a']
             sc = int(round(CROP / f))
-            s0x, s0y = (w - sc) // 2, (h - sc) // 2
+            s0x, s0y = ((int(round(x0 / f)), int(round(y0 / f))) if moved else ((w - sc) // 2, (h - sc) // 2))
             views.append(dict(key='small' + tag, a=store.put(D[s0y:s0y + sc, s0x:s0x + sc]),
                               b=store.put(Lv[s0y:s0y + sc, s0x:s0x + sc]), scale=int(math.ceil(f)),
                               label='Large file shrunk to the copy\'s size (matched), shown zoomed'

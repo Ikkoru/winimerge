@@ -216,6 +216,21 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
 - **Selection rectangles in a scaled pane** convert their edges, not their corner pixels: an edge at
   canvas position e maps to the original boundary ceil(e / scale − 0.5), so a selection contains the
   original pixels whose centres lie inside it, for any scale.
+- **Moving an image's offset costs a full rebuild** (read from the code, 2026-11-06): the panes draw
+  `m_imgDiff`, canvas-sized composites built by `RefreshImages()`, so any offset change goes through
+  `CompareImages()` (~0.1 s at 2 megapixels, ~0.5 s for the rebuild alone at 24). Animating Follow View
+  would mean one rebuild per frame, so it jumps once the view has been still for 0.5 s.
+- **Upstream #41 clamps Delete before the temporary rotation** (found by a new test, 2026-11-06): with
+  90°/270° rotation of a non-square image, the stored and shown width/height are swapped, so a selection
+  past the shown right edge overflows (heap-buffer-overflow in `memset`) and one in the lower part of a
+  tall shown image deletes nothing. Clamping inside `TemporaryTransformation` fixes both (fork PR #3).
+- **Upstream #42 fills the columns/rows a copy adds** (pre-existing bug 1 in HANDOFF): it checks positions
+  against the extended size (`extendsImage`); a scaled destination pane needs the scaled position check
+  instead, which the scale branch does when merging (`test_copy_extend.cpp`).
+- **There is no way to hide a pane**: WinMerge 2.16.59 added remembering the splitter position for image,
+  text, web and binary compares (#3593, #3611); the splitter keeps each pane at least 32 px wide. Moving
+  one image by hand: Image > Dragging Mode > Adjust Offset (drag), or Shift+arrow (1 px) and
+  Ctrl+Shift+arrow (8 px); the nudge is kept on top of any alignment, Follow View included.
 - **Menu naming**: both WinIMerge's View menu and WinMerge's Image menu already have a
   "Vector Image Scaling" submenu (the render scale of SVG/EMF images), so the new option is labelled
   "Size Matching" in the menus while the API keeps `SetImageScalingMode()`.
