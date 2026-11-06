@@ -494,7 +494,8 @@ public:
 	enum IMAGE_ALIGNMENT {
 		IMAGE_ALIGNMENT_TOP_LEFT = 0, IMAGE_ALIGNMENT_TOP_CENTER, IMAGE_ALIGNMENT_TOP_RIGHT,
 		IMAGE_ALIGNMENT_MIDDLE_LEFT, IMAGE_ALIGNMENT_CENTER, IMAGE_ALIGNMENT_MIDDLE_RIGHT,
-		IMAGE_ALIGNMENT_BOTTOM_LEFT, IMAGE_ALIGNMENT_BOTTOM_CENTER, IMAGE_ALIGNMENT_BOTTOM_RIGHT
+		IMAGE_ALIGNMENT_BOTTOM_LEFT, IMAGE_ALIGNMENT_BOTTOM_CENTER, IMAGE_ALIGNMENT_BOTTOM_RIGHT,
+		IMAGE_ALIGNMENT_FOLLOW_VIEW   // a scaled smaller image follows the view: see SetAlignmentFollowPoint()
 	};
 	enum IMAGE_SCALING_MODE {
 		IMAGE_SCALING_NONE = 0, IMAGE_SCALING_UP_NEAREST_INTEGER, IMAGE_SCALING_UP_SMOOTH, IMAGE_SCALING_DOWN_MATCHED
@@ -983,11 +984,62 @@ public:
 
 	void SetImageAlignment(IMAGE_ALIGNMENT alignment)
 	{
-		if (alignment < IMAGE_ALIGNMENT_TOP_LEFT || alignment > IMAGE_ALIGNMENT_BOTTOM_RIGHT || m_imageAlignment == alignment)
+		if (alignment < IMAGE_ALIGNMENT_TOP_LEFT || alignment > IMAGE_ALIGNMENT_FOLLOW_VIEW || m_imageAlignment == alignment)
 			return;
 		m_imageAlignment = alignment;
 		m_alignImagesPending = true;
 		CompareImages();
+	}
+
+	/**
+	 * @brief Whether IMAGE_ALIGNMENT_FOLLOW_VIEW currently moves an image: it is selected and an image is
+	 * scaled (e.g. enlarged by a whole number) yet smaller than the largest one.
+	 */
+	bool IsFollowingView() const
+	{
+		if (m_imageAlignment != IMAGE_ALIGNMENT_FOLLOW_VIEW)
+			return false;
+		unsigned wmax = 0, hmax = 0;
+		for (int i = 0; i < m_nImages; ++i)
+		{
+			wmax = (std::max)(wmax, m_imgPreprocessed[i].width());
+			hmax = (std::max)(hmax, m_imgPreprocessed[i].height());
+		}
+		for (int i = 0; i < m_nImages; ++i)
+			if (IsImageScaled(i) && (m_imgPreprocessed[i].width() < wmax || m_imgPreprocessed[i].height() < hmax))
+				return true;
+		return false;
+	}
+
+	/**
+	 * @brief Sets the point (in canvas pixels, normally the middle of the view) at which
+	 * IMAGE_ALIGNMENT_FOLLOW_VIEW lines the images up. A scaled image that is smaller than the largest
+	 * one (e.g. a copy enlarged by 2 where the original is 2.5 times larger) is placed at
+	 * t * (largest size - its size), where t is the point's position across the canvas (0 at the left or
+	 * top, 1 at the right or bottom), so the content under the point is the same in every pane; the
+	 * Left/Center/Right anchors are the cases t = 0, 1/2, 1. Other images are centred.
+	 * @return true if the images were moved (and compared again).
+	 */
+	bool SetAlignmentFollowPoint(int x, int y)
+	{
+		const Size<unsigned> canvas = GetMaxWidthHeight();
+		if (canvas.cx == 0 || canvas.cy == 0)
+			return false;
+		m_followX = (std::clamp)(static_cast<double>(x) / canvas.cx, 0.0, 1.0);
+		m_followY = (std::clamp)(static_cast<double>(y) / canvas.cy, 0.0, 1.0);
+		if (!IsFollowingView())
+			return false;
+		bool moved = false;
+		for (int i = 0; i < m_nImages; ++i)
+		{
+			const Point<int> o = CalcAlignmentOffset(i);
+			moved = moved || o.x != m_alignmentOffset[i].x || o.y != m_alignmentOffset[i].y;
+		}
+		if (!moved)
+			return false;
+		m_alignImagesPending = true;
+		CompareImages();
+		return true;
 	}
 
 	IMAGE_SCALING_MODE GetImageScalingMode() const
@@ -1779,6 +1831,30 @@ protected:
 	}
 
 	/**
+	 * @brief The offset of pane's image that m_imageAlignment asks for, before manual offsets.
+	 */
+	Point<int> CalcAlignmentOffset(int pane) const
+	{
+		unsigned wmax = 0, hmax = 0;
+		for (int i = 0; i < m_nImages; ++i)
+		{
+			wmax = (std::max)(wmax, m_imgPreprocessed[i].width());
+			hmax = (std::max)(hmax, m_imgPreprocessed[i].height());
+		}
+		const int slackx = static_cast<int>(wmax - m_imgPreprocessed[pane].width());
+		const int slacky = static_cast<int>(hmax - m_imgPreprocessed[pane].height());
+		if (m_imageAlignment == IMAGE_ALIGNMENT_FOLLOW_VIEW)
+		{
+			if (IsImageScaled(pane))
+				return Point<int>(static_cast<int>(std::lround(slackx * m_followX)), static_cast<int>(std::lround(slacky * m_followY)));
+			return Point<int>(slackx / 2, slacky / 2);
+		}
+		const int halign = static_cast<int>(m_imageAlignment) % 3; // 0: left, 1: center, 2: right
+		const int valign = static_cast<int>(m_imageAlignment) / 3; // 0: top, 1: middle, 2: bottom
+		return Point<int>(slackx * halign / 2, slacky * valign / 2);
+	}
+
+	/**
 	 * @brief Positions images of different sizes according to m_imageAlignment.
 	 *
 	 * The alignment offset is computed from the preprocessed image sizes and is
@@ -1790,21 +1866,11 @@ protected:
 	void AlignImages()
 	{
 		m_alignImagesPending = false;
-		unsigned wmax = 0, hmax = 0;
-		for (int i = 0; i < m_nImages; ++i)
-		{
-			wmax = (std::max)(wmax, m_imgPreprocessed[i].width());
-			hmax = (std::max)(hmax, m_imgPreprocessed[i].height());
-		}
-		const int halign = static_cast<int>(m_imageAlignment) % 3; // 0: left, 1: center, 2: right
-		const int valign = static_cast<int>(m_imageAlignment) / 3; // 0: top, 1: middle, 2: bottom
 		Point<int> offset[3];
 		int minx = INT_MAX, miny = INT_MAX;
 		for (int i = 0; i < m_nImages; ++i)
 		{
-			const Point<int> alignmentOffset(
-				static_cast<int>(wmax - m_imgPreprocessed[i].width()) * halign / 2,
-				static_cast<int>(hmax - m_imgPreprocessed[i].height()) * valign / 2);
+			const Point<int> alignmentOffset = CalcAlignmentOffset(i);
 			offset[i].x = static_cast<int>(m_offset[i].x) - m_alignmentOffset[i].x + alignmentOffset.x;
 			offset[i].y = static_cast<int>(m_offset[i].y) - m_alignmentOffset[i].y + alignmentOffset.y;
 			m_alignmentOffset[i] = alignmentOffset;
@@ -2918,6 +2984,7 @@ protected:
 	bool m_imgDiffIsTransparent[3]{};
 	bool m_preferWICDecoder;
 	IMAGE_ALIGNMENT m_imageAlignment;
+	double m_followX = 0.5, m_followY = 0.5;   // IMAGE_ALIGNMENT_FOLLOW_VIEW: the point to line up, as fractions
 	Point<int> m_alignmentOffset[3];
 	bool m_alignImagesPending;
 	IMAGE_SCALING_MODE m_imageScalingMode;

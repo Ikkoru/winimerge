@@ -185,6 +185,8 @@ BEGIN
             MENUITEM "&Bottom Left",                ID_VIEW_ALIGNMENT_BOTTOM_LEFT
             MENUITEM "Bottom Ce&nter",              ID_VIEW_ALIGNMENT_BOTTOM_CENTER
             MENUITEM "Bottom R&ight",               ID_VIEW_ALIGNMENT_BOTTOM_RIGHT
+            MENUITEM SEPARATOR
+            MENUITEM "&Follow View (Scaled Images)", ID_VIEW_ALIGNMENT_FOLLOW_VIEW
         END
         POPUP "Size Mat&ching"
         BEGIN

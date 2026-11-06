@@ -49,6 +49,8 @@ namespace
 class CImgMergeWindow : public IImgMergeWindow
 {
 	static constexpr int TIMER_INTERVAL = 25;
+	static constexpr UINT_PTR FOLLOW_VIEW_TIMER = 3;   // IMAGE_ALIGNMENT_FOLLOW_VIEW: re-align after scrolling stops
+	static constexpr UINT FOLLOW_VIEW_DELAY = 500;     // ms
 
 	struct EventListenerInfo 
 	{
@@ -351,6 +353,7 @@ public:
 			return;
 		for (int i = 0; i < 3; ++i)
 			m_imgWindow[i].SetZoom(zoom);
+		ScheduleFollowView();
 
 		Event evt;
 		evt.eventType = REFRESH;
@@ -555,6 +558,7 @@ public:
 		m_buffer.SetImageAlignment(static_cast<CImgMergeBuffer::IMAGE_ALIGNMENT>(alignment));
 		UpdateScrollBars();
 		Invalidate();
+		FollowView();
 	}
 
 	IMAGE_SCALING_MODE GetImageScalingMode() const override
@@ -567,6 +571,7 @@ public:
 		m_buffer.SetImageScalingMode(static_cast<CImgMergeBuffer::IMAGE_SCALING_MODE>(mode));
 		UpdateScrollBars();
 		Invalidate();
+		FollowView();
 	}
 
 	int  GetDiffCount() const override
@@ -883,6 +888,8 @@ public:
 	{
 		if (!m_hWnd)
 			return;
+		// jumping to a difference keeps the layout: re-aligning there would move the differences themselves
+		KillTimer(m_hWnd, FOLLOW_VIEW_TIMER);
 		if (diffIndex >= 0 && diffIndex < m_buffer.GetDiffCount())
 		{
 			Rect<int> rc = m_buffer.GetDiffInfo(diffIndex)->rc;
@@ -1560,6 +1567,7 @@ private:
 	void OnSize(UINT nType, int cx, int cy)
 	{
 		ApplySplitterRatio();
+		ScheduleFollowView();
 	}
 	
 	void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
@@ -1629,6 +1637,7 @@ private:
 
 	void OnDestroy()
 	{
+		KillTimer(m_hWnd, FOLLOW_VIEW_TIMER);
 		for (int i = 0; i < m_nImages; ++i)
 		{
 			if (m_ChildWndProc[i])
@@ -1672,6 +1681,11 @@ private:
 			break;
 		case WM_TIMER:
 		{
+			if (wParam == FOLLOW_VIEW_TIMER)
+			{
+				FollowView();
+				break;
+			}
 			auto now = std::chrono::system_clock::now();
 			auto tse = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
 			if (m_timerNext.count() == 0 || tse >= m_timerNext)
@@ -2107,8 +2121,35 @@ private:
 				if (GET_KEYSTATE_WPARAM(wParam) & MK_CONTROL)
 					m_imgWindow[j].ScrollTo2(ptLP.x, ptLP.y, ptDP.x, ptDP.y);
 			}
+			ScheduleFollowView();
 			break;
 		}
+	}
+
+	/**
+	 * @brief With IMAGE_ALIGNMENT_FOLLOW_VIEW, lines the images up again at the middle of the view once
+	 * scrolling, zooming or resizing has paused for FOLLOW_VIEW_DELAY ms: one comparison per pause, none
+	 * while scrolling. The image jumps into place; sliding it along would mean rebuilding the
+	 * canvas-sized diff images at every scroll step. Difference navigation does not restart the timer.
+	 */
+	void ScheduleFollowView()
+	{
+		if (m_hWnd && m_buffer.IsFollowingView())
+			SetTimer(m_hWnd, FOLLOW_VIEW_TIMER, FOLLOW_VIEW_DELAY, NULL);
+	}
+
+	void FollowView()
+	{
+		if (!m_hWnd)
+			return;
+		KillTimer(m_hWnd, FOLLOW_VIEW_TIMER);
+		if (!m_buffer.IsFollowingView())
+			return;
+		RECT rc;
+		GetClientRect(m_imgWindow[0].GetHWND(), &rc);
+		const POINT pt = m_imgWindow[0].ConvertDPtoLP((rc.left + rc.right) / 2, (rc.top + rc.bottom) / 2);
+		if (m_buffer.SetAlignmentFollowPoint(pt.x, pt.y))
+			Invalidate();
 	}
 
 	static LRESULT CALLBACK ChildWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)

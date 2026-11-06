@@ -179,6 +179,7 @@
 #define ID_VIEW_SCALING_UP_NEAREST_INTEGER 32903
 #define ID_VIEW_SCALING_UP_SMOOTH        32904
 #define ID_VIEW_SCALING_DOWN_MATCHED     32905
+#define ID_VIEW_ALIGNMENT_FOLLOW_VIEW    32906
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
