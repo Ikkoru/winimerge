@@ -220,7 +220,7 @@ public:
 			return;
 		if (diffIndex < 0 || diffIndex >= m_diffCount)
 			return;
-		if (m_bRO[dstPane])
+		if (m_bRO[dstPane] || !CanCopyDiffTo(dstPane))
 			return;
 		if (srcPane == dstPane)
 			return;
@@ -244,7 +244,7 @@ public:
 			return;
 		if (dstPane < 0 || dstPane >= m_nImages)
 			return;
-		if (m_bRO[dstPane])
+		if (m_bRO[dstPane] || !CanCopyDiffTo(dstPane))
 			return;
 		if (srcPane == dstPane)
 			return;
@@ -267,7 +267,7 @@ public:
 	{
 		if (dstPane < 0 || dstPane >= m_nImages)
 			return 0;
-		if (m_bRO[dstPane])
+		if (m_bRO[dstPane] || !CanCopyDiffTo(dstPane))
 			return 0;
 
 		Image *oldbitmap = new Image(m_imgOrig32[dstPane]);
@@ -648,8 +648,9 @@ protected:
 			dsx += xmax - (m_imgPreprocessed[dstPane].width()  + m_offset[dstPane].x - 1);
 		if (ymax >= m_imgPreprocessed[dstPane].height() + m_offset[dstPane].y)
 			dsy += ymax - (m_imgPreprocessed[dstPane].height() + m_offset[dstPane].y - 1);
-		if (dsx > 0 || dsy > 0)
+		if ((dsx > 0 || dsy > 0) && !IsImageScaled(dstPane))
 		{
+			// (a scaled image is not enlarged; only the pixels that map into it are copied)
 			imgTemp = m_imgOrig32[dstPane];
 			m_imgOrig32[dstPane].setSize(m_imgOrig32[dstPane].width() + dsx, m_imgOrig32[dstPane].height() + dsy);
 			m_imgOrig32[dstPane].pasteSubImage(imgTemp, ox, oy);
@@ -659,6 +660,9 @@ protected:
 			m_alignmentOffset[dstPane].y -= oy;
 		}
 
+		// copy the pixels the source pane shows (its scaled image, if it is scaled) into the
+		// original pixels of the destination that they stand for
+		const Image& imgSrc = GetShownImage(srcPane);
 		for (unsigned y = rc.top * m_diffBlockSize; y < rc.bottom * m_diffBlockSize; y += m_diffBlockSize)
 		{
 			for (unsigned x = rc.left * m_diffBlockSize; x < rc.right * m_diffBlockSize; x += m_diffBlockSize)
@@ -669,14 +673,17 @@ protected:
 					{
 						for (unsigned j = 0; j < m_diffBlockSize; ++j)
 						{
-							int rsx, rsy;
-							if (ConvertToRealPos(srcPane, x + j, y + i, rsx, rsy))
+							int ssx, ssy;
+							if (ConvertToScaledPos(srcPane, x + j, y + i, ssx, ssy))
 							{
-								int rdx, rdy;
-								bool inside = ConvertToRealPos(dstPane, x + j, y + i, rdx, rdy, false);
-								bool extendsImage =
+								int sdx, sdy;
+								bool inside = ConvertToScaledPos(dstPane, x + j, y + i, sdx, sdy, false);
+								// an unscaled destination was enlarged above, so the positions right of or below
+								// its previous size are copied too (upstream #42), except the ghost lines of
+								// insertion/deletion detection; a scaled one is never enlarged
+								bool extendsImage = !IsImageScaled(dstPane) && (
 									x + j >= m_offset[dstPane].x + m_imgPreprocessed[dstPane].width() ||
-									y + i >= m_offset[dstPane].y + m_imgPreprocessed[dstPane].height();
+									y + i >= m_offset[dstPane].y + m_imgPreprocessed[dstPane].height());
 								bool ghostLine = false;
 								if (!inside && extendsImage && m_insertionDeletionDetectionMode != INSERTION_DELETION_DETECTION_NONE)
 								{
@@ -689,13 +696,19 @@ protected:
 											return lineDiff.dend[dstPane] < pos && pos <= lineDiff.dendmax;
 										});
 								}
-								if ((inside || extendsImage) && !ghostLine && rdx >= 0 && rdy >= 0 &&
-									rdx < static_cast<int>(m_imgOrig32[dstPane].width()) &&
-									rdy < static_cast<int>(m_imgOrig32[dstPane].height()))
+								if ((inside || extendsImage) && !ghostLine && sdx >= 0 && sdy >= 0 &&
+									(IsImageScaled(dstPane) || (sdx < static_cast<int>(m_imgOrig32[dstPane].width()) &&
+										sdy < static_cast<int>(m_imgOrig32[dstPane].height()))))
 								{
-									const unsigned char* scanline_src = m_imgOrig32[srcPane].scanLine(rsy);
-									unsigned char* scanline_dst = m_imgOrig32[dstPane].scanLine(rdy);
-									memcpy(&scanline_dst[rdx * 4], &scanline_src[rsx * 4], 4);
+									const unsigned char* pixel_src = &imgSrc.scanLine(ssy)[ssx * 4];
+									int rdx0, rdy0, rdx1, rdy1;
+									ScaledToRealPixels(dstPane, sdx, sdy, rdx0, rdy0, rdx1, rdy1);
+									for (int rdy = rdy0; rdy < rdy1; ++rdy)
+									{
+										unsigned char* scanline_dst = m_imgOrig32[dstPane].scanLine(rdy);
+										for (int rdx = rdx0; rdx < rdx1; ++rdx)
+											memcpy(&scanline_dst[rdx * 4], pixel_src, 4);
+									}
 								}
 							}
 						}
@@ -705,6 +718,9 @@ protected:
 		}
 
 		if (!std::all_of(std::begin(m_offset), std::end(m_offset), [](auto& pt) { return pt.x == 0 && pt.y == 0; }))
+			return;
+		// the line diff of scaled images is in scaled rows/columns, which cannot be inserted into the originals
+		if (IsAnyImageScaled())
 			return;
 
 		// insert or delete lines

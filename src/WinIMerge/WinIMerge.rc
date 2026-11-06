@@ -186,6 +186,13 @@ BEGIN
             MENUITEM "Bottom Ce&nter",              ID_VIEW_ALIGNMENT_BOTTOM_CENTER
             MENUITEM "Bottom R&ight",               ID_VIEW_ALIGNMENT_BOTTOM_RIGHT
         END
+        POPUP "Size Mat&ching"
+        BEGIN
+            MENUITEM "&None",                       ID_VIEW_SCALING_NONE
+            MENUITEM "&Enlarge by Whole Number (Nearest Neighbor)", ID_VIEW_SCALING_UP_NEAREST_INTEGER
+            MENUITEM "Enlarge to &Largest (Lanczos)", ID_VIEW_SCALING_UP_SMOOTH
+            MENUITEM "&Shrink to Smallest (Matched Filter)", ID_VIEW_SCALING_DOWN_MATCHED
+        END
         MENUITEM "Split &Horizontally",         ID_VIEW_SPLITHORIZONTALLY
         MENUITEM "&Set Background Color",       ID_VIEW_USEBACKCOLOR
         POPUP "&Vector Image Scaling"

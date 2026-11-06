@@ -52,6 +52,9 @@ struct IImgMergeWindow
 		IMAGE_ALIGNMENT_MIDDLE_LEFT, IMAGE_ALIGNMENT_CENTER, IMAGE_ALIGNMENT_MIDDLE_RIGHT,
 		IMAGE_ALIGNMENT_BOTTOM_LEFT, IMAGE_ALIGNMENT_BOTTOM_CENTER, IMAGE_ALIGNMENT_BOTTOM_RIGHT
 	};
+	enum IMAGE_SCALING_MODE {
+		IMAGE_SCALING_NONE = 0, IMAGE_SCALING_UP_NEAREST_INTEGER, IMAGE_SCALING_UP_SMOOTH, IMAGE_SCALING_DOWN_MATCHED
+	};
 	struct Event
 	{
 		void *userdata;
@@ -202,6 +205,8 @@ struct IImgMergeWindow
 	virtual void ResetSplitterRatios() = 0;
 	virtual IMAGE_ALIGNMENT GetImageAlignment() const = 0;
 	virtual void SetImageAlignment(IMAGE_ALIGNMENT alignment) = 0;
+	virtual IMAGE_SCALING_MODE GetImageScalingMode() const = 0;
+	virtual void SetImageScalingMode(IMAGE_SCALING_MODE mode) = 0;
 };
 
 struct IImgToolWindow
