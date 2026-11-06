@@ -143,9 +143,7 @@ public:
 			m_bRO[i] = false;
 	}
 
-	virtual ~CImgMergeBuffer()
-	{
-	}
+	virtual ~CImgMergeBuffer() = default;
 
 	bool NewImages(int nImages, int nPages, int width, int height)
 	{
@@ -323,9 +321,12 @@ public:
 
 		Image *oldbitmap = new Image(m_imgOrig32[pane]);
 
+		bool deleted = false;
 		{
 			TemporaryTransformation tmp(*this);
-			// the selection can extend beyond the image (e.g. into the area of a larger image)
+			// The selection can extend beyond the image (e.g. into the area of a larger image). Clamp it to
+			// the image as shown, i.e. after the temporary rotation/flip, which swaps width and height for
+			// 90/270 degrees.
 			const int width = m_imgOrig32[pane].width(), height = m_imgOrig32[pane].height();
 			left = std::clamp(left, 0, width);
 			right = std::clamp(right, left, width);
@@ -336,6 +337,12 @@ public:
 				unsigned char* scanline = m_imgOrig32[pane].scanLine(i);
 				memset(scanline + left * 4, 0, (right - left) * 4);
 			}
+			deleted = right > left && bottom > top;
+		}
+		if (!deleted)
+		{
+			delete oldbitmap;
+			return false;
 		}
 
 		Image *newbitmap = new Image(m_imgOrig32[pane]);
@@ -477,8 +484,7 @@ public:
 
 	virtual bool CloseImages() override
 	{
-		for (int i = 0; i < m_nImages; ++i)
-			m_undoRecords.clear();
+		m_undoRecords.clear();
 		return CImgDiffBuffer::CloseImages();
 	}
 
@@ -490,6 +496,14 @@ public:
 		Image *oldbitmap = new Image(m_imgOrig32[pane]);
 		{
 			TemporaryTransformation tmp(*this);
+			int width = (std::max)(static_cast<int>(m_imgOrig32[pane].width()), x + static_cast<int>(image.width()));
+			int height = (std::max)(static_cast<int>(m_imgOrig32[pane].height()), y + static_cast<int>(image.height()));
+			if (width != static_cast<int>(m_imgOrig32[pane].width()) || height != static_cast<int>(m_imgOrig32[pane].height()))
+			{
+				Image tmpImage = m_imgOrig32[pane];
+				m_imgOrig32[pane].setSize(width, height);
+				PasteImageInternal(pane, 0, 0, tmpImage);
+			}
 			PasteImageInternal(pane, x, y, image);
 		}
 		Image *newbitmap = new Image(m_imgOrig32[pane]);
@@ -627,7 +641,25 @@ protected:
 							if (ConvertToRealPos(srcPane, x + j, y + i, rsx, rsy))
 							{
 								int rdx, rdy;
-								if (ConvertToRealPos(dstPane, x + j, y + i, rdx, rdy))
+								bool inside = ConvertToRealPos(dstPane, x + j, y + i, rdx, rdy, false);
+								bool extendsImage =
+									x + j >= m_offset[dstPane].x + m_imgPreprocessed[dstPane].width() ||
+									y + i >= m_offset[dstPane].y + m_imgPreprocessed[dstPane].height();
+								bool ghostLine = false;
+								if (!inside && extendsImage && m_insertionDeletionDetectionMode != INSERTION_DELETION_DETECTION_NONE)
+								{
+									const int pos = m_insertionDeletionDetectionMode == INSERTION_DELETION_DETECTION_VERTICAL
+										? static_cast<int>(y + i) - static_cast<int>(m_offset[dstPane].y)
+										: static_cast<int>(x + j) - static_cast<int>(m_offset[dstPane].x);
+									ghostLine = std::any_of(m_lineDiffInfos.cbegin(), m_lineDiffInfos.cend(),
+										[dstPane, pos](const LineDiffInfo& lineDiff)
+										{
+											return lineDiff.dend[dstPane] < pos && pos <= lineDiff.dendmax;
+										});
+								}
+								if ((inside || extendsImage) && !ghostLine && rdx >= 0 && rdy >= 0 &&
+									rdx < static_cast<int>(m_imgOrig32[dstPane].width()) &&
+									rdy < static_cast<int>(m_imgOrig32[dstPane].height()))
 								{
 									const unsigned char* scanline_src = m_imgOrig32[srcPane].scanLine(rsy);
 									unsigned char* scanline_dst = m_imgOrig32[dstPane].scanLine(rdy);
