@@ -23,6 +23,7 @@
 #include <string>
 #include <algorithm>
 #include <cstdio>
+#include <climits>
 #include <cstring>
 #include <cmath>
 #include <vector>
@@ -488,6 +489,11 @@ public:
 	enum DIFF_ALGORITHM {
 		MYERS_DIFF, MINIMAL_DIFF, PATIENCE_DIFF, HISTOGRAM_DIFF, NONE_DIFF
 	};
+	enum IMAGE_ALIGNMENT {
+		IMAGE_ALIGNMENT_TOP_LEFT = 0, IMAGE_ALIGNMENT_TOP_CENTER, IMAGE_ALIGNMENT_TOP_RIGHT,
+		IMAGE_ALIGNMENT_MIDDLE_LEFT, IMAGE_ALIGNMENT_CENTER, IMAGE_ALIGNMENT_MIDDLE_RIGHT,
+		IMAGE_ALIGNMENT_BOTTOM_LEFT, IMAGE_ALIGNMENT_BOTTOM_CENTER, IMAGE_ALIGNMENT_BOTTOM_RIGHT
+	};
 	
 	enum { BLINK_INTERVAL = 800 };
 	enum { OVERLAY_ANIMATION_INTERVAL = 1000 };
@@ -521,6 +527,8 @@ public:
 		, m_blinkInterval(BLINK_INTERVAL)
 		, m_overlayAnimationInterval(OVERLAY_ANIMATION_INTERVAL)
 		, m_lastErrorCode(0)
+		, m_imageAlignment(IMAGE_ALIGNMENT_TOP_LEFT)
+		, m_alignImagesPending(true)
 	{
 		for (int i = 0; i < 3; ++i)
 			m_currentPage[i] = 0;
@@ -747,6 +755,7 @@ public:
 		if (m_insertionDeletionDetectionMode == insertionDeletionDetectionMode)
 			return;
 		m_insertionDeletionDetectionMode = insertionDeletionDetectionMode;
+		m_alignImagesPending = true;
 		CompareImages();
 	}
 
@@ -876,6 +885,7 @@ public:
 			if (m_imgConverter[pane].isValid())
 				ChangePage(pane, m_currentPage[pane]);
 		}
+		m_alignImagesPending = true;
 		CompareImages();
 	}
 
@@ -897,6 +907,7 @@ public:
 		if (m_angle[pane] == angle)
 			return;
 		m_angle[pane] = angle;
+		m_alignImagesPending = true;
 		CompareImages();
 	}
 
@@ -914,6 +925,7 @@ public:
 		if (m_horizontalFlip[pane] == flip)
 			return;
 		m_horizontalFlip[pane] = flip;
+		m_alignImagesPending = true;
 		CompareImages();
 	}
 
@@ -931,6 +943,7 @@ public:
 		if (m_verticalFlip[pane] == flip)
 			return;
 		m_verticalFlip[pane] = flip;
+		m_alignImagesPending = true;
 		CompareImages();
 	}
 
@@ -955,6 +968,20 @@ public:
 	void SetPreferWICDecoder(bool preferWIC)
 	{
 		m_preferWICDecoder = preferWIC;
+	}
+
+	IMAGE_ALIGNMENT GetImageAlignment() const
+	{
+		return m_imageAlignment;
+	}
+
+	void SetImageAlignment(IMAGE_ALIGNMENT alignment)
+	{
+		if (alignment < IMAGE_ALIGNMENT_TOP_LEFT || alignment > IMAGE_ALIGNMENT_BOTTOM_RIGHT || m_imageAlignment == alignment)
+			return;
+		m_imageAlignment = alignment;
+		m_alignImagesPending = true;
+		CompareImages();
 	}
 
 	const DiffInfo *GetDiffInfo(int diffIndex) const
@@ -1143,6 +1170,8 @@ public:
 			return;
 
 		PreprocessImages();
+		if (m_alignImagesPending)
+			AlignImages();
 
 		InitializeDiff();
 		if (m_nImages == 2)
@@ -1245,7 +1274,10 @@ public:
 			m_imgPreprocessed[i].clear();
 			m_offset[i].x = 0;
 			m_offset[i].y = 0;
+			m_alignmentOffset[i].x = 0;
+			m_alignmentOffset[i].y = 0;
 		}
+		m_alignImagesPending = true;
 		m_nImages = 0;
 		return true;
 	}
@@ -1657,6 +1689,7 @@ protected:
 			m_imgOrig32[pane].convertTo32Bits();
 			if (m_currentDiffIndex >= 0)
 				m_currentDiffIndex = 0;
+			m_alignImagesPending = true;
 		}
 	}
 
@@ -1670,6 +1703,46 @@ protected:
 			hmax = (std::max)(hmax, static_cast<unsigned>(m_imgPreprocessed[i].height()) + m_offset[i].y);
 		}
 		return Size<unsigned>(wmax, hmax);
+	}
+
+	/**
+	 * @brief Positions images of different sizes according to m_imageAlignment.
+	 *
+	 * The alignment offset is computed from the preprocessed image sizes and is
+	 * applied on top of any offset the user has added with AddImageOffset().
+	 * It is only recomputed when the layout changes (opening images, changing
+	 * the page, rotation, flip, insertion/deletion detection mode or the alignment
+	 * itself), so that edits such as CopyDiff() or Resize() do not move images.
+	 */
+	void AlignImages()
+	{
+		m_alignImagesPending = false;
+		unsigned wmax = 0, hmax = 0;
+		for (int i = 0; i < m_nImages; ++i)
+		{
+			wmax = (std::max)(wmax, m_imgPreprocessed[i].width());
+			hmax = (std::max)(hmax, m_imgPreprocessed[i].height());
+		}
+		const int halign = static_cast<int>(m_imageAlignment) % 3; // 0: left, 1: center, 2: right
+		const int valign = static_cast<int>(m_imageAlignment) / 3; // 0: top, 1: middle, 2: bottom
+		Point<int> offset[3];
+		int minx = INT_MAX, miny = INT_MAX;
+		for (int i = 0; i < m_nImages; ++i)
+		{
+			const Point<int> alignmentOffset(
+				static_cast<int>(wmax - m_imgPreprocessed[i].width()) * halign / 2,
+				static_cast<int>(hmax - m_imgPreprocessed[i].height()) * valign / 2);
+			offset[i].x = static_cast<int>(m_offset[i].x) - m_alignmentOffset[i].x + alignmentOffset.x;
+			offset[i].y = static_cast<int>(m_offset[i].y) - m_alignmentOffset[i].y + alignmentOffset.y;
+			m_alignmentOffset[i] = alignmentOffset;
+			minx = (std::min)(minx, offset[i].x);
+			miny = (std::min)(miny, offset[i].y);
+		}
+		for (int i = 0; i < m_nImages; ++i)
+		{
+			m_offset[i].x = offset[i].x - minx;
+			m_offset[i].y = offset[i].y - miny;
+		}
 	}
 
 	void InitializeDiff()
@@ -2410,4 +2483,7 @@ protected:
 	int m_lastErrorCode;
 	bool m_imgDiffIsTransparent[3]{};
 	bool m_preferWICDecoder;
+	IMAGE_ALIGNMENT m_imageAlignment;
+	Point<int> m_alignmentOffset[3];
+	bool m_alignImagesPending;
 };

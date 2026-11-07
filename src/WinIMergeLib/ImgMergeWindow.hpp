@@ -545,6 +545,18 @@ public:
 		m_buffer.SetPreferWICDecoder(preferred);
 	}
 
+	IMAGE_ALIGNMENT GetImageAlignment() const override
+	{
+		return static_cast<IMAGE_ALIGNMENT>(m_buffer.GetImageAlignment());
+	}
+
+	void SetImageAlignment(IMAGE_ALIGNMENT alignment) override
+	{
+		m_buffer.SetImageAlignment(static_cast<CImgMergeBuffer::IMAGE_ALIGNMENT>(alignment));
+		UpdateScrollBars();
+		Invalidate();
+	}
+
 	int  GetDiffCount() const override
 	{
 		return m_buffer.GetDiffCount();
@@ -811,7 +823,8 @@ public:
 		fipImageEx image;
 		image.pasteFromClipboard();
 		image.convertTo32Bits();
-		imgWindow.SetOverlappedImage(image);
+		// on the image's top-left corner, which is not the canvas origin when the image is aligned
+		imgWindow.SetOverlappedImage(image, GetImageOffset(pane));
 		imgWindow.Invalidate();
 		return true;
 	}

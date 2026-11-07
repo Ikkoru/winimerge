@@ -227,6 +227,8 @@ void UpdateMenuState(HWND hWnd)
 		m_pImgMergeWindow->GetOverlayMode() + ID_VIEW_OVERLAY_NONE, MF_BYCOMMAND);
 	CheckMenuRadioItem(hMenu, ID_VIEW_DRAGGINGMODE_NONE, ID_VIEW_DRAGGINGMODE_RECTANGLE_SELECT,
 		m_pImgMergeWindow->GetDraggingMode() + ID_VIEW_DRAGGINGMODE_NONE, MF_BYCOMMAND);
+	CheckMenuRadioItem(hMenu, ID_VIEW_ALIGNMENT_TOP_LEFT, ID_VIEW_ALIGNMENT_BOTTOM_RIGHT,
+		m_pImgMergeWindow->GetImageAlignment() + ID_VIEW_ALIGNMENT_TOP_LEFT, MF_BYCOMMAND);
 	int blockSize = m_pImgMergeWindow->GetDiffBlockSize();
 	int id = ID_VIEW_DIFFBLOCKSIZE_1;
 	while (blockSize > 1)
@@ -663,6 +665,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case ID_VIEW_DRAGGINGMODE_HORIZONTAL_WIPE:
 		case ID_VIEW_DRAGGINGMODE_RECTANGLE_SELECT:
 			m_pImgMergeWindow->SetDraggingMode(static_cast<IImgMergeWindow::DRAGGING_MODE>(wmId - ID_VIEW_DRAGGINGMODE_NONE));
+			break;
+		case ID_VIEW_ALIGNMENT_TOP_LEFT:
+		case ID_VIEW_ALIGNMENT_TOP_CENTER:
+		case ID_VIEW_ALIGNMENT_TOP_RIGHT:
+		case ID_VIEW_ALIGNMENT_MIDDLE_LEFT:
+		case ID_VIEW_ALIGNMENT_CENTER:
+		case ID_VIEW_ALIGNMENT_MIDDLE_RIGHT:
+		case ID_VIEW_ALIGNMENT_BOTTOM_LEFT:
+		case ID_VIEW_ALIGNMENT_BOTTOM_CENTER:
+		case ID_VIEW_ALIGNMENT_BOTTOM_RIGHT:
+			m_pImgMergeWindow->SetImageAlignment(static_cast<IImgMergeWindow::IMAGE_ALIGNMENT>(wmId - ID_VIEW_ALIGNMENT_TOP_LEFT));
 			break;
 		case ID_VIEW_USEBACKCOLOR:
 		{

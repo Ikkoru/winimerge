@@ -172,6 +172,20 @@ BEGIN
             MENUITEM "&Horizontal Wipe",            ID_VIEW_DRAGGINGMODE_HORIZONTAL_WIPE
             MENUITEM "Rectangle &Select",           ID_VIEW_DRAGGINGMODE_RECTANGLE_SELECT
         END
+        POPUP "Image A&lignment"
+        BEGIN
+            MENUITEM "&Top Left",                   ID_VIEW_ALIGNMENT_TOP_LEFT
+            MENUITEM "Top &Center",                 ID_VIEW_ALIGNMENT_TOP_CENTER
+            MENUITEM "Top &Right",                  ID_VIEW_ALIGNMENT_TOP_RIGHT
+            MENUITEM SEPARATOR
+            MENUITEM "&Middle Left",                ID_VIEW_ALIGNMENT_MIDDLE_LEFT
+            MENUITEM "C&enter",                     ID_VIEW_ALIGNMENT_CENTER
+            MENUITEM "Middle Ri&ght",               ID_VIEW_ALIGNMENT_MIDDLE_RIGHT
+            MENUITEM SEPARATOR
+            MENUITEM "&Bottom Left",                ID_VIEW_ALIGNMENT_BOTTOM_LEFT
+            MENUITEM "Bottom Ce&nter",              ID_VIEW_ALIGNMENT_BOTTOM_CENTER
+            MENUITEM "Bottom R&ight",               ID_VIEW_ALIGNMENT_BOTTOM_RIGHT
+        END
         MENUITEM "Split &Horizontally",         ID_VIEW_SPLITHORIZONTALLY
         MENUITEM "&Set Background Color",       ID_VIEW_USEBACKCOLOR
         POPUP "&Vector Image Scaling"
