@@ -679,7 +679,7 @@ protected:
 								int sdx, sdy;
 								bool inside = ConvertToScaledPos(dstPane, x + j, y + i, sdx, sdy, false);
 								// an unscaled destination was enlarged above, so the positions right of or below
-								// its previous size are copied too (upstream #42), except the ghost lines of
+								// its previous size are copied too (as since #42), except the ghost lines of
 								// insertion/deletion detection; a scaled one is never enlarged
 								bool extendsImage = !IsImageScaled(dstPane) && (
 									x + j >= m_offset[dstPane].x + m_imgPreprocessed[dstPane].width() ||
