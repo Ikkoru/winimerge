@@ -1,11 +1,12 @@
 # Comparing images of different resolution in WinMerge: study report
 
-*Session of 2026-10-14. Harness, data and page in this folder; findings log in `DISCOVERIES.md`.*
+*Study of 2026-10-14, follow-up round of 2026-10-14/21 (section 10), checked against upstream on 2026-11-07.
+Harness, data and pages in this folder; findings log in `DISCOVERIES.md`; branches and next steps in `HANDOFF.md`.*
 
 **In one paragraph.** To compare a picture with a resized copy of it, shrink the original to the
 copy's size with the filter that reproduces the copy best; do not enlarge the copy. That makes an
 unedited pair look clean (Pillow-made copies match exactly) and keeps 98 % of edits visible on the
-synthetic set (real pictures: 96 %, all of them with lossless copies), where enlarging leaves about a
+synthetic set (real pictures: 96 %, and every one with lossless copies), where enlarging leaves about a
 third of the 8×8 blocks marked at threshold 16 and finds 53–82 % of edits (real pictures: 51–95 %). Whole-number
 nearest neighbour is honest about the copy's pixels and, at 2× on line art, flat colour and text, even
 looks closer to the original to the models of the eye, but as a comparison it is no better than Lanczos3; an unsharp mask on top of
@@ -71,6 +72,9 @@ tools that predict what a person sees when flipping.
 - **Implemented** as separate PRs in your forks: image alignment (nine anchors, including centre) and
   size matching (the three modes), each a library commit plus a small UI commit, with matching WinMerge
   menu PRs. The setting lives behind one API call, so the maintainer can put it wherever they want.
+  A tenth alignment, **Follow View (Scaled Images)**, lines up the content under the window's centre in
+  every scaled pane half a second after scrolling stops (branches `claude/trusting-brown-3d75mh-follow`,
+  no PR yet; `HANDOFF.md`).
 
 ## 3. What was tested
 
@@ -716,7 +720,8 @@ enlargement smooths the compression noise in the difference more than the edits:
 of 40 on the synthetic set, 35–42 instead of 47 on real pictures, and a few points more edits found), at
 the cost of comparing at the large size (about 15× slower per comparison at 4×) and of showing both
 panes softened. Only the compare-at-the-smaller-size
-version was implemented; the round trip would be a small follow-up if wanted.
+version was implemented; the follow-up (section 10.1) showed the round trip's gain was WinMerge's block
+size, so it is not needed.
 
 ## 6. Recommendations
 
@@ -733,7 +738,8 @@ For the WinIMerge/WinMerge feature (implemented in the PR branches, see `notes/u
    make the comparison cleaner (section 4.8). For choosing which copy to keep, restore both copies first,
    outside WinMerge (section 10.3).
 4. Image alignment **Center** is the useful companion when sizes still differ (crops, letterboxing,
-   or whole-number NN at a factor like 2.5×, where the enlarged copy stays smaller).
+   or whole-number NN at a factor like 2.5×, where the enlarged copy stays smaller); **Follow View**
+   keeps such an enlarged copy lined up wherever you scroll (`-follow` branches).
 5. No "round trip" option (enlarge both panes back after the matched shrink). Its small gain in
    section 4.12 was WinMerge's block grid: with Diff Block Size 8/k the matched shrink does as well
    (section 10.1), comparing a quarter (2×) to a sixteenth (4×) of the pixels.
@@ -817,8 +823,15 @@ both panes equally blocky, so it adds no difference of its own.
   (comparing 24 megapixels), with the enlargement cached.
 - An independent review with a randomized AddressSanitizer stress test found no new crash in either
   branch; its findings (performance of re-matching, copies into smoothed panes, alignment after a
-  growing copy, undo placement) were fixed, and two pre-existing out-of-bounds bugs it confirmed are
-  fixed in a separate PR.
+  growing copy, undo placement) were fixed. Of the two pre-existing out-of-bounds bugs it confirmed
+  (Delete and Paste past the image), upstream fixed the plain cases in its #41; Delete in a rotated,
+  non-square image still overflows there and is fixed in a separate PR (Ikkoru/winimerge#3).
+- Follow View (`-follow` branches): the offset of each scaled pane smaller than the canvas is
+  t × (canvas size − its size), with t the window centre's position across the canvas, so the Left,
+  Center and Right anchors are t = 0, ½ and 1. A one-shot 500 ms timer restarts on every scroll, wheel,
+  zoom and resize; when it fires, the panes jump into place (one re-comparison; sliding would rebuild the
+  canvas-sized images every frame, about 0.5 s each at 24 megapixels). Next/Previous Difference stops the
+  timer. Unscaled panes stay centred.
 
 ## 9. What was not tested
 
@@ -840,7 +853,8 @@ both panes equally blocky, so it adds no difference of its own.
 - LPIPS and DISTS: not used, as the brief advised (they reward plausible texture over the right pixels).
 - Your own pairs: the harness runs on them offline (`harness/compare_pairs.py`, section 11).
 - People's eyes: you looked through round 1 of the eye-check page (your notes are answered in section 10);
-  round 2 (blind trials, compression cases, filters on PNG copies) is unseen. Elsewhere ꟻLIP, Butteraugli
+  round 2 (blind trials, compression cases, filters on PNG copies) is in progress, and its marks are not
+  analysed yet (they reach a Claude session through the page's account storage: `HANDOFF.md`). Elsewhere ꟻLIP, Butteraugli
   and SSIMULACRA2 stand in for the eye, and the "visible" thresholds of section 10.3 (Butteraugli max 1)
   are the metric's, not measured on you.
 - Keep decisions for copies that were resized from an already-compressed upload more than once, WebP or
@@ -1026,7 +1040,7 @@ needed for the unedited pair (T_p99) and share of edits visible:
 - **Point-sampled thumbnails** (made with nearest neighbour) are the hard case: no candidate
   reproduces them, because the sampling phase differs from FreeImage's box, and only strong edits
   show. A point-sampling candidate in DOWN_MATCHED (with the common sampling phases) would make them
-  exact; it is not implemented.
+  exact; it is not implemented (`HANDOFF.md`, possible follow-ups).
 
 So for pixel art the general result holds and is even cleaner: compare at the smaller size with the
 matched filter. Whole-number NN (the mode you asked for) is equally exact when the ratio is a whole
@@ -1096,7 +1110,8 @@ resolution: the large file's blocking and ringing, the small copy's magnified on
 to "which file was compressed harder", and it named the same cleaner side as the small-size truth in 85 %
 of the 540 lossy pairs (87 % restored). It leans towards the small copy, calling it cleaner in 9 % of the
 pairs where the truth says 2 %: the typical case is a q95 thumbnail that looks cleaner than a q90 large
-file in this view while the q90 file shrunk to the thumbnail's size is cleaner still. So for "keep the
+file in this view while the q90 file shrunk to the thumbnail's size is cleaner still. (Follow View, added since, keeps
+that view lined up anywhere in the picture, not only at the centre.) So for "keep the
 small one too?" judge at the small size: Shrink to Smallest, zoomed k×, flipping and watching which pane
 the blocking, ringing and colour bleeding belong to (ꟻLIP, modelling that zoomed view, agrees with
 Butteraugli on the cleaner side in 94 % of the pairs).
@@ -1184,8 +1199,6 @@ coefficients at that offset (Bianchi and Piva 2012). Tested on the same 9 master
   was a JPEG at q90 or below (`keep_check.py` runs it on lossless files), so "lossless" copies made
   from JPEGs can be told apart from clean ones.
 
-
-
 ### 10.4 Reading WinMerge's numbers
 
 WinMerge's status bar counts *differences* as connected regions of marked 8×8 blocks, so the count
@@ -1246,6 +1259,7 @@ python3 harness/roundtrip_test.py; python3 harness/im_spotcheck.py         # sid
 python3 harness/tiny_edits.py; python3 harness/blocksize_check.py           # follow-up, section 10.1
 python3 harness/spot_check.py                                               # the c02 follow-up (10.1)
 python3 harness/compression_test.py keep; python3 harness/jpeg_history.py --test   # section 10.3
+python3 harness/pixelart_test.py; python3 harness/cr_vs_l3.py; python3 harness/compression_test.py recover   # 10.2, 10.5, 10.3
 python3 harness/followup_report.py && python3 harness/eyecheck2.py          # follow-up tables, page 2
 python3 harness/keep_check.py LARGE SMALL --jpegqs                          # keep both? (your files)
 ```

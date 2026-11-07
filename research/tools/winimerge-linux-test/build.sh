@@ -3,7 +3,7 @@
 # Usage: ./build.sh [winimerge-checkout] [test.cpp ...]
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-SRC="${1:-/home/user/winimerge}"; shift || true
+SRC="${1:-${WINIMERGE_DIR:-/home/user/winimerge}}"; shift || true
 TESTS=("$@"); [ ${#TESTS[@]} -eq 0 ] && TESTS=("$HERE"/test_*.cpp)
 BUILD="$(mktemp -d)"
 trap 'rm -rf "$BUILD"' EXIT

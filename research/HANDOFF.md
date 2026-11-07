@@ -1,8 +1,10 @@
 # Hand-off: where everything is and what to do next
 
 Written at the end of the 2026-10-14 session for whoever continues (you or a local Claude session);
-updated 2026-11-06 (upstream merged into every branch, Follow View added on the `-follow` branches).
-Nothing was posted upstream (WinMerge/winimerge, WinMerge/winmerge); everything lives in the Ikkoru forks.
+updated 2026-11-06 (upstream merged into every branch, Follow View added on the `-follow` branches) and
+2026-11-07 (docs checked against the code and data, eye-check marks saved to your account, section
+"Moving to a local session"). Nothing was posted upstream (WinMerge/winimerge, WinMerge/winmerge);
+everything lives in the Ikkoru forks.
 
 ## Branches and pull requests
 
@@ -36,18 +38,20 @@ The two WinIMerge branches are independent. Merged together they need the confli
 
 - Verified on Linux: the diff/merge buffer (`ImgDiffBuffer.hpp`, `ImgMergeBuffer.hpp`) compiled with g++
   against FreeImage and unit-tested (`tools/winimerge-linux-test`: alignment 155 checks, scaling 158,
-  combined 30, bounds fix 10 + 3 (rotated image), copy into the extended area 6, follow view 44, all also
-  under AddressSanitizer; re-run after merging upstream); WinIMergeLib.cpp, WinIMerge.cpp and both
-  .rc files compile with MinGW i686 (`tools/mingw-syntax-check.sh`, syntax only).
+  combined 30, bounds fix 10 + 3 (rotated image), copy into the extended area 6 + 7 (scaled panes),
+  follow view 44, all under AddressSanitizer, all re-run on 2026-11-07 on the merged branches);
+  WinIMergeLib.cpp, WinIMerge.cpp and both .rc files compile with MinGW i686
+  (`tools/mingw-syntax-check.sh`, syntax only).
 - An independent review (a separate agent) ran ~2,500 random edit sequences under AddressSanitizer on
   both branches: no new crash sites; with the options at their defaults, results are bit-identical to
   master. Its real findings were fixed (see the PR descriptions); its fuzzer is kept in
   `tools/winimerge-linux-test/fuzz/` (README there). A re-run on the
   final commits (400 sequences each on align, scale and master, same seed) hit only crash sites that master
   has too (the pre-existing bugs below). Re-run on the merged trees, and on `-follow` with Follow View
-  operations added (`fuzz/run.sh <tree> follow`, 400 sequences, seed 7): the same three sites only (the
-  per-pixel and row-insertion `memcpy` in `CopyDiffInternal`, and the three-way horizontal
-  insertion/deletion `Make3WayLineDiff`, which the classifier reports as `PreprocessImages`).
+  operations added (`fuzz/run.sh <tree> follow`, 400 sequences, seed 7, 2026-11-07): every branch hits only
+  statements upstream `master` (`10e78f7`) crashes on too (the per-pixel and row/column-insertion `memcpy` in
+  `CopyDiffInternal`, and the three-way horizontal `Make3WayLineDiff`, reported as `PreprocessImages`);
+  logs and a table in `results/fuzz/`.
 - **Not verified**: an MSVC build, running WinIMerge.exe or WinMerge on Windows, and the WinMerge (MFC)
   changes at all beyond reading them.
 
@@ -92,7 +96,8 @@ Size Matching, that the choice is remembered after restarting, and that the menu
 0. WinIMerge bug fix (rotated Delete, still open upstream after #41; text updated in fork PR #3).
 1. WinIMerge alignment PR and scaling PR (either order; the second needs the trivial rebase above).
 1b. Follow View, after both are in (it needs scaling to have anything to follow and extends the alignment
-   enum): the single commit on top of `-follow` (`15cadcb`), and in WinMerge `02af0c2`.
+   enum): commit `15cadcb` of `-follow` (the rest of that branch is the two features merged), and in WinMerge
+   `02af0c2` (text in `notes/upstream-drafts.md` 2c and 4b).
 2. After the maintainer publishes a WinIMerge release with the new methods: the two WinMerge PRs
    (they call methods a pre-release DLL does not have, which would crash).
 3. New menu strings go through the translation files (the maintainer usually regenerates them).
@@ -101,22 +106,13 @@ Size Matching, that the choice is remembered after restarting, and that the menu
 
 - ~~Round trip~~ (REPORT §4.12): dropped after the follow-up (§10.1). Its gain was WinMerge's block
   size; the matched shrink with Diff Block Size 8/k does as well.
-- **Alignment that follows the view centre**: implemented on the `-follow` branches (2026-11-06) as
-  estimated below, with your three answers: it jumps into place (a slide would rebuild the canvas-sized
-  composite every frame, ~0.5 s each at 24 megapixels), it is paused during next/previous-difference
-  navigation, and it is offered only for scaled panes (Size Matching None keeps the panes centred). The
-  estimate as written before: for whole-number
-  NN at a factor like 2.5× (the copy shown at 80 %), place each smaller image so that the content under
-  the middle of the window lines up in every pane, re-aligning 0.5 s after scrolling, wheel, zoom or a
-  resize stops. The offset is t × (W − w), with t the window centre's position across the largest image
-  (0 at the left edge, 1 at the right): the existing Left/Center/Right anchors are t = 0, ½, 1, so it is a
-  continuous version of `AlignImages()`. Needs a 10th alignment choice, a one-shot timer (WinIMerge
-  already uses timers for blinking) restarted from `ChildWnd_OnHVScroll()` and zoom/resize, and a
-  re-comparison when it fires: ~0.1 s for 2-megapixel pictures, 1–2 s for 24 megapixels (single thread,
-  measured with `test_timing.cpp` under load), nothing while scrolling. About 100 lines in the library
-  plus a menu item per app; the offset math can be unit-tested on Linux, the feel needs Windows. Open
-  questions: jump after the pause or slide while scrolling (marks recomputed at the pause); pause it
-  during next/previous-difference navigation; also offer it with Size Matching None.
+- ~~Alignment that follows the view centre~~: implemented as Follow View on the `-follow` branches
+  (2026-11-06), with your three answers: it jumps into place after 0.5 s without scrolling, zooming or
+  resizing (a slide would rebuild the canvas-sized composite every frame, ~0.5 s each at 24 megapixels;
+  the re-comparison at the jump takes ~0.1 s at 2 megapixels and 1–2 s at 24), next/previous-difference
+  navigation does not trigger it, and it acts only on scaled panes (with Size Matching None the panes
+  stay centred). The offset is t × (canvas size − image size), t = the window centre's position across the
+  canvas (Left/Center/Right are t = 0, ½, 1). REPORT §8; the feel still needs trying on Windows.
 - **A point-sampling candidate for the matched shrink** (REPORT §10.2): thumbnails made with nearest
   neighbour (Pillow NEAREST) are reproduced by no current candidate; point sampling at the common phases
   would make pixel-art thumbnails exact.
@@ -128,11 +124,12 @@ Size Matching, that the choice is remembered after restarting, and that the menu
   (`Settings/ImageColorDistanceThreshold`, × 1000) accepts up to 442. A "96" or "128" menu item, or a
   free value on the options page, would be a small separate WinMerge PR.
 
-## Pre-existing upstream bugs found (not fixed in these PRs)
+## Pre-existing upstream bugs found (status as of 2026-11-07)
 
 1. Copying a difference that lies right of or below a smaller image enlarges it, but the new columns/rows
    stay empty on the first click (`CopyDiffInternal()` checks positions against the old preprocessed size).
-   Fixed upstream by #42; the scale branch carries the same check for scaled panes (`test_copy_extend.cpp`).
+   Fixed upstream by #42; the scale branch combines it with its scaled-position check, so a scaled pane is
+   never extended (`test_copy_extend.cpp`, `test_copy_extend_scaled.cpp`).
 2. Undo after a copy that enlarged an image to the left/top restored the bitmap but not `m_offset`
    (fixed in the alignment PR's third commit).
 3. Delete/Paste outside the image (crash): upstream #41 fixed the plain cases; Delete in a 90°/270°
@@ -143,6 +140,50 @@ Size Matching, that the choice is remembered after restarting, and that the menu
    row; three-way compare with horizontal insertion/deletion detection (`compfunc02` compares rows by
    column index).
 
+## Moving to a local session
+
+Everything that matters is pushed; the cloud container (with its build outputs and worktrees) is not
+needed. To continue on your PC:
+
+1. **Code**: clone the forks and check out the branches above. Add the upstream remotes for later merges
+   (`git remote add upstream https://github.com/WinMerge/winimerge.git`, same for winmerge). In WinIMerge,
+   run `git submodule update --init` (FreeImage is a submodule since upstream `10e78f7`).
+2. **Research folder**: either unzip `winmerge-image-scaling-research.zip`, or check out branch
+   `claude/trusting-brown-3d75mh` of Ikkoru/winimerge and use its `research/` folder. In the git copy the
+   CSVs are gzip-compressed and images and binaries are left out: run `gunzip research/results/*.csv.gz`
+   (the scripts read plain `.csv`), then follow `harness/README.md` (Python packages, FreeImage, optional
+   libjxl and jpegQS builds; `harness/synth.py` and `make_real_crops.py` recreate the test images).
+3. **Tools** (`tools/`): set `WINIMERGE_DIR` to your winimerge clone for `mingw-syntax-check.sh`,
+   `make_combined.sh` and `winimerge-linux-test/build.sh` (they default to this container's
+   `/home/user/winimerge`); `sync_research.py` takes `RESEARCH_REPO` (a checkout of the research branch) and
+   `make_zip.sh` an output path. The Linux unit tests and the MinGW check need Linux or WSL.
+4. **Your eye-check marks** live in two places:
+   - in the browser where you made them (its local storage for that page; no other program or session can
+     read it), and
+   - from now on also in your Claude account: both pages (round 1
+     https://claude.ai/artifact/6VCaQkq5egCxeAi9tqepCp, round 2
+     https://claude.ai/artifact/AZuXdaiba6Qw86YBqfJtyn) save the marks to the page's own storage when they
+     are open on claude.ai or in the Claude app, and on first opening they copy over the marks already in
+     that browser. **Open each page once in the same browser (or the Claude app's built-in browser) where
+     you marked**; the line above "Your marks" then says "saved … in your Claude account (N entries)".
+   - A Claude session signed in to the same claude.ai account and offering the Artifact tools (cloud
+     sessions do; Claude Code on your PC does when signed in with that account) reads them with the
+     `ArtifactData` tool: `action: "get"`, the page's URL, `collection: "marks"`, `doc_id: "round2"` (round 2)
+     or `"round1"` (round 1). The document holds `marks` (by trial or case and view: `edit`/`x`/`y`/`used`
+     for blind trials, `worse` for "which copy is cleaner", `spur` for filters), `entries` and `updated`.
+     The truth for round 2 is in `eyecheck2/truth.json` (by trial id and case id).
+   - Fallback, if a session has no Artifact tools: the "Copy marks" button gives the same JSON to paste
+     into the chat.
+5. **Things only you can do**: press "Sync fork" on both forks' GitHub pages (so the PR diffs show only our
+   changes), build and try the branches on Windows (checklist above), finish and send round 2 of the eye
+   check, and decide when to open the `-follow` PRs and when to submit upstream.
+
+**Decisions so far** (so a new session does not reopen them): nothing is posted upstream yet, and the fork
+PRs are drafts that you discuss here rather than on GitHub; no new PRs without asking; branches use the prefix
+`claude/trusting-brown-3d75mh`; the round trip is dropped; no unsharp-mask or jpegQS option in WinMerge;
+Follow View jumps (no slide), pauses during difference navigation, and acts on scaled panes only; for
+choosing which copy to keep, judge restored copies at the smaller size (`keep_check.py`).
+
 ## Research
 
 `README.md` (index), `REPORT.md` (the study), `DISCOVERIES.md` (findings log), `harness/README.md` (how to
@@ -151,7 +192,8 @@ rebuild the tools and rerun everything, including on your own image pairs), `eye
 The experiments ran through `harness/run_chain3.sh` and `harness/run_chain4.sh` (logs in `results/`); every
 run is resumable, so rerunning a chain only fills in what is missing. Side experiments: `roundtrip_test.py`,
 `im_spotcheck.py`, `chroma_test.py`. Follow-up round by comparison goal (REPORT §10): `tiny_edits.py`,
-`blocksize_check.py`, `cr_vs_l3.py`, `pixelart_test.py`, `compression_test.py`, `jpeg_history.py`
-(`results/tables_followup.md`), the round-2 flip page `eyecheck2/index.html` (published privately at
+`blocksize_check.py`, `spot_check.py`, `cr_vs_l3.py`, `pixelart_test.py`, `compression_test.py`,
+`jpeg_history.py` (`results/tables_followup.md`), the round-2 flip page `eyecheck2/index.html` (published privately at
 https://claude.ai/artifact/AZuXdaiba6Qw86YBqfJtyn), and two tools for your own files: `keep_check.py`
-(keep the smaller copy too?) and `jpeg_history.py FILE.jpg` (saved before at a lower quality?).
+(keep the smaller copy too?) and `jpeg_history.py FILE.jpg` (saved before at a lower quality?). The random
+stress test's logs per branch are in `results/fuzz/`.

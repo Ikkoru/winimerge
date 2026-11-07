@@ -45,7 +45,7 @@ mkdir -p testset/large && ln -s ../synth/*.png testset/large/
 | `study.py` | the experiments (`python3 study.py list`), resumable runner writing `results/<exp>_<tag>.csv`; `--down-only` adds missing compare-at-the-smaller-size rows to an existing CSV |
 | `report.py` | `results/tables.md` from the CSVs (each table compares candidates on the same pairs) |
 | `charts.py` | `charts/*.png` |
-| `eyecheck.py` | the flip page (`eyecheck/index.html`, self-contained) |
+| `eyecheck.py` | the flip page (`eyecheck/index.html`, self-contained; `artifact.html` is the same page for publishing) |
 | `compare_pairs.py` | the same measurements on your own image pairs |
 | `make_real_crops.py` | recreates the real-image crops from the sources |
 | `heavy_analysis.py` | perceptual metrics (heavy run): medians per candidate and how well each metric agrees with WinMerge's outcome |
@@ -53,10 +53,12 @@ mkdir -p testset/large && ln -s ../synth/*.png testset/large/
 | `roundtrip_test.py` | the brief's suggestion 4 (matched shrink, then enlarge both panes) vs comparing at the small size, with edit detection on ꟻLIP maps too |
 | `im_spotcheck.py` | copies made by ImageMagick (default, Catmull-Rom, WordPress's thumbnail recipe, linear light): does the matched shrink reproduce them? |
 | `run_chain3.sh`, `run_chain4.sh` | every `study.py` experiment, in order (resumable); chain 3 first, then chain 4 |
+| `run_all.sh`, `run_chain.sh`, `run_chain2.sh`, `run_real.sh`, `run_fill_area.sh` | earlier runners, kept with their logs in `results/`; chains 3 and 4 cover everything they ran |
 | `tiny_edits.py` | follow-up: tiny edits (1–6 px dots, hairlines; flat or busy spot; in either file) under three save scenarios, incl. a lossless small copy with a lossy large file |
 | `pixelart_test.py` | follow-up: pixel art at two sizes (NN zooms, smooth or point-sampled thumbnails) with logical-pixel edits |
 | `compression_test.py` | follow-up: `recover` (one-time vs re-saved JPEGs before/after jpegQS) and `keep` (is a smaller copy worth keeping next to a lossy large file?) |
-| `eyecheck2.py` | eye-check page, round 2 (blind trials, compression cases, filters on PNG copies) |
+| `eyecheck2.py` | eye-check page, round 2 (blind trials, compression cases, filters on PNG copies); writes `eyecheck2/truth.json` |
+| `page_sync.py` | the script both eye-check pages use to copy the marks to the published page's storage in your Claude account (HANDOFF.md, "Moving to a local session") |
 | `blocksize_check.py` | follow-up: the round trip against the shrink with the same block area (WinMerge's Diff Block Size) |
 | `spot_check.py` | follow-up: does a tiny dot stand out *as a dot* (against a ring around it) at full resolution and in the zoomed shrink? |
 | `cr_vs_l3.py` | follow-up: Catmull-Rom against Lanczos3 as the enlarger, by the models of the eye (PNG copies) |

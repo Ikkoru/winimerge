@@ -37,6 +37,7 @@ import metrics as M
 import resample as R
 import study as S
 import tiny_edits as TE
+from page_sync import sync_js
 from paths import ROOT, TESTSET
 
 CROP = 192
@@ -315,7 +316,8 @@ def main():
     filt = filter_cases(store)
     data = dict(imgs=store.imgs, trials=[{k: v for k, v in t.items()} for t in trials], comp=comp, filt=filt)
     names = {t['truth']['image'] for t in trials} | {c['truth']['image'] for c in comp} | {n for n, _, _ in FILTER_CASES}
-    page = PAGE.replace('/*DATA*/', json.dumps(data)).replace('<!--CREDITS-->', credits(names))
+    page = (PAGE.replace('/*DATA*/', json.dumps(data)).replace('<!--CREDITS-->', credits(names))
+            .replace('/*SYNC*/', sync_js('marks/round2', 'Flip Check, Round 2')))
     with open(os.path.join(a.out, 'artifact.html'), 'w') as fh:
         fh.write(page)
     with open(os.path.join(a.out, 'index.html'), 'w') as fh:
@@ -414,12 +416,13 @@ footer ul { margin: 0; padding-left: 1.2em; }
 <div class="stage"><canvas id="cv" tabindex="0" aria-label="Image pair"></canvas></div>
 <div class="marks" id="marks"></div>
 <div id="results"></div>
+<p class="note" id="sync" aria-live="polite"></p>
 <details><summary>Your marks (copy to send back)</summary>
   <div class="group" style="margin-top:8px"><button id="copy">Copy marks</button><span class="note" id="copied"></span></div>
   <textarea id="out" readonly aria-label="Marks as JSON"></textarea>
 </details>
 <footer>
-  <p>Zoom uses nearest neighbour. On your BenQ RD280U at 85 cm one screen pixel is about 1/96 of a degree, so 2× zoom shows 48 image pixels per degree. Cross-fade uses WinMerge's timing (fade 20 %, hold 30 %, back 20 %, hold 30 % of a second). XOR is computed as WinMerge does it: each colour channel bitwise, so a 1-level step from 127 to 128 lights up fully. Marks shade the blocks WinMerge marks at the chosen colour-distance threshold and Diff Block Size (8 is WinMerge's default; when comparing at the smaller size, 8/k pixels, e.g. 4 for a half-size copy, give marks as fine as 8 pixels of the original). Marks are kept in this browser only.</p>
+  <p>Zoom uses nearest neighbour. On your BenQ RD280U at 85 cm one screen pixel is about 1/96 of a degree, so 2× zoom shows 48 image pixels per degree. Cross-fade uses WinMerge's timing (fade 20 %, hold 30 %, back 20 %, hold 30 % of a second). XOR is computed as WinMerge does it: each colour channel bitwise, so a 1-level step from 127 to 128 lights up fully. Marks shade the blocks WinMerge marks at the chosen colour-distance threshold and Diff Block Size (8 is WinMerge's default; when comparing at the smaller size, 8/k pixels, e.g. 4 for a half-size copy, give marks as fine as 8 pixels of the original). Marks are kept in this browser and, when the page is open on claude.ai or in the Claude app, in your Claude account, where a Claude session can read them.</p>
   <!--CREDITS-->
 </footer>
 </main>
@@ -436,7 +439,9 @@ let marks = {};
 try { marks = JSON.parse(localStorage.getItem('flip2marks') || '{}'); } catch (e) { marks = {}; }
 try { const s = JSON.parse(localStorage.getItem('flip2state') || 'null'); if (s) Object.assign(st, s, { showB: false }); } catch (e) {}
 function persist() { try { localStorage.setItem('flip2marks', JSON.stringify(marks)); localStorage.setItem('flip2state', JSON.stringify(st)); } catch (e) {}
-  $('out').value = JSON.stringify(marks, null, 1); }
+  $('out').value = JSON.stringify(marks, null, 1); queuePush(); }
+/*SYNC*/
+function afterMerge() { render(); }
 const cache = {};
 function img(key) { if (cache[key]) return cache[key]; const im = new Image(); const rec = { im, data: null };
   im.onload = () => { const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;

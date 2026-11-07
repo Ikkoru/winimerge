@@ -5,7 +5,7 @@
 # Usage: mingw-syntax-check.sh [options] [SOURCE_ROOT]
 #
 #   SOURCE_ROOT  A winimerge checkout (the directory that contains src/), or its
-#                src/ directory itself. Default: /home/user/winimerge
+#                src/ directory itself. Default: $WINIMERGE_DIR, else /home/user/winimerge
 #                The tree is only read. All fixups go into a temporary copy.
 #
 #   -v, --verbose  also print compiler warnings and fixup details
@@ -107,7 +107,7 @@ while [ $# -gt 0 ]; do
 	esac
 	shift
 done
-SRC_ARG=${SRC_ARG:-/home/user/winimerge}
+SRC_ARG=${SRC_ARG:-${WINIMERGE_DIR:-/home/user/winimerge}}
 
 die() { echo "mingw-syntax-check: $*" >&2; exit 2; }
 vnote() { [ "$VERBOSE" = 1 ] && echo "    $*"; return 0; }

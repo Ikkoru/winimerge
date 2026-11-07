@@ -9,11 +9,11 @@ Windows machine.
 ## Running it
 
 ```sh
-# check /home/user/winimerge (the working tree, uncommitted edits included)
-/home/user/research/tools/mingw-syntax-check.sh
+# check $WINIMERGE_DIR, else /home/user/winimerge (the working tree, uncommitted edits included)
+research/tools/mingw-syntax-check.sh
 
 # check another checkout (or its src/ directory)
-/home/user/research/tools/mingw-syntax-check.sh /path/to/winimerge
+research/tools/mingw-syntax-check.sh /path/to/winimerge
 
 # options
   -v / --verbose   also print warnings and the fixup details
@@ -30,7 +30,10 @@ Windows machine.
   The first run after a container restart took ~13 s while the toolchain was
   read from disk.
 * **Validated:** passes (exit 0) on winimerge HEADs `da639cd`, `85df69b` and
-  `139a6c0`, and on in-progress working trees. The injection tests below were
+  `139a6c0`, and on in-progress working trees; on 2026-11-07 also on the
+  branches with upstream `10e78f7` merged in (`-fix-bounds` `4b72dd6`, `-align`
+  `65fa6a8`, `-scale` `d703ec8`, `-follow` `15cadcb`; the later heads only reword a
+  comment). The injection tests below were
   re-run after a container restart on `139a6c0`: 12 of 12 behaved as
   expected.
 * **Source tree:** it is never modified. The script copies `src/` to
@@ -40,7 +43,7 @@ Windows machine.
 * **Prerequisites:** `apt-get install -y g++-mingw-w64-i686 binutils-mingw-w64-i686`
   (installed here: GCC 13.2 "13-win32", mingw-w64 v11 headers). `--clang`
   also needs `clang++` (18.1 here).
-* **Files** in `/home/user/research/tools/`:
+* **Files** in `research/tools/`:
   * `mingw-syntax-check.sh`: the checker.
   * `mingw-shim.h`: the force-included shim (only `#include <cmath>`).
   * `freeimage-include/FreeImage.h`, `freeimage-include/FreeImagePlus.h`:
@@ -249,13 +252,13 @@ The win32 and posix thread-model variants of MinGW g++ both support
   upgrade), run the two required injection tests again:
 
   ```sh
-  d=$(mktemp -d); cp -a /home/user/winimerge/src "$d/"
+  d=$(mktemp -d); cp -a "$WINIMERGE_DIR/src" "$d/"
   # (a) a call to a method m_buffer does not have
   sed -i 's/return m_buffer.GetFileName(pane);/m_buffer.NoSuchMethod(pane); &/' "$d/src/WinIMergeLib/ImgMergeWindow.hpp"
-  /home/user/research/tools/mingw-syntax-check.sh "$d"; echo "exit $? (expect 1)"
-  cp /home/user/winimerge/src/WinIMergeLib/ImgMergeWindow.hpp "$d/src/WinIMergeLib/"
+  research/tools/mingw-syntax-check.sh "$d"; echo "exit $? (expect 1)"
+  cp "$WINIMERGE_DIR/src/WinIMergeLib/ImgMergeWindow.hpp" "$d/src/WinIMergeLib/"
   # (b) a pure virtual method CImgMergeWindow does not implement
   sed -i 's/virtual void ResetSplitterRatios() = 0;/& virtual void NewPureVirtual(int) = 0;/' "$d/src/WinIMergeLib/WinIMergeLib.h"
-  /home/user/research/tools/mingw-syntax-check.sh "$d"; echo "exit $? (expect 1)"
+  research/tools/mingw-syntax-check.sh "$d"; echo "exit $? (expect 1)"
   rm -rf "$d"
   ```

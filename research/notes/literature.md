@@ -574,7 +574,7 @@ Details and sources:
   - sdottaka first probed the need: "I was wondering if what you really want might be a single-pane view rather than persistent splitter position." They also raised a reset: "we would also need a way to restore the default 50:50 split."
   - They merged WinIMerge PR #39 and WinMerge PR #3593 as-is the next day with "Thank you!" and no formal review ([#39](https://github.com/WinMerge/winimerge/pull/39), [#3593](https://github.com/WinMerge/winmerge/pull/3593)).
   - They then generalised it themselves. WinIMerge PR #40 (2026-09-04) switched the API to `GetSplitterRatio()/SetSplitterRatios()/ResetSplitterRatios()`, with a Copilot "lite" review ([#40](https://github.com/WinMerge/winimerge/pull/40)).
-  - They stated: "I plan to make the splitter position persistent only when Window → Keep Splitter Position is checked."
+  - They stated: "I plan to make the splitter position persistent only when Window → Keep Splitter Position is checked." (Done in WinMerge 2.16.59, #3611: an option to remember and restore splitter positions for text, image, web page and binary compares; checked 2026-11-07.)
 - Other issues show fast, terse fixes with commit references (#3368 Blink state; #3382 WebP regression), and they ask for use cases and samples before acting.
 - *Inference:* a focused, well-described WinIMerge PR plus a thin WinMerge PR, with the behaviour behind an explicit option and a clear default, matches what they merge. Expect them to adjust naming or menus afterwards, and to ask whether the need is really "alignment" or "scaling".
 
@@ -585,7 +585,7 @@ Details and sources:
 - The diff grid spans the max width/height, and blocks outside either image are marked different.
 - The colour test is squared Euclidean RGBA distance against `m_colorDistanceThreshold`.
 - Options already persisted include `Settings/ImageDiffBlockSize`, `ImageColorDistanceThreshold`, `ImageOverlayMode`, `ImageDraggingMode`, `ImageZoom`, `ImageVectorImageZoomRatio`, `ImageSplitterRatios` and `ImagePreferWICDecoder` ([OptionsDef.h](https://github.com/WinMerge/winmerge/blob/master/Src/OptionsDef.h)).
-- Context only: the local WinIMerge checkout at /home/user/winimerge, branch `claude/trusting-brown-3d75mh-align`, already holds work-in-progress commits "Add an option to align images of different sizes" and "WinIMerge: add View > Image Alignment menu". It uses a 3×3 anchor (left/centre/right × top/middle/bottom) applied on top of user offsets.
+- Context only (at the time of writing): the branch `claude/trusting-brown-3d75mh-align` already held work-in-progress commits "Add an option to align images of different sizes" and "WinIMerge: add View > Image Alignment menu". It uses a 3×3 anchor (left/centre/right × top/middle/bottom) applied on top of user offsets.
 
 **Search coverage.** I searched WinMerge issues for image + size/different, align, resize, scale, resolution, center, offset, zoom, overlay, and the `image compare/merge` label (24 issues), all WinIMerge issues (9) and PRs (20), and WinMerge discussions for "image". I found no other request or PR for centring or scaling.
 

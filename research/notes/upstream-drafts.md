@@ -15,7 +15,8 @@ review copies. To submit upstream, open a PR from the fork branch to `WinMerge/<
    `m_alignImagesPending = true` when a pane's `scaleX`/`scaleY` differs from the previous value
    (tested together: `research/tools/winimerge-linux-test/test_combined.cpp`, 30 checks).
 2b. WinIMerge: Follow View, after 1 and 2 (it extends the alignment enum and only acts on scaled panes): the
-   commit `15cadcb` on top of `claude/trusting-brown-3d75mh-follow` (draft text in section 2c).
+   commit `15cadcb` of `claude/trusting-brown-3d75mh-follow` (draft text in section 2c; the branch's other commits
+   are the alignment and scaling work, merged).
 3. WinMerge: the two small integration PRs (and later Follow View, `02af0c2`) (options + Image menu), after the maintainer has released a
    WinIMerge build with the new methods (WinMerge downloads WinIMergeLib.dll from releases; calling a method the
    loaded DLL lacks would crash). In the user's earlier contribution (winimerge#39 + winmerge#3593) the maintainer
@@ -107,7 +108,7 @@ and the research link if the branch moves):
 > ## Testing
 >
 > - Unit tests on Linux (the diff buffer built against FreeImage, with a stub for `ImgConverter.hpp`): 158 checks covering the sizes and factor rules, snapping, the cache and its invalidation, DOWN_MATCHED finding each filter exactly (area averaging included), the filter being kept after edits, copying differences between scaled panes (only in the directions allowed, difference gone afterwards), undo, rotation, insertion/deletion detection, selection mapping, and the default path unchanged.
-> - An independent review ran ~2,500 random edit sequences (2/3 panes, every mode, ghost lines, rotation/flip, offsets, CopyDiff/All/3Way, Undo/Redo, Resize, Delete, Paste) under AddressSanitizer: no new crash sites, and with the option at its default the results are bit-identical to `master`. Its findings (re-matching on every edit, copies into smoothed panes, the float path's cost, scroll bars) are fixed here; a re-run on these final commits (400 sequences, same seed as on `master`) hit only the crash sites `master` has too, all pre-existing (listed in #NN, the alignment PR; the Delete/Paste one is fixed in #NN).
+> - An independent review ran ~2,500 random edit sequences (2/3 panes, every mode, ghost lines, rotation/flip, offsets, CopyDiff/All/3Way, Undo/Redo, Resize, Delete, Paste) under AddressSanitizer: no new crash sites, and with the option at its default the results are bit-identical to `master`. Its findings (re-matching on every edit, copies into smoothed panes, the float path's cost, scroll bars) are fixed here; a re-run on these final commits (400 sequences, same seed as on `master`) hit only the crash sites `master` has too, all pre-existing (listed in #NN, the alignment PR). With #42 merged, a copy into an unscaled pane fills the columns/rows it adds as before, and a scaled pane is never extended (tested).
 > - The scaled images of all three modes are bit-identical to the Python harness used for the measurements (WinMerge's FreeImage fork and FreeImage 3.18 resample identically); the area resampler agrees with OpenCV's `INTER_AREA` to within one level.
 > - WinIMergeLib.cpp, WinIMerge.cpp and both .rc files compile with MinGW (i686, `-fsyntax-only` + windres).
 > - **Not yet built with MSVC or run on Windows.**
@@ -118,12 +119,12 @@ and the research link if the branch moves):
 > - In the two smooth modes, differences can be copied out of the resampled pane but not into it; the copy commands stay enabled and do nothing in that direction. With whole-number NN, copying into the enlarged copy works but cannot carry the original's detail.
 > - The status bar shows the original pixel's position but the colour of the shown (resampled) pixel.
 
-## 2b. WinIMerge PR: bug fix (Delete/Paste outside the image)
+## 2b. WinIMerge PR: bug fix (Delete in a rotated image)
 
-**Title:** Keep Delete and Paste inside the image
+**Title:** Clamp Delete to the image as shown (rotated images)
 
-(Body: identical to the fork PR https://github.com/Ikkoru/winimerge/pull/3. Independent of the two
-feature PRs; worth submitting first, since alignment and scaling make the crash easier to hit.)
+(Body: identical to the fork PR https://github.com/Ikkoru/winimerge/pull/3, rewritten on 2026-11-06 after
+upstream's #41 fixed the plain Delete/Paste cases. Independent of the feature PRs.)
 
 ## 2c. WinIMerge PR: Follow View (after alignment and scaling are merged)
 
@@ -175,6 +176,18 @@ feature PRs; worth submitting first, since alignment and scaling make the crash 
 > resizer compares as (almost) identical to its original, and real edits remain visible; the WinIMerge
 > PR has the measurements. If you would rather offer fewer modes, or put the option on the
 > Options > Compare > Image page, I'm happy to change it.
+
+## 4b. WinMerge PR: Follow View (after 3 and 4, and a WinIMerge release with 2c)
+
+**Title:** Add Image > Image Alignment > Follow View (Scaled Images)
+
+**Body:**
+
+> Adds **Follow View (Scaled Images)** to the Image > Image Alignment submenu for
+> `IMAGE_ALIGNMENT_FOLLOW_VIEW` (WinMerge/winimerge#NN): with Size Matching on, a scaled image that stays
+> smaller than the other (e.g. a 2.5× copy enlarged 2×) is placed so that the content under the centre of the
+> window lines up, half a second after scrolling or zooming stops. `Settings/ImageAlignment` accepts the new
+> value (9); `Src/WinIMergeLib.h` is updated to match. Needs a WinIMerge release with that change first.
 
 ## 5. Optional comment for WinMerge issue #1916
 

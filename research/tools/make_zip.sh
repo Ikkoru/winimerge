@@ -4,13 +4,14 @@
 # with URLs and checksums in testset/sources/MANIFEST.*). Usage: make_zip.sh [output.zip]
 set -e
 SRC=${SRC:-$(cd "$(dirname "$0")/.." && pwd)}
-OUT=${1:-/tmp/claude-0/-home-user/c93e777e-edee-5658-827e-7ebd2f76571d/scratchpad/winmerge-image-scaling-research.zip}
+OUT=${1:-$(dirname "$SRC")/winmerge-image-scaling-research.zip}
 rm -f "$OUT"
 cd "$(dirname "$SRC")"
 zip -q -r -9 "$OUT" "$(basename "$SRC")" \
   -x '*/__pycache__/*' '*.pyc' \
   -x 'research/testset/synth/*' 'research/testset/real/*.png' 'research/testset/sources/*.png' 'research/testset/sources/*.jpg' \
   -x 'research/testset/large/*' 'research/testset/large_real/*' \
-  -x 'research/eyecheck/img/*' 'research/eyecheck/artifact.html' 'research/eyecheck2/artifact.html'
+  -x 'research/eyecheck/img/*' 'research/eyecheck/artifact.html' 'research/eyecheck2/artifact.html' \
+  -x 'research/tools/winimerge-linux-test/fuzz_*'   # fuzzer binaries and logs run.sh leaves in its working folder
 ls -la "$OUT"
 unzip -l "$OUT" | tail -1

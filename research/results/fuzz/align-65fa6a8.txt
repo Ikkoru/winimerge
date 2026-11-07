@@ -1,0 +1,2615 @@
+=================================================================
+==3260==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51a0000005b0 at pc 0x7fe7818fb42e bp 0x7ffe31626550 sp 0x7ffe31625cf8
+READ of size 40 at 0x51a0000005b0 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #4 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #5 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x51a0000005b0 is located 0 bytes after 1328-byte region [0x51a000000080,0x51a0000005b0)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781ffe539 in fipImage::setSize(FREE_IMAGE_TYPE, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x8539) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #4 0x5575f676cc83 in Image::setSize(int, int) /tmp/tmp.woDpCFr3rB/image.hpp:311
+    #5 0x5575f676cc83 in CImgMergeBuffer::Resize(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:188
+    #6 0x5575f66bdad9 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:169
+    #7 0x5575f66bdad9 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #8 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #9 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #10 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x51a000000300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51a000000380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51a000000400: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51a000000480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51a000000500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51a000000580: 00 00 00 00 00 00[fa]fa fa fa fa fa fa fa fa fa
+  0x51a000000600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51a000000680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51a000000700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51a000000780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51a000000800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==3260==ABORTING
+CRASH seed 7 it 0 (status 256); op log:
+   img 0: 5x18 kind 0
+   img 1: 5x18 kind 1
+   img 2: 10x18 kind 3
+   Undo()
+   select canvas (4,2)-(4,3) -> real (4,2)-(4,3) on 2
+   Redo()
+   SetShowDifferences(0)
+   SetRotation(1, 180)
+   SetRotation(0, 180)
+   SetHorizontalFlip(2, 1)
+   SetImageAlignment(0)
+   SetInsertionDeletionDetectionMode(1)
+   Resize(2, 6, 38)
+   SetHorizontalFlip(1, 1)
+   CopyDiff(0, 2, 0)
+=================================================================
+==3262==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51f000017830 at pc 0x5575f673e9da bp 0x7ffe31626530 sp 0x7ffe31626520
+READ of size 4 at 0x51f000017830 thread T0
+    #0 0x5575f673e9d9 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #1 0x5575f673e9d9 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698
+    #2 0x5575f6767ddd in CImgMergeBuffer::CopyDiffAll(int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:258
+    #3 0x5575f66bd745 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:165
+    #4 0x5575f66bd745 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #5 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x51f000017830 is located 0 bytes after 2992-byte region [0x51f000016c80,0x51f000017830)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781faee0a  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x71e0a) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x7fe781fb4dd2 in FreeImage_Rotate (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x77dd2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #5 0x7fe781fffa44 in fipImage::rotate(double, void const*) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x9a44) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #6 0x5575f66e8a04 in Image::rotate(double) /tmp/tmp.woDpCFr3rB/image.hpp:331
+    #7 0x5575f66e8a04 in CImgDiffBuffer::TransformImages(bool) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2366
+    #8 0x5575f67679f9 in CImgDiffBuffer::TemporaryTransformation::TemporaryTransformation(CImgDiffBuffer&) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2343
+    #9 0x5575f67679f9 in CImgMergeBuffer::CopyDiffAll(int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:256
+    #10 0x5575f66bd745 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:165
+    #11 0x5575f66bd745 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #12 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #13 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #14 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29 in memcpy
+Shadow bytes around the buggy address:
+  0x51f000017580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51f000017600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51f000017680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51f000017700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51f000017780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51f000017800: 00 00 00 00 00 00[fa]fa fa fa fa fa fa fa fa fa
+  0x51f000017880: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51f000017900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51f000017980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51f000017a00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51f000017a80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==3262==ABORTING
+CRASH seed 7 it 1 (status 256); op log:
+   img 0: 19x20 kind 1
+   img 1: 6x13 kind 2
+   AddImageOffset(1, -9, 3)
+   Undo()
+   SetColorDistanceThreshold(0)
+   Undo()
+   SetHorizontalFlip(1, 1)
+   SetImageAlignment(6)
+   CopyDiffAll(0, 1)
+   CopyDiff(0, 0, 1)
+   CopyDiff(0, 0, 1)
+   Resize(0, 31, 31)
+   SetInsertionDeletionDetectionMode(2)
+   SetRotation(1, 90)
+   CopyDiffAll(1, 0)
+=================================================================
+==3276==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x524000091e84 at pc 0x5575f673e9da bp 0x7ffe31626550 sp 0x7ffe31626540
+READ of size 4 at 0x524000091e84 thread T0
+    #0 0x5575f673e9d9 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #1 0x5575f673e9d9 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698
+    #2 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #3 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #4 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #5 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x524000091e84 is located 0 bytes after 7556-byte region [0x524000090100,0x524000091e84)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781fb0241  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x73241) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x7fe781fb4dd2 in FreeImage_Rotate (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x77dd2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #5 0x7fe781fffa44 in fipImage::rotate(double, void const*) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x9a44) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #6 0x5575f66e8a04 in Image::rotate(double) /tmp/tmp.woDpCFr3rB/image.hpp:331
+    #7 0x5575f66e8a04 in CImgDiffBuffer::TransformImages(bool) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2366
+    #8 0x5575f676675f in CImgDiffBuffer::TemporaryTransformation::TemporaryTransformation(CImgDiffBuffer&) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2343
+    #9 0x5575f676675f in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:232
+    #10 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #11 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #12 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #13 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #14 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29 in memcpy
+Shadow bytes around the buggy address:
+  0x524000091c00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x524000091c80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x524000091d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x524000091d80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x524000091e00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x524000091e80:[04]fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x524000091f00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x524000091f80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x524000092000: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x524000092080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x524000092100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==3276==ABORTING
+CRASH seed 7 it 4 (status 256); op log:
+   img 0: 8x33 kind 2
+   img 1: 15x30 kind 2
+   CopyDiff(0, 1, 0)
+   Undo()
+   Resize(1, 33, 28)
+   SetRotation(0, 270)
+   SetDiffBlockSize(1)
+   Redo()
+   CopyDiff(0, 1, 0)
+   SetDiffAlgorithm(3)
+   SelectDiff(-1)
+   SetInsertionDeletionDetectionMode(2)
+   SetHorizontalFlip(1, 0)
+   SetColorDistanceThreshold(44)
+   CopyDiff(0, 0, 1)
+=================================================================
+==3297==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5220000106a0 at pc 0x7fe7818fb42e bp 0x7ffe31626550 sp 0x7ffe31625cf8
+READ of size 160 at 0x5220000106a0 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #4 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #5 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x5220000106a0 is located 0 bytes after 5536-byte region [0x52200000f100,0x5220000106a0)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f64864 in FreeImage_AllocateHeaderT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27864) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781f691e2 in FreeImage_Clone (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x2c1e2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x7fe781fff36d in fipImage::convertTo32Bits() (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x936d) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #5 0x5575f670bcef in Image::convertTo32Bits() /tmp/tmp.woDpCFr3rB/image.hpp:291
+    #6 0x5575f670bcef in TestBuffer::SetImages(int, Image const*) /tmp/tmp.woDpCFr3rB/testlib.hpp:48
+    #7 0x5575f66bb13a in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:109
+    #8 0x5575f66bb13a in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #9 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #10 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #11 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x522000010400: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x522000010480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x522000010500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x522000010580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x522000010600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x522000010680: 00 00 00 00[fa]fa fa fa fa fa fa fa fa fa fa fa
+  0x522000010700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x522000010780: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x522000010800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x522000010880: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x522000010900: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==3297==ABORTING
+CRASH seed 7 it 9 (status 256); op log:
+   img 0: 32x38 kind 1
+   img 1: 32x40 kind 1
+   CopyDiffAll(1, 0)
+   SetVerticalFlip(0, 1)
+   SetInsertionDeletionDetectionMode(1)
+   SetColorDistanceThreshold(45)
+   SetColorDistanceThreshold(7)
+   SetRotation(0, 270)
+   SetVerticalFlip(1, 1)
+   CopyDiff(0, 1, 0)
+/tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698:16: runtime error: null pointer passed as argument 2, which is declared to never be null
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==3308==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x5575f673e955 bp 0x7ffe316269d0 sp 0x7ffe31626560 T0)
+==3308==The signal is caused by a READ memory access.
+==3308==Hint: address points to the zero page.
+    #0 0x5575f673e955 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #1 0x5575f673e955 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698
+    #2 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #3 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #4 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #5 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29 in memcpy
+==3308==ABORTING
+CRASH seed 7 it 12 (status 256); op log:
+   img 0: 15x9 kind 1
+   img 1: 30x8 kind 3
+   img 2: 31x30 kind 2
+   SetShowDifferences(0)
+   Resize(0, 25, 24)
+   SelectDiff(0)
+   CopyDiff3Way(1)
+   CopyDiff3Way(0)
+   SetHorizontalFlip(1, 1)
+   CopyDiff(0, 1, 2)
+   AddImageOffset(1, -9, 0)
+   SetColorDistanceThreshold(48)
+   SetVerticalFlip(0, 0)
+   SetDiffBlockSize(16)
+   CopyDiff(0, 0, 2)
+=================================================================
+==3443==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x520000006fc8 at pc 0x7fe7818fb42e bp 0x7ffe31626550 sp 0x7ffe31625cf8
+READ of size 124 at 0x520000006fc8 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #4 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #5 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x520000006fc8 is located 0 bytes after 3912-byte region [0x520000006080,0x520000006fc8)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f64864 in FreeImage_AllocateHeaderT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27864) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781f691e2 in FreeImage_Clone (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x2c1e2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x7fe781fff36d in fipImage::convertTo32Bits() (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x936d) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #5 0x5575f670bcef in Image::convertTo32Bits() /tmp/tmp.woDpCFr3rB/image.hpp:291
+    #6 0x5575f670bcef in TestBuffer::SetImages(int, Image const*) /tmp/tmp.woDpCFr3rB/testlib.hpp:48
+    #7 0x5575f66bb13a in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:109
+    #8 0x5575f66bb13a in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #9 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #10 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #11 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x520000006d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x520000006d80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x520000006e00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x520000006e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x520000006f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x520000006f80: 00 00 00 00 00 00 00 00 00[fa]fa fa fa fa fa fa
+  0x520000007000: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x520000007080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x520000007100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x520000007180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x520000007200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==3443==ABORTING
+CRASH seed 7 it 44 (status 256); op log:
+   img 0: 23x38 kind 0
+   img 1: 21x37 kind 2
+   SetInsertionDeletionDetectionMode(1)
+   SetVerticalFlip(0, 0)
+   SetColorDistanceThreshold(0)
+   SetImageAlignment(2)
+   SelectDiff(-1)
+   CopyDiffAll(1, 0)
+   AddImageOffset(1, 8, 7)
+   SetColorDistanceThreshold(50)
+   SetColorDistanceThreshold(28)
+   CopyDiff(0, 0, 1)
+=================================================================
+==3487==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51600000179c at pc 0x5575f673e9da bp 0x7ffe31626550 sp 0x7ffe31626540
+READ of size 4 at 0x51600000179c thread T0
+    #0 0x5575f673e9d9 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #1 0x5575f673e9d9 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698
+    #2 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #3 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #4 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #5 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x51600000179c is located 0 bytes after 540-byte region [0x516000001580,0x51600000179c)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781faee0a  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x71e0a) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x7fe781fb4dd2 in FreeImage_Rotate (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x77dd2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #5 0x7fe781fffa44 in fipImage::rotate(double, void const*) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x9a44) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #6 0x5575f66e8a04 in Image::rotate(double) /tmp/tmp.woDpCFr3rB/image.hpp:331
+    #7 0x5575f66e8a04 in CImgDiffBuffer::TransformImages(bool) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2366
+    #8 0x5575f676675f in CImgDiffBuffer::TemporaryTransformation::TemporaryTransformation(CImgDiffBuffer&) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2343
+    #9 0x5575f676675f in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:232
+    #10 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #11 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #12 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #13 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #14 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29 in memcpy
+Shadow bytes around the buggy address:
+  0x516000001500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x516000001580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x516000001600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x516000001680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x516000001700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x516000001780: 00 00 00[04]fa fa fa fa fa fa fa fa fa fa fa fa
+  0x516000001800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x516000001880: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x516000001900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x516000001980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x516000001a00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==3487==ABORTING
+CRASH seed 7 it 56 (status 256); op log:
+   img 0: 21x21 kind 3
+   img 1: 4x32 kind 2
+   SetRotation(1, 90)
+   Undo()
+   SetRotation(0, 0)
+   SetImageAlignment(4)
+   Undo()
+   SetImageAlignment(0)
+   AddImageOffset(1, -3, -4)
+   Undo()
+   CopyDiff(0, 1, 0)
+   SetInsertionDeletionDetectionMode(2)
+   SetDiffBlockSize(8)
+   Resize(1, 1, 31)
+   CopyDiff(0, 1, 0)
+=================================================================
+==3495==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x526000332d60 at pc 0x5575f673e9da bp 0x7ffe31626550 sp 0x7ffe31626540
+READ of size 4 at 0x526000332d60 thread T0
+    #0 0x5575f673e9d9 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #1 0x5575f673e9d9 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698
+    #2 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #3 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #4 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #5 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x526000332d60 is located 0 bytes after 11360-byte region [0x526000330100,0x526000332d60)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781fb0241  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x73241) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x7fe781fb4dd2 in FreeImage_Rotate (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x77dd2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #5 0x7fe781fffa44 in fipImage::rotate(double, void const*) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x9a44) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #6 0x5575f66e8a04 in Image::rotate(double) /tmp/tmp.woDpCFr3rB/image.hpp:331
+    #7 0x5575f66e8a04 in CImgDiffBuffer::TransformImages(bool) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2366
+    #8 0x5575f676675f in CImgDiffBuffer::TemporaryTransformation::TemporaryTransformation(CImgDiffBuffer&) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2343
+    #9 0x5575f676675f in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:232
+    #10 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #11 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #12 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #13 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #14 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29 in memcpy
+Shadow bytes around the buggy address:
+  0x526000332a80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x526000332b00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x526000332b80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x526000332c00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x526000332c80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x526000332d00: 00 00 00 00 00 00 00 00 00 00 00 00[fa]fa fa fa
+  0x526000332d80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000332e00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000332e80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000332f00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000332f80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==3495==ABORTING
+CRASH seed 7 it 57 (status 256); op log:
+   img 0: 57x48 kind 3
+   img 1: 19x17 kind 1
+   img 2: 20x17 kind 2
+   SetColorDistanceThreshold(0)
+   AddImageOffset(2, 6, -1)
+   AddImageOffset(1, -6, 0)
+   AddImageOffset(0, -2, 2)
+   SetDiffBlockSize(2)
+   SetDiffBlockSize(16)
+   SetVerticalFlip(0, 1)
+   select canvas (4,27)-(46,46) -> real (4,27)-(46,46) on 1
+   SetImageAlignment(5)
+   Undo()
+   SetRotation(0, 180)
+   CopyDiff(0, 1, 0)
+/tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:747:14: runtime error: null pointer passed as argument 1, which is declared to never be null
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==3537==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7fe7809a1713 bp 0x7ffe316269d0 sp 0x7ffe31626558 T0)
+==3537==The signal is caused by a WRITE memory access.
+==3537==Hint: address points to the zero page.
+    #0 0x7fe7809a1713 in __memmove_avx512_unaligned_erms ../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S:377
+    #1 0x5575f674255e in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f674255e in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:747
+    #3 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #4 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #5 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV ../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S:377 in __memmove_avx512_unaligned_erms
+==3537==ABORTING
+CRASH seed 7 it 66 (status 256); op log:
+   img 0: 21x4 kind 1
+   img 1: 21x3 kind 1
+   img 2: 34x17 kind 2
+   CopyDiff(0, 0, 2)
+   CopyDiff3Way(2)
+   SetShowDifferences(0)
+   CopyDiffAll(1, 2)
+   SetColorDistanceThreshold(0)
+   SetColorDistanceThreshold(0)
+   SetVerticalFlip(1, 0)
+   CopyDiff3Way(2)
+   Undo()
+   PasteImage(1, 5, 9, 8x20)
+   select canvas (2,36)-(40,39) -> real (2,36)-(40,39) on 0
+   CopyDiff(0, 0, 1)
+/tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698:16: runtime error: null pointer passed as argument 2, which is declared to never be null
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==3567==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x5575f673e955 bp 0x7ffe316269d0 sp 0x7ffe31626560 T0)
+==3567==The signal is caused by a READ memory access.
+==3567==Hint: address points to the zero page.
+    #0 0x5575f673e955 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #1 0x5575f673e955 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698
+    #2 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #3 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #4 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #5 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29 in memcpy
+==3567==ABORTING
+CRASH seed 7 it 68 (status 256); op log:
+   img 0: 16x24 kind 1
+   img 1: 16x22 kind 0
+   CopyDiff(0, 1, 0)
+   SetRotation(0, 270)
+   select canvas (13,3)-(22,4) -> real (13,3)-(22,4) on 0
+   SetImageAlignment(3)
+   Undo()
+   Undo()
+   SetInsertionDeletionDetectionMode(1)
+   AddImageOffset(0, -5, -7)
+   AddImageOffset(1, 6, 3)
+   SetDiffBlockSize(1)
+   SelectDiff(0)
+   SetImageAlignment(8)
+   CopyDiff(0, 0, 1)
+=================================================================
+==3585==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51d000005820 at pc 0x7fe7818fb42e bp 0x7ffe31626530 sp 0x7ffe31625cd8
+READ of size 84 at 0x51d000005820 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6767ddd in CImgMergeBuffer::CopyDiffAll(int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:258
+    #4 0x5575f66bd745 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:165
+    #5 0x5575f66bd745 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x51d000005820 is located 0 bytes after 1952-byte region [0x51d000005080,0x51d000005820)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781ffe539 in fipImage::setSize(FREE_IMAGE_TYPE, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x8539) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #4 0x5575f6770321 in Image::setSize(int, int) /tmp/tmp.woDpCFr3rB/image.hpp:311
+    #5 0x5575f6770321 in CImgMergeBuffer::PasteImage(int, int, int, Image const&) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:501
+    #6 0x5575f66bf6b7 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:203
+    #7 0x5575f66bf6b7 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #8 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #9 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #10 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x51d000005580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000005600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000005680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000005700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000005780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51d000005800: 00 00 00 00[fa]fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000005880: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000005900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000005980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000005a00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000005a80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==3585==ABORTING
+CRASH seed 7 it 70 (status 256); op log:
+   img 0: 12x8 kind 1
+   img 1: 17x5 kind 2
+   SetHorizontalFlip(1, 0)
+   Undo()
+   SetVerticalFlip(1, 0)
+   AddImageOffset(1, -3, 10)
+   SetShowDifferences(0)
+   SelectDiff(0)
+   CopyDiff(0, 0, 1)
+   SetRotation(1, 270)
+   SetInsertionDeletionDetectionMode(1)
+   PasteImage(0, -1, 8, 17x16)
+   AddImageOffset(0, -9, -10)
+   CopyDiffAll(0, 1)
+=================================================================
+==3698==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51b0000022cc at pc 0x7fe7818fb42e bp 0x7ffe31626530 sp 0x7ffe31625cd8
+READ of size 140 at 0x51b0000022cc thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6767ddd in CImgMergeBuffer::CopyDiffAll(int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:258
+    #4 0x5575f66bd745 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:165
+    #5 0x5575f66bd745 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x51b0000022cc is located 0 bytes after 1612-byte region [0x51b000001c80,0x51b0000022cc)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f64864 in FreeImage_AllocateHeaderT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27864) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781f691e2 in FreeImage_Clone (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x2c1e2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x7fe781fff36d in fipImage::convertTo32Bits() (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x936d) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #5 0x5575f670bcef in Image::convertTo32Bits() /tmp/tmp.woDpCFr3rB/image.hpp:291
+    #6 0x5575f670bcef in TestBuffer::SetImages(int, Image const*) /tmp/tmp.woDpCFr3rB/testlib.hpp:48
+    #7 0x5575f66bb13a in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:109
+    #8 0x5575f66bb13a in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #9 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #10 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #11 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x51b000002000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51b000002080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51b000002100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51b000002180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51b000002200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51b000002280: 00 00 00 00 00 00 00 00 00[04]fa fa fa fa fa fa
+  0x51b000002300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51b000002380: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51b000002400: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51b000002480: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51b000002500: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==3698==ABORTING
+CRASH seed 7 it 105 (status 256); op log:
+   img 0: 27x24 kind 2
+   img 1: 13x23 kind 2
+   select canvas (11,10)-(19,20) -> real (11,10)-(13,20) on 1
+   Resize(0, 1, 5)
+   SetDiffBlockSize(1)
+   Undo()
+   Undo()
+   AddImageOffset(1, -8, -3)
+   Resize(0, 27, 6)
+   SetDiffAlgorithm(4)
+   SelectDiff(-1)
+   SetInsertionDeletionDetectionMode(1)
+   PasteImage(0, -6, 3, 2x16)
+   SetShowDifferences(1)
+   CopyDiffAll(1, 0)
+/tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698:16: runtime error: null pointer passed as argument 2, which is declared to never be null
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==3733==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x5575f673e955 bp 0x7ffe316269d0 sp 0x7ffe31626560 T0)
+==3733==The signal is caused by a READ memory access.
+==3733==Hint: address points to the zero page.
+    #0 0x5575f673e955 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #1 0x5575f673e955 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698
+    #2 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #3 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #4 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #5 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29 in memcpy
+==3733==ABORTING
+CRASH seed 7 it 122 (status 256); op log:
+   img 0: 29x11 kind 0
+   img 1: 32x7 kind 2
+   CopyDiff(0, 1, 0)
+   Undo()
+   AddImageOffset(1, -8, 2)
+   SetColorDistanceThreshold(0)
+   CopyDiff(0, 0, 1)
+   SetInsertionDeletionDetectionMode(1)
+   AddImageOffset(0, -4, 4)
+   SetDiffAlgorithm(1)
+   SetHorizontalFlip(0, 0)
+   select canvas (0,27)-(11,37) -> real (0,27)-(7,37) on 1
+   SetColorDistanceThreshold(0)
+   CopyDiff(0, 0, 1)
+   CopyDiff(0, 1, 0)
+=================================================================
+==3745==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x522000001420 at pc 0x7fe7818fb42e bp 0x7ffe31626550 sp 0x7ffe31625cf8
+READ of size 176 at 0x522000001420 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #4 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #5 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x522000001420 is located 0 bytes after 4896-byte region [0x522000000100,0x522000001420)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781ffe539 in fipImage::setSize(FREE_IMAGE_TYPE, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x8539) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #4 0x5575f676cc83 in Image::setSize(int, int) /tmp/tmp.woDpCFr3rB/image.hpp:311
+    #5 0x5575f676cc83 in CImgMergeBuffer::Resize(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:188
+    #6 0x5575f66bdad9 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:169
+    #7 0x5575f66bdad9 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #8 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #9 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #10 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x522000001180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x522000001200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x522000001280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x522000001300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x522000001380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x522000001400: 00 00 00 00[fa]fa fa fa fa fa fa fa fa fa fa fa
+  0x522000001480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x522000001500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x522000001580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x522000001600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x522000001680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==3745==ABORTING
+CRASH seed 7 it 124 (status 256); op log:
+   img 0: 20x25 kind 1
+   img 1: 20x25 kind 0
+   SelectDiff(-1)
+   CopyDiffAll(1, 0)
+   SetInsertionDeletionDetectionMode(1)
+   SetShowDifferences(0)
+   SetVerticalFlip(1, 1)
+   CopyDiff(0, 0, 1)
+   Resize(0, 44, 3)
+   CopyDiff(0, 0, 1)
+   Undo()
+   PasteImage(0, 8, 2, 20x4)
+   Resize(1, 35, 32)
+   SetInsertionDeletionDetectionMode(1)
+   CopyDiff(0, 1, 0)
+/tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:394:18: runtime error: null pointer passed as argument 2, which is declared to never be null
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==3754==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7fe7809986c0 bp 0x7ffe316260b0 sp 0x7ffe31625818 T0)
+==3754==The signal is caused by a READ memory access.
+==3754==Hint: address points to the zero page.
+    #0 0x7fe7809986c0 in __memcmp_evex_movbe ../sysdeps/x86_64/multiarch/memcmp-evex-movbe.S:164
+    #1 0x7fe7818c978c in MemcmpInterceptorCommon(void*, int (*)(void const*, void const*, unsigned long), void const*, void const*, unsigned long) ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:834
+    #2 0x7fe7818ca37a in memcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:845
+    #3 0x7fe7818ca37a in memcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:840
+    #4 0x5575f66b45cd in alineEquals /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:394
+    #5 0x5575f675b9a3 in alineEquals /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:401
+    #6 0x5575f675b9a3 in CImgDiffBuffer::PreprocessImages()::{lambda(LineDiffInfo const&)#1}::operator()(LineDiffInfo const&) const /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2389
+    #7 0x5575f675b9a3 in Make3WayLineDiff<LineDiffInfo, CImgDiffBuffer::PreprocessImages()::<lambda(const LineDiffInfo&)> > /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:343
+    #8 0x5575f6760783 in CImgDiffBuffer::PreprocessImages() /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2428
+    #9 0x5575f6762446 in CImgDiffBuffer::CompareImages() /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:1172
+    #10 0x5575f6766f64 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:238
+    #11 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #12 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #13 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #14 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #15 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV ../sysdeps/x86_64/multiarch/memcmp-evex-movbe.S:164 in __memcmp_evex_movbe
+==3754==ABORTING
+CRASH seed 7 it 126 (status 256); op log:
+   img 0: 5x108 kind 3
+   img 1: 10x3 kind 2
+   img 2: 5x36 kind 0
+   SetInsertionDeletionDetectionMode(2)
+   SetVerticalFlip(0, 1)
+   PasteImage(0, -1, 37, 19x9)
+   Undo()
+   SetShowDifferences(0)
+   Resize(2, 29, 21)
+   SetHorizontalFlip(2, 0)
+   Redo()
+   CopyDiff(0, 2, 0)
+=================================================================
+==3768==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51f0000045f0 at pc 0x7fe7818fb42e bp 0x7ffe31626550 sp 0x7ffe31625cf8
+READ of size 112 at 0x51f0000045f0 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #4 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #5 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x51f0000045f0 is located 0 bytes after 3440-byte region [0x51f000003880,0x51f0000045f0)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f64864 in FreeImage_AllocateHeaderT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27864) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781f691e2 in FreeImage_Clone (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x2c1e2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x7fe781fff36d in fipImage::convertTo32Bits() (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x936d) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #5 0x5575f670bcef in Image::convertTo32Bits() /tmp/tmp.woDpCFr3rB/image.hpp:291
+    #6 0x5575f670bcef in TestBuffer::SetImages(int, Image const*) /tmp/tmp.woDpCFr3rB/testlib.hpp:48
+    #7 0x5575f66bb13a in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:109
+    #8 0x5575f66bb13a in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #9 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #10 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #11 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x51f000004300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51f000004380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51f000004400: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51f000004480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51f000004500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51f000004580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00[fa]fa
+  0x51f000004600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51f000004680: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51f000004700: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51f000004780: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51f000004800: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==3768==ABORTING
+CRASH seed 7 it 127 (status 256); op log:
+   img 0: 12x28 kind 2
+   img 1: 27x28 kind 2
+   Redo()
+   SetInsertionDeletionDetectionMode(1)
+   SetImageAlignment(3)
+   Undo()
+   SetImageAlignment(4)
+   SetImageAlignment(8)
+   SetRotation(0, 270)
+   PasteImage(0, 19, 11, 1x4)
+   SetDiffAlgorithm(2)
+   SetColorDistanceThreshold(22)
+   SetDiffBlockSize(2)
+   SetImageAlignment(3)
+   CopyDiff(0, 1, 0)
+=================================================================
+==3785==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51d00000a950 at pc 0x7fe7818fb42e bp 0x7ffe31626550 sp 0x7ffe31625cf8
+READ of size 128 at 0x51d00000a950 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #4 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #5 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x51d00000a950 is located 0 bytes after 2256-byte region [0x51d00000a080,0x51d00000a950)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f64864 in FreeImage_AllocateHeaderT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27864) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781f691e2 in FreeImage_Clone (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x2c1e2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x5575f676a53f in fipImageEx::operator=(fipImageEx const&) /tmp/tmp.woDpCFr3rB/image.hpp:44
+    #5 0x5575f676a53f in Image::operator=(Image const&) /tmp/tmp.woDpCFr3rB/image.hpp:278
+    #6 0x5575f676a53f in CImgMergeBuffer::Undo() /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:370
+    #7 0x5575f66bd8de in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:167
+    #8 0x5575f66bd8de in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #9 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #10 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #11 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x51d00000a680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d00000a700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d00000a780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d00000a800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d00000a880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51d00000a900: 00 00 00 00 00 00 00 00 00 00[fa]fa fa fa fa fa
+  0x51d00000a980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d00000aa00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d00000aa80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d00000ab00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d00000ab80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==3785==ABORTING
+CRASH seed 7 it 129 (status 256); op log:
+   img 0: 36x30 kind 0
+   img 1: 32x19 kind 2
+   PasteImage(0, 8, 20, 8x20)
+   SetInsertionDeletionDetectionMode(0)
+   CopyDiffAll(1, 0)
+   Undo()
+   SelectDiff(-1)
+   Undo()
+   CopyDiff(0, 0, 1)
+   SetColorDistanceThreshold(12)
+   SetInsertionDeletionDetectionMode(1)
+   Undo()
+   Resize(0, 48, 5)
+   Undo()
+   CopyDiff(0, 0, 1)
+/tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698:16: runtime error: null pointer passed as argument 2, which is declared to never be null
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==3811==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x5575f673e955 bp 0x7ffe316269b0 sp 0x7ffe31626540 T0)
+==3811==The signal is caused by a READ memory access.
+==3811==Hint: address points to the zero page.
+    #0 0x5575f673e955 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #1 0x5575f673e955 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698
+    #2 0x5575f6767ddd in CImgMergeBuffer::CopyDiffAll(int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:258
+    #3 0x5575f66bd745 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:165
+    #4 0x5575f66bd745 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #5 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29 in memcpy
+==3811==ABORTING
+CRASH seed 7 it 135 (status 256); op log:
+   img 0: 29x32 kind 1
+   img 1: 58x96 kind 3
+   SetInsertionDeletionDetectionMode(2)
+   SetHorizontalFlip(0, 0)
+   PasteImage(0, 13, 0, 8x20)
+   SetDiffAlgorithm(4)
+   CopyDiffAll(0, 1)
+   SetImageAlignment(5)
+   AddImageOffset(1, 5, 10)
+   SelectDiff(-1)
+   SetHorizontalFlip(1, 1)
+   CopyDiff(0, 1, 0)
+   SetRotation(0, 270)
+   SetVerticalFlip(1, 0)
+   CopyDiffAll(0, 1)
+=================================================================
+==3850==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5230000425c0 at pc 0x7fe7818fb42e bp 0x7ffe31626550 sp 0x7ffe31625cf8
+READ of size 164 at 0x5230000425c0 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #4 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #5 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x5230000425c0 is located 0 bytes after 6336-byte region [0x523000040d00,0x5230000425c0)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781ffe539 in fipImage::setSize(FREE_IMAGE_TYPE, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x8539) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #4 0x5575f673bb47 in Image::setSize(int, int) /tmp/tmp.woDpCFr3rB/image.hpp:311
+    #5 0x5575f673bb47 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:654
+    #6 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #7 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #8 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #9 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #10 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #11 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x523000042300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x523000042380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x523000042400: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x523000042480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x523000042500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x523000042580: 00 00 00 00 00 00 00 00[fa]fa fa fa fa fa fa fa
+  0x523000042600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x523000042680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x523000042700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x523000042780: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x523000042800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==3850==ABORTING
+CRASH seed 7 it 146 (status 256); op log:
+   img 0: 37x8 kind 0
+   img 1: 33x40 kind 2
+   CopyDiff(0, 0, 1)
+   SetRotation(1, 270)
+   PasteImage(1, 17, -5, 19x6)
+   SetHorizontalFlip(1, 1)
+   SetColorDistanceThreshold(0)
+   SetInsertionDeletionDetectionMode(2)
+   SetHorizontalFlip(0, 1)
+   SelectDiff(0)
+   SetInsertionDeletionDetectionMode(1)
+   Undo()
+   AddImageOffset(1, 2, 6)
+   Redo()
+   CopyDiff(0, 0, 1)
+/tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:382:36: runtime error: load of null pointer of type 'const unsigned char'
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==3992==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x5575f66b42fb bp 0x7ffe31626160 sp 0x7ffe31626100 T0)
+==3992==The signal is caused by a READ memory access.
+==3992==Hint: address points to the zero page.
+    #0 0x5575f66b42fb in alineEquals /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:382
+    #1 0x5575f675b9a3 in alineEquals /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:401
+    #2 0x5575f675b9a3 in CImgDiffBuffer::PreprocessImages()::{lambda(LineDiffInfo const&)#1}::operator()(LineDiffInfo const&) const /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2389
+    #3 0x5575f675b9a3 in Make3WayLineDiff<LineDiffInfo, CImgDiffBuffer::PreprocessImages()::<lambda(const LineDiffInfo&)> > /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:343
+    #4 0x5575f6760783 in CImgDiffBuffer::PreprocessImages() /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2428
+    #5 0x5575f6762446 in CImgDiffBuffer::CompareImages() /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:1172
+    #6 0x5575f6766f64 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:238
+    #7 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #8 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #9 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #10 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #11 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:382 in alineEquals
+==3992==ABORTING
+CRASH seed 7 it 195 (status 256); op log:
+   img 0: 36x39 kind 0
+   img 1: 6x4 kind 2
+   img 2: 36x39 kind 1
+   SetDiffBlockSize(4)
+   SetInsertionDeletionDetectionMode(2)
+   SetVerticalFlip(0, 0)
+   CopyDiff3Way(2)
+   SetDiffBlockSize(4)
+   SelectDiff(0)
+   SetVerticalFlip(1, 1)
+   SetImageAlignment(3)
+   PasteImage(2, 13, 1, 17x8)
+   PasteImage(2, 34, 7, 17x3)
+   select canvas (45,3)-(48,6) -> real (45,3)-(48,6) on 2
+   CopyDiff(0, 0, 2)
+=================================================================
+==4005==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51f00001b168 at pc 0x7fe7818fb42e bp 0x7ffe31626550 sp 0x7ffe31625cf8
+READ of size 104 at 0x51f00001b168 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #4 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #5 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x51f00001b168 is located 0 bytes after 3304-byte region [0x51f00001a480,0x51f00001b168)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f64864 in FreeImage_AllocateHeaderT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27864) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781f691e2 in FreeImage_Clone (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x2c1e2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x5575f676a53f in fipImageEx::operator=(fipImageEx const&) /tmp/tmp.woDpCFr3rB/image.hpp:44
+    #5 0x5575f676a53f in Image::operator=(Image const&) /tmp/tmp.woDpCFr3rB/image.hpp:278
+    #6 0x5575f676a53f in CImgMergeBuffer::Undo() /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:370
+    #7 0x5575f66bd8de in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:167
+    #8 0x5575f66bd8de in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #9 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #10 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #11 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x51f00001ae80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51f00001af00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51f00001af80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51f00001b000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51f00001b080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51f00001b100: 00 00 00 00 00 00 00 00 00 00 00 00 00[fa]fa fa
+  0x51f00001b180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51f00001b200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51f00001b280: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51f00001b300: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51f00001b380: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==4005==ABORTING
+CRASH seed 7 it 202 (status 256); op log:
+   img 0: 25x38 kind 2
+   img 1: 12x16 kind 1
+   SetColorDistanceThreshold(10)
+   SetImageAlignment(6)
+   AddImageOffset(1, -7, -8)
+   SetDiffBlockSize(16)
+   SetVerticalFlip(0, 0)
+   select canvas (1,11)-(15,37) -> real (1,11)-(15,37) on 1
+   SetHorizontalFlip(0, 0)
+   Undo()
+   SetInsertionDeletionDetectionMode(1)
+   SelectDiff(0)
+   Undo()
+   select canvas (9,15)-(13,29) -> real (2,7)-(6,17) on 0
+   CopyDiff(0, 1, 0)
+=================================================================
+==4020==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51a000013140 at pc 0x5575f673e9da bp 0x7ffe31626550 sp 0x7ffe31626540
+READ of size 4 at 0x51a000013140 thread T0
+    #0 0x5575f673e9d9 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #1 0x5575f673e9d9 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698
+    #2 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #3 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #4 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #5 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x51a000013140 is located 0 bytes after 1216-byte region [0x51a000012c80,0x51a000013140)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781fb0241  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x73241) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x7fe781fb4dd2 in FreeImage_Rotate (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x77dd2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #5 0x7fe781fffa44 in fipImage::rotate(double, void const*) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x9a44) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #6 0x5575f66e8a04 in Image::rotate(double) /tmp/tmp.woDpCFr3rB/image.hpp:331
+    #7 0x5575f66e8a04 in CImgDiffBuffer::TransformImages(bool) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2366
+    #8 0x5575f676675f in CImgDiffBuffer::TemporaryTransformation::TemporaryTransformation(CImgDiffBuffer&) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2343
+    #9 0x5575f676675f in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:232
+    #10 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #11 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #12 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #13 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #14 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29 in memcpy
+Shadow bytes around the buggy address:
+  0x51a000012e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51a000012f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51a000012f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51a000013000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51a000013080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51a000013100: 00 00 00 00 00 00 00 00[fa]fa fa fa fa fa fa fa
+  0x51a000013180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51a000013200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51a000013280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51a000013300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51a000013380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==4020==ABORTING
+CRASH seed 7 it 204 (status 256); op log:
+   img 0: 14x2 kind 1
+   img 1: 42x3 kind 3
+   img 2: 14x3 kind 1
+   SelectDiff(0)
+   Redo()
+   select canvas (11,1)-(48,7) -> real (11,1)-(13,2) on 0
+   SetDiffBlockSize(16)
+   CopyDiff(0, 2, 0)
+   SetDiffBlockSize(8)
+   select canvas (29,0)-(33,6) -> real (13,0)-(13,0) on 2
+   SetRotation(1, 270)
+   SetShowDifferences(1)
+   SetHorizontalFlip(0, 0)
+   SetVerticalFlip(1, 0)
+   CopyDiff(0, 1, 2)
+=================================================================
+==4032==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51900000b8f0 at pc 0x7fe7818fb42e bp 0x7ffe31626550 sp 0x7ffe31625cf8
+READ of size 44 at 0x51900000b8f0 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #4 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #5 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x51900000b8f0 is located 0 bytes after 1136-byte region [0x51900000b480,0x51900000b8f0)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781ffe539 in fipImage::setSize(FREE_IMAGE_TYPE, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x8539) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #4 0x5575f676cc83 in Image::setSize(int, int) /tmp/tmp.woDpCFr3rB/image.hpp:311
+    #5 0x5575f676cc83 in CImgMergeBuffer::Resize(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:188
+    #6 0x5575f66bdad9 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:169
+    #7 0x5575f66bdad9 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #8 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #9 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #10 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x51900000b600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51900000b680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51900000b700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51900000b780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51900000b800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51900000b880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00[fa]fa
+  0x51900000b900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51900000b980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51900000ba00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51900000ba80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51900000bb00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==4032==ABORTING
+CRASH seed 7 it 205 (status 256); op log:
+   img 0: 6x10 kind 2
+   img 1: 38x10 kind 0
+   img 2: 76x10 kind 3
+   CopyDiffAll(2, 1)
+   SetVerticalFlip(2, 0)
+   SetHorizontalFlip(1, 1)
+   SetDiffAlgorithm(4)
+   CopyDiffAll(2, 1)
+   Resize(1, 35, 20)
+   SetVerticalFlip(1, 0)
+   SetInsertionDeletionDetectionMode(1)
+   Undo()
+   AddImageOffset(0, 5, 6)
+   Resize(2, 10, 18)
+   CopyDiff(0, 2, 0)
+=================================================================
+==4046==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x521000021ba0 at pc 0x7fe7818fb42e bp 0x7ffe31626530 sp 0x7ffe31625cd8
+READ of size 300 at 0x521000021ba0 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6767ddd in CImgMergeBuffer::CopyDiffAll(int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:258
+    #4 0x5575f66bd745 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:165
+    #5 0x5575f66bd745 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x521000021ba0 is located 0 bytes after 4768-byte region [0x521000020900,0x521000021ba0)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781ffe539 in fipImage::setSize(FREE_IMAGE_TYPE, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x8539) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #4 0x5575f6770321 in Image::setSize(int, int) /tmp/tmp.woDpCFr3rB/image.hpp:311
+    #5 0x5575f6770321 in CImgMergeBuffer::PasteImage(int, int, int, Image const&) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:501
+    #6 0x5575f66bf6b7 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:203
+    #7 0x5575f66bf6b7 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #8 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #9 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #10 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x521000021900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000021980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000021a00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000021a80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000021b00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x521000021b80: 00 00 00 00[fa]fa fa fa fa fa fa fa fa fa fa fa
+  0x521000021c00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000021c80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000021d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000021d80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000021e00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==4046==ABORTING
+CRASH seed 7 it 206 (status 256); op log:
+   img 0: 27x75 kind 3
+   img 1: 21x23 kind 2
+   img 2: 9x26 kind 1
+   CopyDiffAll(1, 2)
+   SetRotation(0, 90)
+   SetShowDifferences(0)
+   Redo()
+   Resize(1, 15, 24)
+   SetDiffBlockSize(2)
+   SetColorDistanceThreshold(0)
+   SetDiffBlockSize(8)
+   SelectDiff(0)
+   SetInsertionDeletionDetectionMode(1)
+   SetHorizontalFlip(1, 0)
+   CopyDiffAll(2, 0)
+/tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698:16: runtime error: null pointer passed as argument 2, which is declared to never be null
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==4088==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x5575f673e955 bp 0x7ffe316269d0 sp 0x7ffe31626560 T0)
+==4088==The signal is caused by a READ memory access.
+==4088==Hint: address points to the zero page.
+    #0 0x5575f673e955 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #1 0x5575f673e955 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698
+    #2 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #3 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #4 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #5 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29 in memcpy
+==4088==ABORTING
+CRASH seed 7 it 221 (status 256); op log:
+   img 0: 17x38 kind 2
+   img 1: 27x22 kind 2
+   img 2: 22x1 kind 2
+   CopyDiff3Way(1)
+   Undo()
+   PasteImage(0, 14, 2, 1x2)
+   SelectDiff(-1)
+   PasteImage(2, 1, -7, 8x2)
+   SetDiffBlockSize(1)
+   SetInsertionDeletionDetectionMode(1)
+   SetRotation(0, 90)
+   SetShowDifferences(0)
+   CopyDiff(0, 1, 2)
+   SetRotation(1, 90)
+   CopyDiff(0, 0, 1)
+=================================================================
+==4104==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x52200004ae20 at pc 0x7fe7818fb42e bp 0x7ffe31626550 sp 0x7ffe31625cf8
+READ of size 336 at 0x52200004ae20 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #4 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #5 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x52200004ae20 is located 0 bytes after 5408-byte region [0x522000049900,0x52200004ae20)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781fb0241  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x73241) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x7fe781fb4dd2 in FreeImage_Rotate (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x77dd2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #5 0x7fe781fffa44 in fipImage::rotate(double, void const*) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x9a44) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #6 0x5575f66e8a04 in Image::rotate(double) /tmp/tmp.woDpCFr3rB/image.hpp:331
+    #7 0x5575f66e8a04 in CImgDiffBuffer::TransformImages(bool) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2366
+    #8 0x5575f676675f in CImgDiffBuffer::TemporaryTransformation::TemporaryTransformation(CImgDiffBuffer&) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2343
+    #9 0x5575f676675f in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:232
+    #10 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #11 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #12 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #13 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #14 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x52200004ab80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52200004ac00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52200004ac80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52200004ad00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52200004ad80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x52200004ae00: 00 00 00 00[fa]fa fa fa fa fa fa fa fa fa fa fa
+  0x52200004ae80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52200004af00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52200004af80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52200004b000: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52200004b080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==4104==ABORTING
+CRASH seed 7 it 223 (status 256); op log:
+   img 0: 78x24 kind 3
+   img 1: 52x24 kind 3
+   img 2: 26x24 kind 0
+   Redo()
+   Undo()
+   SetRotation(1, 270)
+   CopyDiff3Way(0)
+   Undo()
+   select canvas (2,3)-(33,40) -> real (2,0)-(26,24) on 2
+   select canvas (24,4)-(71,14) -> real (24,4)-(24,14) on 1
+   SetInsertionDeletionDetectionMode(1)
+   CopyDiffAll(2, 0)
+   PasteImage(2, 64, 23, 13x17)
+   SelectDiff(0)
+   CopyDiff(0, 1, 0)
+=================================================================
+==4203==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x527000117f38 at pc 0x5575f673e9da bp 0x7ffe31626550 sp 0x7ffe31626540
+READ of size 4 at 0x527000117f38 thread T0
+    #0 0x5575f673e9d9 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #1 0x5575f673e9d9 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698
+    #2 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #3 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #4 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #5 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x527000117f38 is located 0 bytes after 13880-byte region [0x527000114900,0x527000117f38)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781fb0241  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x73241) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x7fe781fb4dd2 in FreeImage_Rotate (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x77dd2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #5 0x7fe781fffa44 in fipImage::rotate(double, void const*) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x9a44) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #6 0x5575f66e8a04 in Image::rotate(double) /tmp/tmp.woDpCFr3rB/image.hpp:331
+    #7 0x5575f66e8a04 in CImgDiffBuffer::TransformImages(bool) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2366
+    #8 0x5575f676675f in CImgDiffBuffer::TemporaryTransformation::TemporaryTransformation(CImgDiffBuffer&) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2343
+    #9 0x5575f676675f in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:232
+    #10 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #11 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #12 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #13 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #14 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29 in memcpy
+Shadow bytes around the buggy address:
+  0x527000117c80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x527000117d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x527000117d80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x527000117e00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x527000117e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x527000117f00: 00 00 00 00 00 00 00[fa]fa fa fa fa fa fa fa fa
+  0x527000117f80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x527000118000: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x527000118080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x527000118100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x527000118180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==4203==ABORTING
+CRASH seed 7 it 253 (status 256); op log:
+   img 0: 22x13 kind 0
+   img 1: 22x13 kind 0
+   img 2: 66x26 kind 3
+   SetImageAlignment(0)
+   AddImageOffset(2, -7, -10)
+   CopyDiff(0, 2, 1)
+   SetDiffAlgorithm(2)
+   Resize(1, 30, 3)
+   SetShowDifferences(0)
+   SetColorDistanceThreshold(0)
+   SetColorDistanceThreshold(0)
+   AddImageOffset(2, -1, 3)
+   SetImageAlignment(1)
+   SetInsertionDeletionDetectionMode(2)
+   CopyDiff(0, 2, 0)
+/tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:382:36: runtime error: load of null pointer of type 'const unsigned char'
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==4227==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x5575f66b42fb bp 0x7ffe31626180 sp 0x7ffe31626120 T0)
+==4227==The signal is caused by a READ memory access.
+==4227==Hint: address points to the zero page.
+    #0 0x5575f66b42fb in alineEquals /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:382
+    #1 0x5575f675b9a3 in alineEquals /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:401
+    #2 0x5575f675b9a3 in CImgDiffBuffer::PreprocessImages()::{lambda(LineDiffInfo const&)#1}::operator()(LineDiffInfo const&) const /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2389
+    #3 0x5575f675b9a3 in Make3WayLineDiff<LineDiffInfo, CImgDiffBuffer::PreprocessImages()::<lambda(const LineDiffInfo&)> > /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:343
+    #4 0x5575f6760783 in CImgDiffBuffer::PreprocessImages() /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2428
+    #5 0x5575f6762446 in CImgDiffBuffer::CompareImages() /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:1172
+    #6 0x5575f676d6f6 in CImgMergeBuffer::Resize(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:196
+    #7 0x5575f66bdad9 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:169
+    #8 0x5575f66bdad9 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #9 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #10 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #11 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:382 in alineEquals
+==4227==ABORTING
+CRASH seed 7 it 258 (status 256); op log:
+   img 0: 6x5 kind 2
+   img 1: 15x18 kind 0
+   img 2: 15x17 kind 1
+   SetDiffBlockSize(1)
+   SetInsertionDeletionDetectionMode(2)
+   SetRotation(2, 90)
+   CopyDiffAll(1, 0)
+   Undo()
+   SetRotation(2, 270)
+   CopyDiffAll(0, 1)
+   SetColorDistanceThreshold(36)
+   CopyDiff(0, 1, 2)
+   SelectDiff(0)
+   SetVerticalFlip(0, 0)
+   Resize(1, 19, 47)
+=================================================================
+==4236==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x526000002ad8 at pc 0x7fe7818fb42e bp 0x7ffe31626530 sp 0x7ffe31625cd8
+READ of size 468 at 0x526000002ad8 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6767ddd in CImgMergeBuffer::CopyDiffAll(int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:258
+    #4 0x5575f66bd745 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:165
+    #5 0x5575f66bd745 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x526000002ad8 is located 0 bytes after 10712-byte region [0x526000000100,0x526000002ad8)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781ffe539 in fipImage::setSize(FREE_IMAGE_TYPE, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x8539) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #4 0x5575f6770321 in Image::setSize(int, int) /tmp/tmp.woDpCFr3rB/image.hpp:311
+    #5 0x5575f6770321 in CImgMergeBuffer::PasteImage(int, int, int, Image const&) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:501
+    #6 0x5575f66bf6b7 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:203
+    #7 0x5575f66bf6b7 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #8 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #9 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #10 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x526000002800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x526000002880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x526000002900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x526000002980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x526000002a00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x526000002a80: 00 00 00 00 00 00 00 00 00 00 00[fa]fa fa fa fa
+  0x526000002b00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000002b80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000002c00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000002c80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000002d00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==4236==ABORTING
+CRASH seed 7 it 260 (status 256); op log:
+   img 0: 39x17 kind 1
+   img 1: 39x51 kind 3
+   img 2: 117x51 kind 3
+   SetInsertionDeletionDetectionMode(1)
+   SetHorizontalFlip(0, 1)
+   CopyDiff3Way(1)
+   SetVerticalFlip(1, 0)
+   Redo()
+   CopyDiff(0, 0, 2)
+   SetColorDistanceThreshold(8)
+   PasteImage(0, 77, 15, 1x18)
+   CopyDiff3Way(0)
+   CopyDiffAll(0, 2)
+=================================================================
+==4251==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5210000448a0 at pc 0x7fe7818fb42e bp 0x7ffe31626550 sp 0x7ffe31625cf8
+READ of size 288 at 0x5210000448a0 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #4 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #5 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x5210000448a0 is located 0 bytes after 4000-byte region [0x521000043900,0x5210000448a0)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f64864 in FreeImage_AllocateHeaderT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27864) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781f691e2 in FreeImage_Clone (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x2c1e2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x5575f676a53f in fipImageEx::operator=(fipImageEx const&) /tmp/tmp.woDpCFr3rB/image.hpp:44
+    #5 0x5575f676a53f in Image::operator=(Image const&) /tmp/tmp.woDpCFr3rB/image.hpp:278
+    #6 0x5575f676a53f in CImgMergeBuffer::Undo() /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:370
+    #7 0x5575f66bd8de in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:167
+    #8 0x5575f66bd8de in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #9 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #10 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #11 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x521000044600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000044680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000044700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000044780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000044800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x521000044880: 00 00 00 00[fa]fa fa fa fa fa fa fa fa fa fa fa
+  0x521000044900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000044980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000044a00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000044a80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000044b00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==4251==ABORTING
+CRASH seed 7 it 263 (status 256); op log:
+   img 0: 72x90 kind 3
+   img 1: 72x30 kind 3
+   SetColorDistanceThreshold(0)
+   PasteImage(0, 3, 0, 11x14)
+   CopyDiff(0, 0, 1)
+   SetVerticalFlip(0, 0)
+   Undo()
+   CopyDiffAll(0, 1)
+   Undo()
+   Undo()
+   SetInsertionDeletionDetectionMode(1)
+   Redo()
+   Undo()
+   Undo()
+   CopyDiff(0, 0, 1)
+=================================================================
+==4278==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51c00001af98 at pc 0x7fe7818fb42e bp 0x7ffe31626550 sp 0x7ffe31625cf8
+READ of size 192 at 0x51c00001af98 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #4 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #5 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x51c00001af98 is located 0 bytes after 1816-byte region [0x51c00001a880,0x51c00001af98)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781fb0241  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x73241) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x7fe781fb4dd2 in FreeImage_Rotate (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x77dd2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #5 0x7fe781fffa44 in fipImage::rotate(double, void const*) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x9a44) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #6 0x5575f66e8a04 in Image::rotate(double) /tmp/tmp.woDpCFr3rB/image.hpp:331
+    #7 0x5575f66e8a04 in CImgDiffBuffer::TransformImages(bool) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2366
+    #8 0x5575f676675f in CImgDiffBuffer::TemporaryTransformation::TemporaryTransformation(CImgDiffBuffer&) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2343
+    #9 0x5575f676675f in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:232
+    #10 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #11 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #12 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #13 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #14 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x51c00001ad00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51c00001ad80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51c00001ae00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51c00001ae80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51c00001af00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51c00001af80: 00 00 00[fa]fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51c00001b000: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51c00001b080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51c00001b100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51c00001b180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51c00001b200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==4278==ABORTING
+CRASH seed 7 it 270 (status 256); op log:
+   img 0: 32x22 kind 2
+   img 1: 20x108 kind 3
+   SetInsertionDeletionDetectionMode(0)
+   SetInsertionDeletionDetectionMode(1)
+   SetHorizontalFlip(0, 1)
+   SetColorDistanceThreshold(23)
+   SetInsertionDeletionDetectionMode(1)
+   Undo()
+   Resize(1, 29, 4)
+   SetInsertionDeletionDetectionMode(1)
+   SetVerticalFlip(0, 0)
+   SetHorizontalFlip(1, 0)
+   Redo()
+   PasteImage(1, -16, 2, 13x10)
+   CopyDiff(0, 0, 1)
+=================================================================
+==4322==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x520000025f04 at pc 0x5575f673e9da bp 0x7ffe31626550 sp 0x7ffe31626540
+READ of size 4 at 0x520000025f04 thread T0
+    #0 0x5575f673e9d9 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #1 0x5575f673e9d9 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698
+    #2 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #3 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #4 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #5 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x520000025f04 is located 0 bytes after 3716-byte region [0x520000025080,0x520000025f04)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781fb0241  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x73241) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x7fe781fb4dd2 in FreeImage_Rotate (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x77dd2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #5 0x7fe781fffa44 in fipImage::rotate(double, void const*) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x9a44) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #6 0x5575f66e8a04 in Image::rotate(double) /tmp/tmp.woDpCFr3rB/image.hpp:331
+    #7 0x5575f66e8a04 in CImgDiffBuffer::TransformImages(bool) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2366
+    #8 0x5575f676675f in CImgDiffBuffer::TemporaryTransformation::TemporaryTransformation(CImgDiffBuffer&) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2343
+    #9 0x5575f676675f in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:232
+    #10 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #11 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #12 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #13 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #14 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29 in memcpy
+Shadow bytes around the buggy address:
+  0x520000025c80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x520000025d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x520000025d80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x520000025e00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x520000025e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x520000025f00:[04]fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x520000025f80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x520000026000: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x520000026080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x520000026100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x520000026180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==4322==ABORTING
+CRASH seed 7 it 281 (status 256); op log:
+   img 0: 1x16 kind 2
+   img 1: 31x4 kind 0
+   img 2: 93x12 kind 3
+   SelectDiff(0)
+   SelectDiff(0)
+   SetVerticalFlip(2, 1)
+   CopyDiffAll(1, 0)
+   PasteImage(2, 27, 5, 5x19)
+   CopyDiff3Way(1)
+   Undo()
+   AddImageOffset(2, 10, -5)
+   SetRotation(1, 0)
+   SetImageAlignment(3)
+   CopyDiff(0, 2, 1)
+   CopyDiff(0, 0, 1)
+/tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:394:18: runtime error: null pointer passed as argument 1, which is declared to never be null
+/tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:394:18: runtime error: null pointer passed as argument 2, which is declared to never be null
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==4365==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7fe7809986c0 bp 0x7ffe316261b0 sp 0x7ffe31625918 T0)
+==4365==The signal is caused by a READ memory access.
+==4365==Hint: address points to the zero page.
+    #0 0x7fe7809986c0 in __memcmp_evex_movbe ../sysdeps/x86_64/multiarch/memcmp-evex-movbe.S:164
+    #1 0x7fe7818c978c in MemcmpInterceptorCommon(void*, int (*)(void const*, void const*, unsigned long), void const*, void const*, unsigned long) ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:834
+    #2 0x7fe7818ca37a in memcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:845
+    #3 0x7fe7818ca37a in memcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:840
+    #4 0x5575f66b45cd in alineEquals /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:394
+    #5 0x5575f675b9a3 in alineEquals /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:401
+    #6 0x5575f675b9a3 in CImgDiffBuffer::PreprocessImages()::{lambda(LineDiffInfo const&)#1}::operator()(LineDiffInfo const&) const /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2389
+    #7 0x5575f675b9a3 in Make3WayLineDiff<LineDiffInfo, CImgDiffBuffer::PreprocessImages()::<lambda(const LineDiffInfo&)> > /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:343
+    #8 0x5575f6760783 in CImgDiffBuffer::PreprocessImages() /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2428
+    #9 0x5575f6762446 in CImgDiffBuffer::CompareImages() /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:1172
+    #10 0x5575f66bcc00 in CImgDiffBuffer::SetInsertionDeletionDetectionMode(CImgDiffBuffer::INSERTION_DELETION_DETECTION_MODE) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:759
+    #11 0x5575f66bcc00 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:155
+    #12 0x5575f66bcc00 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #13 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #14 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #15 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV ../sysdeps/x86_64/multiarch/memcmp-evex-movbe.S:164 in __memcmp_evex_movbe
+==4365==ABORTING
+CRASH seed 7 it 294 (status 256); op log:
+   img 0: 40x27 kind 1
+   img 1: 30x36 kind 2
+   img 2: 40x27 kind 0
+   Redo()
+   SetShowDifferences(0)
+   CopyDiff(0, 2, 0)
+   SetInsertionDeletionDetectionMode(2)
+=================================================================
+==4378==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x520000005e58 at pc 0x7fe7818fb42e bp 0x7ffe31626550 sp 0x7ffe31625cf8
+READ of size 88 at 0x520000005e58 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #4 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #5 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x520000005e58 is located 0 bytes after 3544-byte region [0x520000005080,0x520000005e58)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781ffe539 in fipImage::setSize(FREE_IMAGE_TYPE, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x8539) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #4 0x5575f676cc83 in Image::setSize(int, int) /tmp/tmp.woDpCFr3rB/image.hpp:311
+    #5 0x5575f676cc83 in CImgMergeBuffer::Resize(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:188
+    #6 0x5575f66bdad9 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:169
+    #7 0x5575f66bdad9 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #8 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #9 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #10 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x520000005b80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x520000005c00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x520000005c80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x520000005d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x520000005d80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x520000005e00: 00 00 00 00 00 00 00 00 00 00 00[fa]fa fa fa fa
+  0x520000005e80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x520000005f00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x520000005f80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x520000006000: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x520000006080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==4378==ABORTING
+CRASH seed 7 it 298 (status 256); op log:
+   img 0: 22x9 kind 0
+   img 1: 22x9 kind 1
+   img 2: 27x28 kind 2
+   SelectDiff(-1)
+   Undo()
+   SetVerticalFlip(0, 0)
+   SetInsertionDeletionDetectionMode(1)
+   CopyDiff(0, 0, 2)
+   Undo()
+   Undo()
+   CopyDiffAll(0, 2)
+   Redo()
+   Resize(0, 17, 46)
+   CopyDiff3Way(0)
+   CopyDiff(0, 0, 1)
+=================================================================
+==4404==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51f00003b7e8 at pc 0x7fe7818fb42e bp 0x7ffe31626530 sp 0x7ffe31625cd8
+READ of size 116 at 0x51f00003b7e8 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6767ddd in CImgMergeBuffer::CopyDiffAll(int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:258
+    #4 0x5575f66bd745 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:165
+    #5 0x5575f66bd745 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x51f00003b7e8 is located 0 bytes after 3432-byte region [0x51f00003aa80,0x51f00003b7e8)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781fb0241  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x73241) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x7fe781fb4dd2 in FreeImage_Rotate (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x77dd2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #5 0x7fe781fffa44 in fipImage::rotate(double, void const*) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x9a44) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #6 0x5575f66e8a04 in Image::rotate(double) /tmp/tmp.woDpCFr3rB/image.hpp:331
+    #7 0x5575f66e8a04 in CImgDiffBuffer::TransformImages(bool) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2366
+    #8 0x5575f67679f9 in CImgDiffBuffer::TemporaryTransformation::TemporaryTransformation(CImgDiffBuffer&) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2343
+    #9 0x5575f67679f9 in CImgMergeBuffer::CopyDiffAll(int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:256
+    #10 0x5575f66bd745 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:165
+    #11 0x5575f66bd745 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #12 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #13 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #14 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x51f00003b500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51f00003b580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51f00003b600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51f00003b680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51f00003b700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51f00003b780: 00 00 00 00 00 00 00 00 00 00 00 00 00[fa]fa fa
+  0x51f00003b800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51f00003b880: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51f00003b900: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51f00003b980: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51f00003ba00: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==4404==ABORTING
+CRASH seed 7 it 301 (status 256); op log:
+   img 0: 14x19 kind 2
+   img 1: 29x26 kind 2
+   SetShowDifferences(0)
+   SetDiffAlgorithm(1)
+   SelectDiff(-1)
+   SetDiffAlgorithm(4)
+   Redo()
+   SelectDiff(0)
+   CopyDiffAll(0, 1)
+   SelectDiff(0)
+   AddImageOffset(1, -9, -3)
+   SetDiffBlockSize(2)
+   SetRotation(1, 270)
+   SetInsertionDeletionDetectionMode(1)
+   CopyDiffAll(1, 0)
+=================================================================
+==4442==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x52200008b5b4 at pc 0x5575f673e9da bp 0x7ffe31626550 sp 0x7ffe31626540
+READ of size 4 at 0x52200008b5b4 thread T0
+    #0 0x5575f673e9d9 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #1 0x5575f673e9d9 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698
+    #2 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #3 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #4 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #5 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x52200008b5b4 is located 0 bytes after 5300-byte region [0x52200008a100,0x52200008b5b4)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781faee0a  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x71e0a) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x7fe781fb4dd2 in FreeImage_Rotate (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x77dd2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #5 0x7fe781fffa44 in fipImage::rotate(double, void const*) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x9a44) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #6 0x5575f66e8a04 in Image::rotate(double) /tmp/tmp.woDpCFr3rB/image.hpp:331
+    #7 0x5575f66e8a04 in CImgDiffBuffer::TransformImages(bool) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2366
+    #8 0x5575f676675f in CImgDiffBuffer::TemporaryTransformation::TemporaryTransformation(CImgDiffBuffer&) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2343
+    #9 0x5575f676675f in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:232
+    #10 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #11 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #12 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #13 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #14 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29 in memcpy
+Shadow bytes around the buggy address:
+  0x52200008b300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52200008b380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52200008b400: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52200008b480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52200008b500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x52200008b580: 00 00 00 00 00 00[04]fa fa fa fa fa fa fa fa fa
+  0x52200008b600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52200008b680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52200008b700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52200008b780: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52200008b800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==4442==ABORTING
+CRASH seed 7 it 312 (status 256); op log:
+   img 0: 37x31 kind 0
+   img 1: 37x33 kind 1
+   img 2: 37x62 kind 3
+   SetRotation(1, 90)
+   Undo()
+   Redo()
+   SetColorDistanceThreshold(56)
+   SetShowDifferences(1)
+   SetInsertionDeletionDetectionMode(0)
+   CopyDiff(0, 0, 1)
+   Undo()
+   Undo()
+   SetImageAlignment(2)
+   SetInsertionDeletionDetectionMode(2)
+   CopyDiff(0, 1, 0)
+=================================================================
+==4508==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51c000000770 at pc 0x7fe7818fb42e bp 0x7ffe31626550 sp 0x7ffe31625cf8
+READ of size 76 at 0x51c000000770 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #4 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #5 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x51c000000770 is located 0 bytes after 1776-byte region [0x51c000000080,0x51c000000770)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781ffe539 in fipImage::setSize(FREE_IMAGE_TYPE, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x8539) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #4 0x5575f6770321 in Image::setSize(int, int) /tmp/tmp.woDpCFr3rB/image.hpp:311
+    #5 0x5575f6770321 in CImgMergeBuffer::PasteImage(int, int, int, Image const&) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:501
+    #6 0x5575f66bf6b7 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:203
+    #7 0x5575f66bf6b7 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #8 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #9 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #10 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x51c000000480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51c000000500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51c000000580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51c000000600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51c000000680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51c000000700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00[fa]fa
+  0x51c000000780: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51c000000800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51c000000880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51c000000900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51c000000980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==4508==ABORTING
+CRASH seed 7 it 336 (status 256); op log:
+   img 0: 17x6 kind 0
+   img 1: 17x6 kind 0
+   Undo()
+   Undo()
+   SelectDiff(0)
+   Redo()
+   CopyDiff(0, 0, 1)
+   SetShowDifferences(1)
+   SetVerticalFlip(0, 1)
+   Undo()
+   SetDiffAlgorithm(3)
+   SetInsertionDeletionDetectionMode(1)
+   SetHorizontalFlip(1, 1)
+   SetHorizontalFlip(1, 0)
+   CopyDiff(0, 0, 1)
+/tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698:16: runtime error: null pointer passed as argument 2, which is declared to never be null
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==4558==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x5575f673e955 bp 0x7ffe316269d0 sp 0x7ffe31626560 T0)
+==4558==The signal is caused by a READ memory access.
+==4558==Hint: address points to the zero page.
+    #0 0x5575f673e955 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #1 0x5575f673e955 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:698
+    #2 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #3 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #4 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #5 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #6 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #7 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29 in memcpy
+==4558==ABORTING
+CRASH seed 7 it 353 (status 256); op log:
+   img 0: 5x14 kind 2
+   img 1: 23x22 kind 1
+   SetDiffAlgorithm(2)
+   SetRotation(1, 180)
+   CopyDiff(0, 0, 1)
+   CopyDiff(0, 1, 0)
+   SetVerticalFlip(0, 1)
+   Undo()
+   SelectDiff(-1)
+   SetInsertionDeletionDetectionMode(1)
+   SetDiffBlockSize(1)
+   SetRotation(0, 270)
+   SetColorDistanceThreshold(0)
+   AddImageOffset(0, -9, -9)
+   CopyDiff(0, 0, 1)
+=================================================================
+==4635==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x52100003d1a0 at pc 0x7fe7818fb42e bp 0x7ffe31626530 sp 0x7ffe31625cd8
+READ of size 148 at 0x52100003d1a0 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6767ddd in CImgMergeBuffer::CopyDiffAll(int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:258
+    #4 0x5575f66bd745 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:165
+    #5 0x5575f66bd745 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x52100003d1a0 is located 0 bytes after 4256-byte region [0x52100003c100,0x52100003d1a0)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f648f3 in FreeImage_AllocateT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x278f3) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781fb048e  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x7348e) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x7fe781fb4dd2 in FreeImage_Rotate (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x77dd2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #5 0x7fe781fffa44 in fipImage::rotate(double, void const*) (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x9a44) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #6 0x5575f66e8a04 in Image::rotate(double) /tmp/tmp.woDpCFr3rB/image.hpp:331
+    #7 0x5575f66e8a04 in CImgDiffBuffer::TransformImages(bool) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2366
+    #8 0x5575f67679f9 in CImgDiffBuffer::TemporaryTransformation::TemporaryTransformation(CImgDiffBuffer&) /tmp/tmp.woDpCFr3rB/ImgDiffBuffer.hpp:2343
+    #9 0x5575f67679f9 in CImgMergeBuffer::CopyDiffAll(int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:256
+    #10 0x5575f66bd745 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:165
+    #11 0x5575f66bd745 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #12 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #13 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #14 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x52100003cf00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52100003cf80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52100003d000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52100003d080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52100003d100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x52100003d180: 00 00 00 00[fa]fa fa fa fa fa fa fa fa fa fa fa
+  0x52100003d200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52100003d280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52100003d300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52100003d380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52100003d400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==4635==ABORTING
+CRASH seed 7 it 372 (status 256); op log:
+   img 0: 37x13 kind 2
+   img 1: 2x41 kind 1
+   SetInsertionDeletionDetectionMode(1)
+   SetRotation(1, 180)
+   SelectDiff(-1)
+   Resize(1, 30, 32)
+   CopyDiffAll(1, 0)
+=================================================================
+==4656==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x52100003bce0 at pc 0x7fe7818fb42e bp 0x7ffe31626550 sp 0x7ffe31625cf8
+READ of size 152 at 0x52100003bce0 thread T0
+    #0 0x7fe7818fb42d in memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115
+    #1 0x5575f6740ad3 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29
+    #2 0x5575f6740ad3 in CImgMergeBuffer::CopyDiffInternal(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:723
+    #3 0x5575f6766805 in CImgMergeBuffer::CopyDiff(int, int, int) /tmp/tmp.woDpCFr3rB/ImgMergeBuffer.hpp:233
+    #4 0x5575f66bd676 in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:163
+    #5 0x5575f66bd676 in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #6 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+0x52100003bce0 is located 0 bytes after 4064-byte region [0x52100003ad00,0x52100003bce0)
+allocated by thread T0 here:
+    #0 0x7fe7818fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fe781f64502  (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27502) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #2 0x7fe781f64864 in FreeImage_AllocateHeaderT (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x27864) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #3 0x7fe781f691e2 in FreeImage_Clone (/lib/x86_64-linux-gnu/libfreeimage.so.3+0x2c1e2) (BuildId: 6d680f1f42babc5f2f807bb3bffb35159d6c4342)
+    #4 0x7fe781fff36d in fipImage::convertTo32Bits() (/lib/x86_64-linux-gnu/libfreeimageplus.so.3+0x936d) (BuildId: 0514d6314b3bca2db5e94983ddfa9efa92258a19)
+    #5 0x5575f670bcef in Image::convertTo32Bits() /tmp/tmp.woDpCFr3rB/image.hpp:291
+    #6 0x5575f670bcef in TestBuffer::SetImages(int, Image const*) /tmp/tmp.woDpCFr3rB/testlib.hpp:48
+    #7 0x5575f66bb13a in RunIteration /tmp/tmp.woDpCFr3rB/fuzz.cpp:109
+    #8 0x5575f66bb13a in main /tmp/tmp.woDpCFr3rB/fuzz.cpp:251
+    #9 0x7fe78082a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #10 0x7fe78082a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #11 0x5575f66b2f44 in _start (/tmp/tmp.woDpCFr3rB/fuzz+0x152f44) (BuildId: e6a597b32253f3e4db76c74aee3f8ef3f8984f74)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115 in memcpy
+Shadow bytes around the buggy address:
+  0x52100003ba00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52100003ba80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52100003bb00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52100003bb80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52100003bc00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x52100003bc80: 00 00 00 00 00 00 00 00 00 00 00 00[fa]fa fa fa
+  0x52100003bd00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52100003bd80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52100003be00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52100003be80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52100003bf00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==4656==ABORTING
+CRASH seed 7 it 377 (status 256); op log:
+   img 0: 16x57 kind 3
+   img 1: 8x6 kind 2
+   img 2: 38x14 kind 2
+   SetInsertionDeletionDetectionMode(1)
+   CopyDiff3Way(1)
+   CopyDiff(0, 0, 2)
+fuzz: 40 crashes

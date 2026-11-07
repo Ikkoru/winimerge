@@ -1,18 +1,21 @@
 #!/bin/bash
 # Merge the alignment and scaling branches in a scratch worktree, resolve the add/add conflicts,
 # add the one integration line, then run the MinGW syntax check and the Linux unit tests.
+# The -follow branch already contains this merge (dd3c64f, made with this script after upstream was merged
+# into both branches); rerun it after changing either branch. WINIMERGE_DIR = your winimerge clone.
 set -e
-REPO=/home/user/winimerge
-WT=${WT:-/tmp/claude-0/-home-user/c93e777e-edee-5658-827e-7ebd2f76571d/scratchpad/wim-combined}
+HERE=$(cd "$(dirname "$0")" && pwd)
+REPO=${WINIMERGE_DIR:-/home/user/winimerge}
+WT=${WT:-${TMPDIR:-/tmp}/wim-combined}
 cd $REPO
 git worktree remove --force $WT 2>/dev/null || true
 git branch -D trial-combined 2>/dev/null || true
 git worktree add -f -b trial-combined $WT claude/trusting-brown-3d75mh-align >/dev/null
 cd $WT
 git merge --no-edit claude/trusting-brown-3d75mh-scale >/dev/null 2>&1 || true
-python3 - <<'PY'
-import subprocess, sys
-sys.path.insert(0, '/home/user/research/tools')
+TOOLS=$HERE python3 - <<'PY'
+import os, subprocess, sys
+sys.path.insert(0, os.environ['TOOLS'])
 from eolsafe_replace import replace_once as R
 files = subprocess.run(['git','diff','--name-only','--diff-filter=U'],capture_output=True,text=True).stdout.split()
 for f in files:
@@ -43,6 +46,6 @@ m_alignImagesPending).
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_011DaoEzRioXAZckz9AW1kyX" && echo "merged: $(git log --oneline -1)"
-/home/user/research/tools/mingw-syntax-check.sh $WT | tail -1
-cd /home/user/research/tools/winimerge-linux-test
-for t in test_alignment.cpp test_scaling.cpp test_combined.cpp; do OUTDIR=/tmp/claude-0/-home-user/c93e777e-edee-5658-827e-7ebd2f76571d/scratchpad/scaletest ./build.sh $WT $t 2>&1 | tail -1; done
+$HERE/mingw-syntax-check.sh $WT | tail -1
+cd $HERE/winimerge-linux-test
+for t in test_alignment.cpp test_scaling.cpp test_combined.cpp; do mkdir -p ${TMPDIR:-/tmp}/scaletest; OUTDIR=${TMPDIR:-/tmp}/scaletest ./build.sh $WT $t 2>&1 | tail -1; done

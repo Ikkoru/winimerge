@@ -21,6 +21,7 @@ import edits as E
 import fi
 import resample as R
 import study as S
+from page_sync import sync_js
 from paths import RESULTS, ROOT, TESTSET
 
 CANDIDATES = [
@@ -221,7 +222,8 @@ def _write_page(out, meta):
     for m in meta:
         m['files'] = {k: 'data:image/png;base64,' + base64.b64encode(open(os.path.join(out, v), 'rb').read()).decode()
                       for k, v in m['files'].items()}
-    body = PAGE_BODY.replace('/*CASES*/', json.dumps(dict(cases=meta, labels=labels))).replace('<!--CREDITS-->', _credits(meta))
+    body = (PAGE_BODY.replace('/*CASES*/', json.dumps(dict(cases=meta, labels=labels))).replace('<!--CREDITS-->', _credits(meta))
+            .replace('/*SYNC*/', sync_js('marks/round1', 'Resampling Flip Check')))
     with open(os.path.join(out, 'index.html'), 'w') as fh:
         fh.write('<!doctype html>\n<html lang="en"><head><meta charset="utf-8">'
                  '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
@@ -288,8 +290,10 @@ candidates are compared at the small size and shown enlarged with nearest neighb
  <button data-k="edit" data-v="yes">yes</button><button data-k="edit" data-v="faint">faint</button><button data-k="edit" data-v="no">no</button><button data-k="edit" data-v="na">no edit</button></div>
 <div class="row"><button id="copy">Copy marks as JSON</button><span class="lbl" id="count"></span></div>
 <textarea id="out" hidden readonly aria-label="Marks as JSON"></textarea>
+<p id="sync" aria-live="polite"></p>
 <p>Cross-fade uses WinIMerge's alpha-blend animation timing (fade 20 %, hold 30 %, fade back 20 %, hold 30 % of a
-1-second cycle). Space flips by hand in Manual mode. Zoom uses nearest neighbour. Marks stay in this browser only.</p>
+1-second cycle). Space flips by hand in Manual mode. Zoom uses nearest neighbour. Marks stay in this browser and, when the page is open on claude.ai or in the
+Claude app, in your Claude account, where a Claude session can read them.</p>
 <!--CREDITS-->
 </main>
 <script>
@@ -300,7 +304,9 @@ const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: 
 let caseI = 0, cand = 'lanczos3', mode = reduce ? 'manual' : 'xfade', zoom = 2, manual = false, imgs = {}, t0 = performance.now();
 const MODES = [['xfade','Cross-fade (WinMerge timing)'],['flip2','Hard flip 2 Hz'],['flip3','Hard flip 3 Hz'],['flip4','Hard flip 4 Hz'],['manual','Manual (space)'],['side','Side by side'],['diff','|difference| ×4']];
 let marks = {}; try { marks = JSON.parse(localStorage.getItem('flipmarks') || '{}'); } catch (e) {}
-function save() { try { localStorage.setItem('flipmarks', JSON.stringify(marks)); } catch (e) {} $('count').textContent = Object.keys(marks).length + ' marked'; }
+function save() { try { localStorage.setItem('flipmarks', JSON.stringify(marks)); } catch (e) {} $('count').textContent = Object.keys(marks).length + ' marked'; queuePush(); }
+/*SYNC*/
+function afterMerge() { save(); info(); }
 DATA.cases.forEach((c, i) => { const o = document.createElement('option'); o.value = i;
   o.textContent = `${c.id}: ${c.image}, ${c.shrinker} 1/${c.factor}, ${c.codec}, edit: ${c.edit}`; $('case').appendChild(o); });
 function fillCands() { const c = DATA.cases[caseI]; $('cand').innerHTML = '';

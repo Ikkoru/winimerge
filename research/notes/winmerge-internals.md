@@ -1,7 +1,14 @@
 # WinIMerge / WinMerge image compare: how the code works (notes for future sessions)
 
-Read on 2026-10-14 from WinMerge/winimerge `master` at `da639cd` (= Ikkoru/winimerge `master`) and
-WinMerge/winmerge `master` at `ea828d5`. Line numbers drift; search for the names.
+Read on 2026-10-14 from WinMerge/winimerge `master` at `da639cd` and WinMerge/winmerge `master` at `ea828d5`;
+checked again on 2026-11-07 against `10e78f7` and `179a02a` (changes since are marked "Since 10e78f7").
+Line numbers drift; search for the names.
+
+Since 10e78f7: FreeImage is a git submodule (`FreeImage/`, WinMerge/freeimage branch `winmerge`; run
+`git submodule update --init` before building); `PasteImage()` enlarges the image when the pasted image reaches
+past it and `DeleteRectangle()` clamps its rectangle (#41); `CopyDiffInternal()` fills the columns/rows a copy
+adds (#42). WinMerge 2.16.59 remembers the image splitter position (#3593, #3611); WinMerge downloads
+WinIMerge 1.0.60.
 
 ## Layers
 
@@ -48,18 +55,23 @@ pane displays: max size of all images, each image copied at its offset, overlays
 - `CopyDiffInternal()` copies a diff region pixel by pixel through `ConvertToRealPos()` of both panes; if the region
   extends past the destination image it first enlarges `m_imgOrig32[dst]` and lowers `m_offset[dst]`. With ghost
   lines and all offsets zero it also inserts/deletes rows.
-- **Pre-existing issues found** (reproduced on unmodified master with the Linux harness, not fixed):
+- **Pre-existing issues found** (reproduced on unmodified master with the Linux harness):
   1. Copying a difference to the right of / below a smaller image enlarges it but leaves the new area empty:
-     the copy loop checks against the old `m_imgPreprocessed` size.
-  2. Undo of a copy that enlarged an image to the left/top restores the bitmap but not `m_offset`.
+     the copy loop checks against the old `m_imgPreprocessed` size. Fixed upstream by #42.
+  2. Undo of a copy that enlarged an image to the left/top restores the bitmap but not `m_offset` (fixed on the
+     align branch).
   3. The ghost-line branches of `ConvertToRealPos()` compare with `GetImageWidth/Height()`, which is wrong inside a
      `TemporaryTransformation` scope for 90/270° rotation (CopyDiff runs inside one).
   4. In horizontal insertion/deletion detection, the 3-way comparison lambda `compfunc02` compares *rows* of the
      untransposed images using column indices.
+  5. `DeleteRectangle()` clamps before `TemporaryTransformation` rotates the bitmap, so with 90/270° rotation of
+     a non-square image it uses swapped sizes (heap overflow or nothing deleted); fixed on the fix-bounds branch.
+  Issues 3 and 4, and a row-insertion `memcpy` with ghost lines, still crash upstream (random test, HANDOFF.md).
 
 ## Resampling available in the code that ships
 
-FreeImage (WinMerge fork, branch `winmerge`, 3.19 — resamples bit-identically to upstream 3.18):
+FreeImage (WinMerge fork, branch `winmerge`, 3.19, now the `FreeImage` submodule — resamples bit-identically
+to upstream 3.18):
 `FreeImage_Rescale(dib, w, h, FILTER_BOX | FILTER_BILINEAR | FILTER_BSPLINE | FILTER_BICUBIC (Mitchell 1/3,1/3) |
 FILTER_CATMULLROM | FILTER_LANCZOS3)`, wrapped by `fipImage::rescale()`. 8-bit images keep an 8-bit intermediate
 between the two passes (clips overshoot). Convert with `FreeImage_ConvertToRGBAF()` first for a float path. Box at a
@@ -69,7 +81,7 @@ whole-number enlargement is exact nearest neighbour.
 
 - WinMerge does **not** build WinIMerge from source by default: `DownloadDeps.cmd` downloads release zips of
   WinIMergeLib.dll (`https://github.com/WinMerge/winimerge/releases/download/vX.Y.Z/...`). `Externals/winimerge` is a
-  submodule (for reference/builds), and `Src/WinIMergeLib.h` is a **copy** of the interface that `Src/ImgMergeFrm.h`
+  submodule (for reference/builds; at `10e78f7` on 2026-11-07), and `Src/WinIMergeLib.h` is a **copy** of the interface that `Src/ImgMergeFrm.h`
   includes. A new interface method therefore needs: a WinIMerge release, `DownloadDeps.cmd` + `Externals/versions.txt`
   + submodule bump (maintainer), and the copy updated. Calling a method the loaded DLL does not have crashes (vtable).
 - Options: `Src/OptionsDef.h` (`OPT_CMP_IMG_*` → `Settings/Image*` registry values), defaults/ranges in

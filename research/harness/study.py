@@ -1,9 +1,10 @@
 """Experiment runner: shrink -> (codec) -> enlarge with each candidate -> compare with the original.
 
-    python3 study.py run EXP --images DIR [--jobs 4] [--out results/] [--limit-images a,b]
+    python3 study.py run EXP --images DIR [--tag TAG] [--jobs 4] [--out results/] [--only a,b] [--down-only]
     python3 study.py list
 
-EXP is one of the keys of EXPERIMENTS below. Results are appended to <out>/<EXP>.csv, one row per
+EXP is one of the keys of EXPERIMENTS below. Results are appended to <out>/<EXP>_<TAG>.csv (<EXP>.csv
+without --tag; the study used the tags synth and real), one row per
 (image, edit, shrinker, factor, codec, candidate). Everything is computed in memory from the
 large originals in --images (PNG/JPEG/WebP files, decoded once with Pillow), so the harness can be
 re-run on the user's own pairs folder (see compare_pairs.py for real pairs).

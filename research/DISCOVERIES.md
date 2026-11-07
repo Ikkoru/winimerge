@@ -4,7 +4,8 @@ A running log, newest sections appended at the end. Each entry says what was mea
 what, and how sure it is. "Measured" = run in this session with the harness in
 `research/harness/`; "Read" = read in source code or docs; "Inferred" = reasoning, not tested.
 
-Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
+Sessions: 2026-10-14 (study, §1–12), 2026-10-14 to 10-21 (follow-up by goal, §13), 2026-11-06/07 (upstream
+merged, Follow View; notes in §8). Machine: Linux x86-64 container, 4 cores, no GPU.
 
 ---
 
@@ -14,7 +15,9 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
   upstream FreeImage 3.18.0** (Ubuntu's `libfreeimage3`). Measured: all six filters
   (box, bilinear, B-spline, bicubic, Catmull-Rom, Lanczos3), up and down, 8-bit and float
   paths, 258,732 output values, zero differences. So anything learned with stock FreeImage
-  applies to WinMerge.
+  applies to WinMerge. Upstream WinIMerge has since made the fork a git submodule (`FreeImage`, at
+  `6bf6929` of branch `winmerge`, 2026-10-25); its `Resize.cpp` and `Filters.h` are unchanged since the
+  version measured (read, 2026-11-07).
 - **Building the fork on Linux**: `make -f Makefile.gnu` builds, but the `.so` fails to load
   (`undefined symbol: TIFFHashSetNew`) because `Source/LibTIFF4/tif_hash_set.c` is missing from
   `Makefile.srcs`. Adding it fixes the build. (Read + measured.)
@@ -201,7 +204,7 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
   clearly (24 vs 82). Neither comes close to comparing at the smaller size. Measured.
 - **JPEG noise does not get diluted at the small size.** With JPEG q85 copies, comparing at the small
   size marks as many blocks at thresholds 8–16 as enlarging does, but at threshold 64 it drops to
-  ≤0.9 % while the enlargers stay at 7–35 %. Measured.
+  ≤0.4 % while the enlargers stay at 6–35 % (medians per factor, synthetic set). Measured.
 
 ## 8. WinIMerge implementation notes (for whoever continues the PRs)
 
@@ -226,7 +229,8 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
   tall shown image deletes nothing. Clamping inside `TemporaryTransformation` fixes both (fork PR #3).
 - **Upstream #42 fills the columns/rows a copy adds** (pre-existing bug 1 in HANDOFF): it checks positions
   against the extended size (`extendsImage`); a scaled destination pane needs the scaled position check
-  instead, which the scale branch does when merging (`test_copy_extend.cpp`).
+  instead, which the scale branch does when merging, so a scaled pane is never extended
+  (`test_copy_extend.cpp`, `test_copy_extend_scaled.cpp`).
 - **There is no way to hide a pane**: WinMerge 2.16.59 added remembering the splitter position for image,
   text, web and binary compares (#3593, #3611); the splitter keeps each pane at least 32 px wide. Moving
   one image by hand: Image > Dragging Mode > Adjust Offset (drag), or Shift+arrow (1 px) and
@@ -312,6 +316,7 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
 - **WinMerge's threshold option accepts more than the menu offers** (read in the source): the menu has
   0, 2, 4, 8, 16, 32, 64, but the option `Settings/ImageColorDistanceThreshold` is stored × 1000 with a
   range up to 442 × 1000 (442 = the largest RGB distance between two opaque colours). Not tried.
+
 ## 12. Real pictures and linear light
 
 - **On real pictures the enlargers find more edits than on synthetic art, and with JPEG copies the
@@ -381,7 +386,7 @@ Session date: 2026-10-14. Machine: Linux x86-64 container, 4 cores, no GPU.
   half, SSIMULACRA2 Lanczos3 in 95 %; on the UI text Catmull-Rom is closer by ꟻLIP and Butteraugli at
   every factor (SSIMULACRA2 and WinMerge's threshold still prefer Lanczos3). What
   Catmull-Rom does better everywhere is ringing: it adds less overshoot next to hard edges in 82 % of the
-  pairs (0.165 against 0.208 levels on average; manga screentone is the exception). So the user's
+  pairs (median 0.165 against 0.208 levels; manga screentone is the exception). So the user's
   impression fits hard-edged art and text, not paintings or photos; Lanczos3 stays the better general
   choice, and the difference is small either way.
 - **Tiny edits: with a lossless small copy the matched shrink marks every one, down to a quarter of a
