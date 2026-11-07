@@ -318,22 +318,31 @@ public:
 	{
 		if (pane < 0 || pane >= m_nImages || m_bRO[pane])
 			return false;
-		left = (std::max)(left, 0);
-		top = (std::max)(top, 0);
-		right = (std::min)(right, static_cast<int>(m_imgOrig32[pane].width()));
-		bottom = (std::min)(bottom, static_cast<int>(m_imgOrig32[pane].height()));
-		if (right <= left || bottom <= top)
-			return false;
 
 		Image *oldbitmap = new Image(m_imgOrig32[pane]);
 
+		bool deleted = false;
 		{
 			TemporaryTransformation tmp(*this);
-			for (unsigned i = top; i < static_cast<unsigned>(bottom); ++i)
+			// The selection can extend beyond the image (e.g. into the area of a larger image). Clamp it to
+			// the image as shown, i.e. after the temporary rotation/flip, which swaps width and height for
+			// 90/270 degrees.
+			const int width = m_imgOrig32[pane].width(), height = m_imgOrig32[pane].height();
+			left = std::clamp(left, 0, width);
+			right = std::clamp(right, left, width);
+			top = std::clamp(top, 0, height);
+			bottom = std::clamp(bottom, top, height);
+			for (int i = top; i < bottom; ++i)
 			{
 				unsigned char* scanline = m_imgOrig32[pane].scanLine(i);
 				memset(scanline + left * 4, 0, (right - left) * 4);
 			}
+			deleted = right > left && bottom > top;
+		}
+		if (!deleted)
+		{
+			delete oldbitmap;
+			return false;
 		}
 
 		Image *newbitmap = new Image(m_imgOrig32[pane]);
@@ -560,8 +569,8 @@ protected:
 		if (width == 0 || height == 0)
 			return;
 
-		int left = std::clamp(x, 0, width - 1);
-		int top = std::clamp(y, 0, height - 1);
+		int left = std::clamp(x, 0, width);
+		int top = std::clamp(y, 0, height);
 		int right = std::clamp(static_cast<int>(x + image.width()), 0, width);
 		int bottom = std::clamp(static_cast<int>(y + image.height()), 0, height);
 		if (right - left <= 0)
